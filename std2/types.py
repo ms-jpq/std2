@@ -1,2 +1,3 @@
 class Void:
-    pass
+    def __bool__(self) -> bool:
+        return False

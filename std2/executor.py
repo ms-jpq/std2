@@ -12,27 +12,16 @@ class Executor:
     def __init__(self) -> None:
         self._th = Thread(target=self._cont, daemon=True)
         self._ch: SimpleQueue = SimpleQueue()
-        self._th.start()
 
     def _cont(self) -> None:
         while True:
             f = self._ch.get()
             f()
 
-    async def run(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-        fut: Future = Future()
-
-        def cont() -> None:
-            try:
-                ret = f(*args, **kwargs)
-                fut.set_result(ret)
-            except BaseException as e:
-                fut.set_exception(e)
-
-        self._ch.put_nowait(cont)
-        return await run_in_executor(fut.result)
 
     def run_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+        self._th.start()
+
         fut: Future = Future()
 
         def cont() -> None:
@@ -44,3 +33,19 @@ class Executor:
 
         self._ch.put_nowait(cont)
         return fut.result()
+
+
+    async def run(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+        self._th.start()
+
+        fut: Future = Future()
+
+        def cont() -> None:
+            try:
+                ret = f(*args, **kwargs)
+                fut.set_result(ret)
+            except BaseException as e:
+                fut.set_exception(e)
+
+        self._ch.put_nowait(cont)
+        return await run_in_executor(fut.result)
