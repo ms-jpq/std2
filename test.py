@@ -7,7 +7,7 @@ from unittest import defaultTestLoader
 from unittest.runner import TextTestRunner
 from unittest.signals import installHandler
 
-from std2.logging import LOG_LEVELS
+from .std2.logging import LOG_LEVELS
 
 _base_ = dirname(realpath(__file__))
 _parent_ = dirname(_base_)

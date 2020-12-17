@@ -1,7 +1,7 @@
 from asyncio.subprocess import PIPE, create_subprocess_exec
 from dataclasses import dataclass
+from os import environ, getcwd
 from typing import Mapping, Optional, cast
-from os import getcwd, getenv
 
 
 @dataclass(frozen=True)
@@ -24,7 +24,7 @@ async def call(
         stdout=PIPE,
         stderr=PIPE,
         cwd=getcwd() if cwd is None else cwd,
-        env=getenv() if env is None else {**getenv(), **env}
+        env=environ if env is None else {**environ, **env}
     )
     stdout, stderr = await proc.communicate(stdin)
     code = cast(int, proc.returncode)
