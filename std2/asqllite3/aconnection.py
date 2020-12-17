@@ -5,58 +5,21 @@ from sqlite3 import Connection, Cursor, Row, connect
 from typing import (
     Any,
     AsyncContextManager,
-    AsyncIterable,
-    AsyncIterator,
     Callable,
     Iterable,
-    Iterator,
     Optional,
-    Set,
     Type,
     TypeVar,
     Union,
     cast,
 )
 
-from .executor import Executor
+from ..concurrent.futures import Executor
+from .acursor import ACursor
 
 T = TypeVar("T")
 
 SQL_TYPES = Union[int, float, str, bytes, None]
-
-
-def sql_escape(param: str, nono: Set[str], escape: str) -> str:
-    def cont() -> Iterator[str]:
-        for char in iter(param):
-            if char in nono:
-                yield escape
-            yield char
-
-    return "".join(cont())
-
-
-class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
-    def __init__(self, chan: Executor, cursor: Cursor) -> None:
-        self._chan = chan
-        self._cursor = cursor
-
-    async def __aexit__(self, *_: Any) -> None:
-        await self._chan.run(self._cursor.close)
-
-    def __aiter__(self) -> AsyncIterator[Row]:
-        async def cont() -> AsyncIterator[Row]:
-            while rows := await self._chan.run(self._cursor.fetchmany):
-                for row in rows:
-                    yield row
-
-        return cont()
-
-    @property
-    def lastrowid(self) -> Optional[int]:
-        return cast(Optional[int], self._cursor.lastrowid)
-
-    async def fetch_one(self) -> Row:
-        return await self._chan.run(self._cursor.fetchone)
 
 
 class AConnection(AsyncContextManager[None]):

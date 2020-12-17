@@ -3,7 +3,8 @@ from queue import SimpleQueue
 from threading import Thread
 from typing import Any, Callable, TypeVar
 
-from .asyncio import run_in_executor
+
+from ..asyncio import run_in_executor
 
 T = TypeVar("T")
 
@@ -17,7 +18,6 @@ class Executor:
         while True:
             f = self._ch.get()
             f()
-
 
     def run_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         self._th.start()
@@ -33,7 +33,6 @@ class Executor:
 
         self._ch.put_nowait(cont)
         return fut.result()
-
 
     async def run(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         self._th.start()
