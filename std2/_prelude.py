@@ -1,7 +1,17 @@
-from typing import AsyncIterator, ByteString, Union, TypeVar
+from typing import AsyncIterator, ByteString, Union, TypeVar, overload
 
 T = TypeVar("T")
 U = TypeVar("U")
+
+
+@overload
+async def anext(ait: AsyncIterator[T]) -> T:
+    ...
+
+
+@overload
+async def anext(ait: AsyncIterator[T], default: U) -> Union[T, U]:
+    ...
 
 
 async def anext(ait: AsyncIterator[T], *args: U) -> Union[T, U]:
