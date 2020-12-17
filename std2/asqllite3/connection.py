@@ -10,16 +10,14 @@ from typing import (
     Optional,
     Type,
     TypeVar,
-    Union,
     cast,
 )
 
 from ..concurrent.futures import Executor
-from .acursor import ACursor
+from .cursor import ACursor
+from .types import SQL_TYPES
 
 T = TypeVar("T")
-
-SQL_TYPES = Union[int, float, str, bytes, None]
 
 
 class AConnection(AsyncContextManager[None]):
