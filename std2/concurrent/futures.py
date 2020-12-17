@@ -9,7 +9,7 @@ from ..asyncio import run_in_executor
 T = TypeVar("T")
 
 
-class Executor:
+class AExecutor:
     def __init__(self) -> None:
         self._th = Thread(target=self._cont, daemon=True)
         self._ch: SimpleQueue = SimpleQueue()
@@ -19,7 +19,7 @@ class Executor:
             f = self._ch.get()
             f()
 
-    def run_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         self._th.start()
 
         fut: Future[T] = Future()
@@ -34,7 +34,7 @@ class Executor:
         self._ch.put_nowait(cont)
         return fut.result()
 
-    async def run(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    async def submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         self._th.start()
 
         fut: Future = Future()
