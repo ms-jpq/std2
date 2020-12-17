@@ -1,16 +1,15 @@
-from logging import (DEBUG, ERROR, FATAL, INFO, WARN, FileHandler, Formatter,
-                     Handler, LogRecord, StreamHandler, getLevelName)
-from typing import Mapping
+from logging import DEBUG, ERROR, FATAL, INFO, WARN, getLevelName
+from typing import Iterator, Mapping, Tuple
 
-LOG_FMT = """
---  {name}
-level:    {levelname}
-time:     {asctime}
-module:   {module}
-line:     {lineno}
-function: {funcName}
-message:  |-
-{message}
-"""
 
-DATE_FMT = "%Y-%m-%d %H:%M:%S"
+def _gen_lvls() -> Mapping[str, int]:
+    def cont() -> Iterator[Tuple[str, int]]:
+        for lv in (DEBUG, INFO, WARN, ERROR, FATAL):
+            name: str = getLevelName(lv)
+            yield name, lv
+            yield name.lower(), lv
+
+    return {k: v for k, v in cont()}
+
+
+LOG_LEVELS = _gen_lvls()

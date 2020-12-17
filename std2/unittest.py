@@ -4,20 +4,6 @@ from typing import Callable, Iterable, Iterator, Optional, Type
 from unittest.case import TestCase
 from unittest.loader import TestLoader
 from unittest.suite import TestSuite
-from time import monotonic
-from contextlib import contextmanager
-from logging import getLogger
-
-
-@contextmanager
-def profiler() -> Iterator[None]:
-    log = getLogger()
-    p = monotonic()
-    try:
-        yield None
-    finally:
-        elapsed = monotonic() - p
-        log.info("%s", f"Time Elapsed - {elapsed}")
 
 
 def polyclass_matrix(*classes: Iterable[Type]) -> Iterator[Type]:

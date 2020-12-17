@@ -1,22 +1,13 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, Namespace
-from logging import (
-    DEBUG,
-    ERROR,
-    FATAL,
-    INFO,
-    WARN,
-    Formatter,
-    StreamHandler,
-    getLevelName,
-    getLogger,
-)
+from logging import WARN, Formatter, StreamHandler, getLogger
 from os.path import dirname, join, realpath
-from typing import Iterator, Mapping, Tuple
 from unittest import defaultTestLoader
 from unittest.runner import TextTestRunner
 from unittest.signals import installHandler
+
+from std2.logging import LOG_LEVELS
 
 _base_ = dirname(realpath(__file__))
 _parent_ = dirname(_base_)
@@ -45,19 +36,9 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
-def gen_lvls() -> Mapping[str, int]:
-    def cont() -> Iterator[Tuple[str, int]]:
-        for lv in (DEBUG, INFO, WARN, ERROR, FATAL):
-            name: str = getLevelName(lv)
-            yield name, lv
-            yield name.lower(), lv
-
-    return {k: v for k, v in cont()}
-
-
 def setup_logging(level: str) -> None:
     log = getLogger()
-    log.setLevel(gen_lvls().get(level, WARN))
+    log.setLevel(LOG_LEVELS.get(level, WARN))
 
     formatter = Formatter(fmt=_log_fmt_, datefmt=_log_date_fmt_, style="{")
     handlers = (StreamHandler(),)
