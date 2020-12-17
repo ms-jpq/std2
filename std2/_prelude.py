@@ -1,35 +1,18 @@
-from typing import AsyncIterator, ByteString, Union, TypeVar, overload
+from os import makedirs
+from os.path import dirname
+from typing import ByteString, Union
 
-T = TypeVar("T")
-U = TypeVar("U")
-
-
-@overload
-async def anext(ait: AsyncIterator[T]) -> T:
-    ...
-
-
-@overload
-async def anext(ait: AsyncIterator[T], default: U) -> Union[T, U]:
-    ...
-
-
-async def anext(ait: AsyncIterator[T], *args: U) -> Union[T, U]:
-    if len(args) == 0:
-        return await ait.__anext__()
-    elif len(args) == 1:
-        try:
-            return await ait.__anext__()
-        except StopAsyncIteration:
-            return next(iter(args))
-    else:
-        raise ValueError()
+FOLDER_MODE = 0o755
 
 
 def slurp(path: str) -> str:
-    with open(path) as fd:
+    with open(path, mode="r") as fd:
         return fd.read()
 
 
 def spit(path: str, thing: Union[str, ByteString]) -> None:
-    pass
+    mode = "wb" if isinstance(ByteString) else "w"
+    parent = dirname(dirname)
+    makedirs(parent, mode=FOLDER_MODE, exist_ok=True)
+    with open(path, mode=mode) as fd:
+        return fd.write(thing)
