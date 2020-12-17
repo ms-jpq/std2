@@ -13,33 +13,22 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    overload,
 )
+
+from ..types import Void
 
 T = TypeVar("T")
 U = TypeVar("U")
 
 
-@overload
-async def anext(ait: AsyncIterator[T]) -> T:
-    ...
-
-
-@overload
-async def anext(ait: AsyncIterator[T], default: U) -> Union[T, U]:
-    ...
-
-
-async def anext(ait: AsyncIterator[T], *args: U) -> Union[T, U]:
-    if len(args) == 0:
+async def anext(ait: AsyncIterator[T], default: Union[U, Void]) -> Union[T, U]:
+    if default is Void:
         return await ait.__anext__()
-    elif len(args) == 1:
+    else:
         try:
             return await ait.__anext__()
         except StopAsyncIteration:
-            return next(iter(args))
-    else:
-        raise ValueError()
+            return default
 
 
 async def race(aw: Awaitable[T], *aws: Awaitable[T]) -> Tuple[T, Sequence[Future[T]]]:
