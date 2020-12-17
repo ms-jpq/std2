@@ -22,7 +22,7 @@ class Executor:
     def run_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         self._th.start()
 
-        fut: Future = Future()
+        fut: Future[T] = Future()
 
         def cont() -> None:
             try:
