@@ -20,7 +20,7 @@ from .types import SQL_TYPES
 T = TypeVar("T")
 
 
-class AConnection(AsyncContextManager[None]):
+class AConnection(AsyncContextManager[AConnection]):
     def __init__(self, database: str = ":memory:") -> None:
         self._exe = Executor()
         self._lock = Lock()

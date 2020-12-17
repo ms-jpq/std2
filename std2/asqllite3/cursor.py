@@ -6,24 +6,26 @@ from typing import (
     AsyncContextManager,
     AsyncIterable,
     AsyncIterator,
+    Iterable,
     Optional,
     cast,
 )
 
 from ..concurrent.futures import Executor
+from .types import SQL_TYPES
 
 
 class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
-    def __init__(self, chan: Executor, cursor: Cursor) -> None:
-        self._chan = chan
+    def __init__(self, exe: Executor, cursor: Cursor) -> None:
+        self._exe = exe
         self._cursor = cursor
 
     async def __aexit__(self, *_: Any) -> None:
-        await self._chan.run(self._cursor.close)
+        await self._exe.run(self._cursor.close)
 
     def __aiter__(self) -> AsyncIterator[Row]:
         async def cont() -> AsyncIterator[Row]:
-            while rows := await self._chan.run(self._cursor.fetchmany):
+            while rows := await self._exe.run(self._cursor.fetchmany):
                 for row in rows:
                     yield row
 
@@ -33,5 +35,8 @@ class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
     def lastrowid(self) -> Optional[int]:
         return cast(Optional[int], self._cursor.lastrowid)
 
+    async def execute(self, sql: str, params: Iterable[SQL_TYPES]) -> None:
+        return await self._exe.run(self._cursor.execute, sql, params)
+
     async def fetch_one(self) -> Row:
-        return await self._chan.run(self._cursor.fetchone)
+        return await self._exe.run(self._cursor.fetchone)
