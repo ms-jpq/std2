@@ -8,7 +8,7 @@ from unittest.signals import installHandler
 
 _base_ = dirname(realpath(__file__))
 _parent_ = dirname(_base_)
-_tests_ = join(_base_, "tests", "cases")
+_tests_ = join(_base_, "tests")
 
 
 def parse_args() -> Namespace:
