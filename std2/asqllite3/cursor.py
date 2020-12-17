@@ -8,6 +8,8 @@ from typing import (
     AsyncIterator,
     Iterable,
     Optional,
+    Sequence,
+    Tuple,
     cast,
 )
 
@@ -21,7 +23,7 @@ class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
         self._cursor = cursor
 
     async def __aexit__(self, *_: Any) -> None:
-        await self._exe.run(self._cursor.close)
+        await self.close()
 
     def __aiter__(self) -> AsyncIterator[Row]:
         async def cont() -> AsyncIterator[Row]:
@@ -32,11 +34,48 @@ class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
         return cont()
 
     @property
+    def rowcount(self) -> int:
+        return cast(int, self._cursor.rowcount)
+
+    @property
     def lastrowid(self) -> Optional[int]:
         return cast(Optional[int], self._cursor.lastrowid)
 
-    async def execute(self, sql: str, params: Iterable[SQL_TYPES]) -> None:
-        return await self._exe.run(self._cursor.execute, sql, params)
+    @property
+    def arraysize(self) -> int:
+        return cast(int, self._cursor.arraysize)
 
-    async def fetch_one(self) -> Row:
+    # @property.setter
+    # def arraysize(self, n: int) -> None:
+    #     self._cursor.arraysize
+
+    @property
+    def description(self) -> Sequence[Tuple[Any, None, None, None, None, None, None]]:
+        return cast(
+            Sequence[Tuple[Any, None, None, None, None, None, None]],
+            self._cursor.description,
+        )
+
+    async def execute(self, sql: str, params: Iterable[SQL_TYPES]) -> None:
+        await self._exe.run(self._cursor.execute, sql, params)
+
+    async def executemany(
+        self, sql: str, params: Iterable[Iterable[SQL_TYPES]]
+    ) -> None:
+        await self._exe.run(self._cursor.executemany, sql, params)
+
+    async def executescript(self, sql: str) -> None:
+        await self._exe.run(self._cursor.executescript, sql)
+
+    async def fetchone(self) -> Row:
         return await self._exe.run(self._cursor.fetchone)
+
+    async def fetchmany(self, size: Optional[int]) -> Sequence[Row]:
+        fetch_size = self._cursor.arraysize if size is None else size
+        return await self._exe.run(self._cursor.fetchmany, fetch_size)
+
+    async def fetchall(self) -> Sequence[Row]:
+        return await self._exe.run(self._cursor.fetchall)
+
+    async def close(self) -> None:
+        await self._exe.run(self._cursor.close)

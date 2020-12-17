@@ -20,7 +20,7 @@ from .types import SQL_TYPES
 T = TypeVar("T")
 
 
-class AConnection(AsyncContextManager[AConnection]):
+class AConnection(AsyncContextManager[None]):
     def __init__(self, database: str = ":memory:") -> None:
         self._exe = Executor()
         self._lock = Lock()
@@ -50,6 +50,10 @@ class AConnection(AsyncContextManager[AConnection]):
     def row_factory(self) -> Optional[Type]:
         return cast(Optional[Type], self._conn.row_factory)
 
+    @property
+    def total_changes(self) -> int:
+        return cast(int, self._conn.total_changes)
+
     async def cursor(self) -> ACursor:
         def cont() -> ACursor:
             cursor = self._conn.cursor()
@@ -73,7 +77,7 @@ class AConnection(AsyncContextManager[AConnection]):
 
         return await self._exe.run(cont)
 
-    async def execute_many(
+    async def executemany(
         self, sql: str, params: Iterable[Iterable[SQL_TYPES]] = ()
     ) -> ACursor:
         def cont() -> ACursor:
@@ -82,7 +86,7 @@ class AConnection(AsyncContextManager[AConnection]):
 
         return await self._exe.run(cont)
 
-    async def execute_script(self, script: str) -> ACursor:
+    async def executescript(self, script: str) -> ACursor:
         def cont() -> ACursor:
             cursor = self._conn.executescript(script)
             return ACursor(self._exe, cursor=cursor)
