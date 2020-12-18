@@ -4,6 +4,7 @@ from asyncio.futures import Future
 from asyncio.tasks import FIRST_COMPLETED, create_task, wait
 from functools import partial
 from itertools import chain
+from time import monotonic
 from typing import (
     Any,
     AsyncIterator,
@@ -13,7 +14,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast
+    cast,
 )
 
 from ..types import Void, VoidType
@@ -37,6 +38,14 @@ async def race(aw: Awaitable[T], *aws: Awaitable[T]) -> Tuple[T, Sequence[Future
     done, pending = await wait(futs, return_when=FIRST_COMPLETED)
     ret = done.pop().result()
     return ret, tuple(chain(done, pending))
+
+
+async def timer(delay: float) -> AsyncIterator[float]:
+    yield 0.0
+    t = monotonic()
+    while True:
+        t = monotonic()
+        yield t
 
 
 async def run_in_executor(f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
