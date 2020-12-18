@@ -1,15 +1,15 @@
-from typing import Any
+from typing import Any, Mapping, Sequence
 
 
 def merge(ds1: Any, ds2: Any, replace: bool = False) -> Any:
-    if type(ds1) is dict and type(ds2) is dict:
+    if isinstance(ds1, Mapping) and isinstance(ds2, Mapping):
         append = {k: merge(ds1.get(k), v, replace) for k, v in ds2.items()}
         return {**ds1, **append}
-    if type(ds1) is list and type(ds2) is list:
+    if isinstance(ds1, Sequence) and isinstance(ds2, Sequence):
         if replace:
             return ds2
         else:
-            return [*ds1, *ds2]
+            return tuple((*ds1, *ds2))
     else:
         return ds2
 
