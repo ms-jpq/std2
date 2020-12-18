@@ -27,7 +27,7 @@ class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
 
     def __aiter__(self) -> AsyncIterator[Row]:
         async def cont() -> AsyncIterator[Row]:
-            while rows := await self._exe.submit(self._cursor.fetchmany):
+            while rows := await self.fetchmany():
                 for row in rows:
                     yield row
 

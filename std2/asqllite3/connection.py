@@ -22,7 +22,7 @@ T = TypeVar("T")
 
 class AConnection(AsyncContextManager[None]):
     def __init__(self, database: str = ":memory:") -> None:
-        self._exe = AExecutor()
+        self._exe = AExecutor(daemon=False)
         self._lock = Lock()
 
         def cont() -> Connection:

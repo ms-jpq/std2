@@ -10,8 +10,8 @@ T = TypeVar("T")
 
 
 class AExecutor:
-    def __init__(self) -> None:
-        self._th = Thread(target=self._cont, daemon=True)
+    def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
+        self._th = Thread(target=self._cont, daemon=daemon, name=name)
         self._ch: SimpleQueue[
             Optional[Tuple[Future, Callable[[], Any]]]
         ] = SimpleQueue()
