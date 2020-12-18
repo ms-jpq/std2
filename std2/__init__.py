@@ -1,1 +1,1 @@
-from ._prelude import *
+from ._prelude import slurp, spit
