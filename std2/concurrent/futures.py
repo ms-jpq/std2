@@ -1,8 +1,8 @@
 from concurrent.futures import Future
 from queue import SimpleQueue
 from threading import Thread
-from typing import Any, Callable, TypeVar
-
+from typing import Any, Callable, Optional, Tuple, TypeVar
+from functools import partial
 
 from ..asyncio import run_in_executor
 
@@ -12,44 +12,41 @@ T = TypeVar("T")
 class AExecutor:
     def __init__(self) -> None:
         self._th = Thread(target=self._cont, daemon=True)
-        self._ch: SimpleQueue = SimpleQueue()
+        self._ch: SimpleQueue[
+            Optional[Tuple[Future, Callable[[], Any]]]
+        ] = SimpleQueue()
 
     def _cont(self) -> None:
         while True:
-            f = self._ch.get()
-            if f:
-                f()
+            work = self._ch.get()
+            if work:
+                fut, func = work
+
+                def cont() -> None:
+                    try:
+                        ret = func()
+                    except BaseException as e:
+                        fut.set_exception(e)
+                    else:
+                        fut.set_result(ret)
+
+                cont()
             else:
                 break
 
-    def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    def _submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> Future[T]:
         self._th.start()
-
         fut: Future[T] = Future()
+        func = partial(f, *args, **kwargs)
+        self._ch.put_nowait((fut, func))
+        return fut
 
-        def cont() -> None:
-            try:
-                ret = f(*args, **kwargs)
-                fut.set_result(ret)
-            except BaseException as e:
-                fut.set_exception(e)
-
-        self._ch.put_nowait(cont)
+    def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+        fut = self._submit(f, *args, **kwargs)
         return fut.result()
 
     async def submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-        self._th.start()
-
-        fut: Future = Future()
-
-        def cont() -> None:
-            try:
-                ret = f(*args, **kwargs)
-                fut.set_result(ret)
-            except BaseException as e:
-                fut.set_exception(e)
-
-        self._ch.put_nowait(cont)
+        fut = self._submit(f, *args, **kwargs)
         return await run_in_executor(fut.result)
 
     async def Shutdown(self) -> None:
