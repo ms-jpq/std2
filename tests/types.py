@@ -2,7 +2,7 @@ from unittest import TestCase
 from ..std2.types import Void, VoidType
 
 
-class TestVoid(TestCase):
+class Void(TestCase):
     def test_1(self) -> None:
         self.assertIs(Void, Void)
 

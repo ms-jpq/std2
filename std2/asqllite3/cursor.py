@@ -70,7 +70,7 @@ class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
     async def fetchone(self) -> Row:
         return await self._exe.submit(self._cursor.fetchone)
 
-    async def fetchmany(self, size: Optional[int]) -> Sequence[Row]:
+    async def fetchmany(self, size: Optional[int] = None) -> Sequence[Row]:
         fetch_size = self._cursor.arraysize if size is None else size
         return await self._exe.submit(self._cursor.fetchmany, fetch_size)
 
