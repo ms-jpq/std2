@@ -13,22 +13,23 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    cast
 )
 
-from ..types import Void
+from ..types import Void, VoidType
 
 T = TypeVar("T")
 U = TypeVar("U")
 
 
-async def anext(ait: AsyncIterator[T], default: Union[U, Void]) -> Union[T, U]:
+async def anext(ait: AsyncIterator[T], default: Union[U, VoidType]) -> Union[T, U]:
     if default is Void:
         return await ait.__anext__()
     else:
         try:
             return await ait.__anext__()
         except StopAsyncIteration:
-            return default
+            return cast(U, default)
 
 
 async def race(aw: Awaitable[T], *aws: Awaitable[T]) -> Tuple[T, Sequence[Future[T]]]:

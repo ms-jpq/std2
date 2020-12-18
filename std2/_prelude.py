@@ -11,8 +11,8 @@ def slurp(path: str) -> str:
 
 
 def spit(path: str, thing: Union[str, ByteString]) -> None:
-    mode = "wb" if isinstance(ByteString) else "w"
-    parent = dirname(dirname)
+    mode = "wb" if isinstance(thing, ByteString) else "w"
+    parent = dirname(path)
     makedirs(parent, mode=FOLDER_MODE, exist_ok=True)
     with open(path, mode=mode) as fd:
-        return fd.write(thing)
+        fd.write(thing)

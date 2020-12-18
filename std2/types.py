@@ -1,7 +1,7 @@
 from typing import Final
 
 
-class _Void:
+class VoidType:
     def __bool__(self) -> bool:
         return False
 
@@ -9,4 +9,4 @@ class _Void:
         return type(self).__name__
 
 
-Void: Final[_Void] = _Void()
+Void: Final[VoidType] = VoidType()

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ..std2.types import Void, _Void
+from ..std2.types import Void, VoidType
 
 
 class TestVoid(TestCase):
@@ -7,7 +7,7 @@ class TestVoid(TestCase):
         self.assertIs(Void, Void)
 
     def test_2(self) -> None:
-        self.assertIsNot(Void, _Void)
+        self.assertIsNot(Void, VoidType)
 
     def test_3(self) -> None:
-        self.assertIsNot(Void, _Void())
+        self.assertIsNot(Void, VoidType())
