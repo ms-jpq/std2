@@ -17,7 +17,10 @@ class AExecutor:
     def _cont(self) -> None:
         while True:
             f = self._ch.get()
-            f()
+            if f:
+                f()
+            else:
+                break
 
     def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         self._th.start()
@@ -48,3 +51,8 @@ class AExecutor:
 
         self._ch.put_nowait(cont)
         return await run_in_executor(fut.result)
+
+    async def Shutdown(self) -> None:
+        self._th.start()
+        self._ch.put_nowait(None)
+        return await run_in_executor(self._th.join)
