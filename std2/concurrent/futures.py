@@ -50,6 +50,6 @@ class AExecutor:
         return await run_in_executor(fut.result)
 
     async def Shutdown(self) -> None:
-        self._th.start()
-        self._ch.put_nowait(None)
-        return await run_in_executor(self._th.join)
+        if self._th.is_alive():
+            self._ch.put_nowait(None)
+            await run_in_executor(self._th.join)
