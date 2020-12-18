@@ -1,4 +1,4 @@
-from asyncio.subprocess import PIPE, create_subprocess_exec,
+from asyncio.subprocess import PIPE, create_subprocess_exec
 from subprocess import CalledProcessError
 from dataclasses import dataclass
 from os import environ, getcwd
@@ -32,6 +32,8 @@ async def call(
     code = cast(int, proc.returncode)
 
     if expected_code is not None and code != expected_code:
-        raise CalledProcessError(returncode=code,cmd=tuple((prog, *args)), stdout=stdout, stderr=stderr)
+        raise CalledProcessError(
+            returncode=code, cmd=tuple((prog, *args)), output=stdout, stderr=stderr
+        )
     else:
         return ProcReturn(code=code, out=stdout.decode(), err=stderr.decode())

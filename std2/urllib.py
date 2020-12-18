@@ -6,7 +6,7 @@ from .asyncio import run_in_executor
 
 
 async def req(req: Union[Request, str]) -> HTTPResponse:
-    def _req() -> Any:
+    def _req() -> HTTPResponse:
         opener = build_opener()
         with opener.open(req) as resp:
             return cast(HTTPResponse, resp)

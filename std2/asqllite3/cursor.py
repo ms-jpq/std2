@@ -45,9 +45,9 @@ class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
     def arraysize(self) -> int:
         return cast(int, self._cursor.arraysize)
 
-    # @property.setter
-    # def arraysize(self, n: int) -> None:
-    #     self._cursor.arraysize
+    @arraysize.setter
+    def arraysize(self, n: int) -> None:
+        self._cursor.arraysize = n
 
     @property
     def description(self) -> Sequence[Tuple[Any, None, None, None, None, None, None]]:
