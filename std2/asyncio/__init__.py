@@ -1,2 +1,2 @@
-from ._prelude import anext, race, run_in_executor
+from ._prelude import race, run_in_executor
 from .subprocess import call
