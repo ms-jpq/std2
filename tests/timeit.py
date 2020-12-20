@@ -12,4 +12,4 @@ class TimeIt(IsolatedAsyncioTestCase):
             await sleep(t)
         d = duration()
         self.assertGreater(d, t)
-        self.assertAlmostEqual(d, t, places=2)
+        self.assertAlmostEqual(d, t, places=1)
