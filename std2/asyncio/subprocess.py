@@ -1,14 +1,14 @@
 from asyncio.subprocess import PIPE, create_subprocess_exec
-from subprocess import CalledProcessError
 from dataclasses import dataclass
 from os import environ, getcwd
+from subprocess import CalledProcessError
 from typing import Mapping, Optional, cast
 
 
 @dataclass(frozen=True)
 class ProcReturn:
     code: int
-    out: str
+    out: bytes
     err: str
 
 
@@ -23,6 +23,7 @@ async def call(
     proc = await create_subprocess_exec(
         prog,
         *args,
+        stdin=PIPE,
         stdout=PIPE,
         stderr=PIPE,
         cwd=getcwd() if cwd is None else cwd,
@@ -33,7 +34,10 @@ async def call(
 
     if expected_code is not None and code != expected_code:
         raise CalledProcessError(
-            returncode=code, cmd=tuple((prog, *args)), output=stdout, stderr=stderr
+            returncode=code,
+            cmd=tuple((prog, *args)),
+            output=stdout,
+            stderr=stderr.decode(),
         )
     else:
-        return ProcReturn(code=code, out=stdout.decode(), err=stderr.decode())
+        return ProcReturn(code=code, out=stdout, err=stderr.decode())
