@@ -1,3 +1,4 @@
+from typing import AsyncIterator
 from unittest import IsolatedAsyncioTestCase
 
 from ..std2.aitertools import aenumerate, atake, to_async
@@ -6,7 +7,7 @@ from ._consts import MODICUM_REP_FACTOR, SMOL_REP_FACTOR
 
 class ToAsync(IsolatedAsyncioTestCase):
     async def test_1(self) -> None:
-        ait = to_async([])
+        ait: AsyncIterator[int] = to_async([])
         l2 = [i async for i in ait]
         self.assertEqual(l2, [])
 
@@ -33,7 +34,7 @@ class ATake(IsolatedAsyncioTestCase):
         l2 = [i async for i in atake(ait, 3)]
         self.assertEqual(len(l2), 3)
 
-    async def test_1(self) -> None:
+    async def test_2(self) -> None:
         ait = to_async(range(1))
         l2 = [i async for i in atake(ait, 3)]
         self.assertEqual(len(l2), 1)
