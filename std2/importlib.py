@@ -23,6 +23,9 @@ def _gen_mod_name(path: str, top_level: str) -> str:
                 yield p
             elif t and not p:
                 yield "."
+                yield t
+            else:
+                pass
 
     return "".join(cont())
 

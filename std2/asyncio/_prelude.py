@@ -23,7 +23,13 @@ T = TypeVar("T")
 U = TypeVar("U")
 
 
-async def anext(ait: AsyncIterator[T], default: Union[U, VoidType]) -> Union[T, U]:
+async def pure(item: T) -> T:
+    return item
+
+
+async def anext(
+    ait: AsyncIterator[T], default: Union[U, VoidType] = Void
+) -> Union[T, U]:
     if default is Void:
         return await ait.__anext__()
     else:
