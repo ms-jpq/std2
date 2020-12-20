@@ -27,12 +27,19 @@ class ModFromPath(TestCase):
 
     def test_4(self) -> None:
         common = join(*"abc")
+        mod = common
+        top_level = join(common, *"de")
+        name = _gen_mod_name(mod, top_level=top_level)
+        self.assertEqual(name, "...c")
+
+    def test_5(self) -> None:
+        common = join(*"abc")
         mod = join(common, "d")
         top_level = join(common, *"ef")
         name = _gen_mod_name(mod, top_level=top_level)
         self.assertEqual(name, "...d")
 
-    def test_5(self) -> None:
+    def test_6(self) -> None:
         common = join(*"abc")
         mod = join(common, *"ef")
         top_level = join(common, "d")

@@ -3,7 +3,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from os.path import abspath, basename, splitext
 from sys import modules
 from types import ModuleType
-from typing import Iterator, cast
+from typing import Iterator, Sequence, cast
 
 from .itertools import deiter
 from .os.path import segments
@@ -11,30 +11,31 @@ from .os.path import segments
 
 def _gen_mod_name(path: str, top_level: str) -> str:
     front, _ = splitext(path)
+    front_segments: Sequence[str] = tuple(map(basename, segments(front)))
 
     def cont() -> Iterator[str]:
-        fit = deiter(map(basename, segments(front)))
-        tit = deiter(map(basename, segments(top_level)))
+        front_it = deiter(front_segments)
+        top_level_it = deiter(map(basename, segments(top_level)))
         while True:
-            f, t = next(fit, None), next(tit, None)
-            if f is not None and t is not None and f == t:
+            f_seg, t_seg = next(front_it, None), next(top_level_it, None)
+            if f_seg and t_seg and f_seg == t_seg:
                 pass
-            elif f and not t:
-                fit.push_back(f)
+            elif f_seg and not t_seg:
+                front_it.push_back(f_seg)
                 break
-            elif t and not f:
-                tit.push_back(t)
+            elif not f_seg and t_seg:
+                top_level_it.push_back(t_seg)
                 break
             else:
-                fit.push_back(f)
-                tit.push_back(t)
+                front_it.push_back(f_seg)
+                top_level_it.push_back(t_seg)
                 break
 
-        for _ in tit:
+        for _ in top_level_it:
             yield "."
-        for f in fit:
+        for f_seg in tuple(front_it) or front_segments[-1:]:
             yield "."
-            yield f
+            yield f_seg
 
     return "".join(cont())
 
