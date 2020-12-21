@@ -1,12 +1,26 @@
+from atexit import register
 from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
 from threading import Thread
-from typing import Any, Callable, Optional, Tuple, TypeVar
+from typing import Any, Callable, MutableSequence, Optional, Tuple, TypeVar
 
 from ..asyncio import run_in_executor
 
 T = TypeVar("T")
+
+_threads: MutableSequence[Thread] = []
+_exiting = False
+
+
+def _clean_up() -> None:
+    global _exiting
+    _exiting = True
+    for thread in _threads:
+        thread.join()
+
+
+register(_clean_up)
 
 
 class AExecutor:
@@ -15,9 +29,10 @@ class AExecutor:
         self._ch: SimpleQueue[
             Optional[Tuple[Future, Callable[[], Any]]]
         ] = SimpleQueue()
+        _threads.append(self._th)
 
     def _cont(self) -> None:
-        while True:
+        while not _exiting:
             work = self._ch.get()
             if work:
                 fut, func = work

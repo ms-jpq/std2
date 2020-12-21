@@ -45,3 +45,10 @@ class ModFromPath(TestCase):
         top_level = join(common, "d")
         name = _gen_mod_name(mod, top_level=top_level)
         self.assertEqual(name, "..e.f")
+
+    def test_7(self) -> None:
+        common = ""
+        mod = join(common, "a")
+        top_level = join(common, *"de")
+        name = _gen_mod_name(mod, top_level=top_level)
+        self.assertEqual(name, "...a")
