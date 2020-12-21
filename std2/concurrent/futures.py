@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from atexit import register
 from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
-from threading import Thread
+from threading import Thread, _register_atexit  # type: ignore
 from typing import Any, Callable, MutableSequence, Optional, Tuple, TypeVar
 
 from ..asyncio import run_in_executor
-
 
 _aexes: MutableSequence[AExecutor] = []
 
@@ -18,7 +16,7 @@ def _clean_up() -> None:
         aexe.shutdown_sync()
 
 
-register(_clean_up)
+_register_atexit(_clean_up)
 
 
 T = TypeVar("T")
