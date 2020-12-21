@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from atexit import register
 from concurrent.futures import Future
 from functools import partial
@@ -7,20 +9,19 @@ from typing import Any, Callable, MutableSequence, Optional, Tuple, TypeVar
 
 from ..asyncio import run_in_executor
 
-T = TypeVar("T")
 
-_threads: MutableSequence[Thread] = []
-_exiting = False
+_aexes: MutableSequence[AExecutor] = []
 
 
 def _clean_up() -> None:
-    global _exiting
-    _exiting = True
-    for thread in _threads:
-        thread.join()
+    for aexe in _aexes:
+        aexe.shutdown_sync()
 
 
 register(_clean_up)
+
+
+T = TypeVar("T")
 
 
 class AExecutor:
@@ -29,10 +30,10 @@ class AExecutor:
         self._ch: SimpleQueue[
             Optional[Tuple[Future, Callable[[], Any]]]
         ] = SimpleQueue()
-        _threads.append(self._th)
+        _aexes.append(self)
 
     def _cont(self) -> None:
-        while not _exiting:
+        while True:
             work = self._ch.get()
             if work:
                 fut, func = work
@@ -64,7 +65,10 @@ class AExecutor:
         fut = self._submit(f, *args, **kwargs)
         return await run_in_executor(fut.result)
 
-    async def shutdown(self) -> None:
+    def shutdown_sync(self) -> None:
         if self._th.is_alive():
             self._ch.put_nowait(None)
-            await run_in_executor(self._th.join)
+            self._th.join()
+
+    async def shutdown(self) -> None:
+        await run_in_executor(self.shutdown_sync)
