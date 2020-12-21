@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
-
+from setuptools import find_packages, setup
 
 setup(
     name="std2",
@@ -12,5 +11,5 @@ setup(
     author="ms-jpq",
     author_email="github@bigly.dog",
     url="https://github.com/ms-jpq/std2",
-    packages=["std2"],
+    packages=find_packages(exclude=("tests*",)),
 )
