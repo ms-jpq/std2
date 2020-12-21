@@ -49,7 +49,7 @@ class AExecutor:
         fut = self._submit(f, *args, **kwargs)
         return await run_in_executor(fut.result)
 
-    async def Shutdown(self) -> None:
+    async def shutdown(self) -> None:
         if self._th.is_alive():
             self._ch.put_nowait(None)
             await run_in_executor(self._th.join)

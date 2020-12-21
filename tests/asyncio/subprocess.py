@@ -1,6 +1,6 @@
+from subprocess import CalledProcessError
 from unittest import IsolatedAsyncioTestCase
 
-from subprocess import CalledProcessError
 from ...std2.asyncio.subprocess import call
 
 
