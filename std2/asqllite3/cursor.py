@@ -13,13 +13,13 @@ from typing import (
     cast,
 )
 
-from ..concurrent.futures import AExecutor
+from .connection import AConnection
 from .types import SQL_TYPES
 
 
 class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
-    def __init__(self, exe: AExecutor, cursor: Cursor) -> None:
-        self._exe = exe
+    def __init__(self, conn: AConnection, cursor: Cursor) -> None:
+        self._conn = conn
         self._cursor = cursor
 
     async def __aexit__(self, *_: Any) -> None:
@@ -57,25 +57,25 @@ class ACursor(AsyncContextManager[ACursor], AsyncIterable[Row]):
         )
 
     async def execute(self, sql: str, params: Iterable[SQL_TYPES]) -> None:
-        await self._exe.submit(self._cursor.execute, sql, params)
+        await self._conn._aexe.submit(self._cursor.execute, sql, params)
 
     async def executemany(
         self, sql: str, params: Iterable[Iterable[SQL_TYPES]]
     ) -> None:
-        await self._exe.submit(self._cursor.executemany, sql, params)
+        await self._conn._aexe.submit(self._cursor.executemany, sql, params)
 
     async def executescript(self, sql: str) -> None:
-        await self._exe.submit(self._cursor.executescript, sql)
+        await self._conn._aexe.submit(self._cursor.executescript, sql)
 
     async def fetchone(self) -> Row:
-        return await self._exe.submit(self._cursor.fetchone)
+        return await self._conn._aexe.submit(self._cursor.fetchone)
 
     async def fetchmany(self, size: Optional[int] = None) -> Sequence[Row]:
         fetch_size = self._cursor.arraysize if size is None else size
-        return await self._exe.submit(self._cursor.fetchmany, fetch_size)
+        return await self._conn._aexe.submit(self._cursor.fetchmany, fetch_size)
 
     async def fetchall(self) -> Sequence[Row]:
-        return await self._exe.submit(self._cursor.fetchall)
+        return await self._conn._aexe.submit(self._cursor.fetchall)
 
     async def close(self) -> None:
-        await self._exe.submit(self._cursor.close)
+        await self._conn._aexe.submit(self._cursor.close)

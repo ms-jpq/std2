@@ -22,7 +22,7 @@ T = TypeVar("T")
 
 class AConnection(AsyncContextManager[None]):
     def __init__(self, database: str = ":memory:") -> None:
-        self._exe = AExecutor(daemon=False)
+        self._aexe = AExecutor(daemon=False)
         self._lock = Lock()
 
         def cont() -> Connection:
@@ -30,7 +30,7 @@ class AConnection(AsyncContextManager[None]):
             conn.row_factory = Row
             return conn
 
-        self._conn = self._exe.submit_sync(cont)
+        self._conn = self._aexe.submit_sync(cont)
 
     async def __aenter__(self) -> None:
         await self._lock.acquire()
@@ -57,41 +57,41 @@ class AConnection(AsyncContextManager[None]):
     async def cursor(self) -> ACursor:
         def cont() -> ACursor:
             cursor = self._conn.cursor()
-            return ACursor(self._exe, cursor=cursor)
+            return ACursor(self, cursor=cursor)
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)
 
     async def commit(self) -> None:
-        await self._exe.submit(self._conn.commit)
+        await self._aexe.submit(self._conn.commit)
 
     async def rollback(self) -> None:
-        await self._exe.submit(self._conn.rollback)
+        await self._aexe.submit(self._conn.rollback)
 
     async def close(self) -> None:
-        await self._exe.submit(self._conn.close)
+        await self._aexe.submit(self._conn.close)
 
     async def execute(self, sql: str, params: Iterable[SQL_TYPES] = ()) -> ACursor:
         def cont() -> ACursor:
             cursor = self._conn.execute(sql, params)
-            return ACursor(self._exe, cursor=cursor)
+            return ACursor(self, cursor=cursor)
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)
 
     async def executemany(
         self, sql: str, params: Iterable[Iterable[SQL_TYPES]] = ()
     ) -> ACursor:
         def cont() -> ACursor:
             cursor = self._conn.executemany(sql, params)
-            return ACursor(self._exe, cursor=cursor)
+            return ACursor(self, cursor=cursor)
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)
 
     async def executescript(self, script: str) -> ACursor:
         def cont() -> ACursor:
             cursor = self._conn.executescript(script)
-            return ACursor(self._exe, cursor=cursor)
+            return ACursor(self, cursor=cursor)
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)
 
     async def create_function(
         self,
@@ -105,7 +105,7 @@ class AConnection(AsyncContextManager[None]):
                 name, num_params=num_params, deterministic=deterministic, func=func
             )
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)
 
     async def create_aggregate(
         self, name: str, num_params: int, aggregate_class: Type
@@ -115,7 +115,7 @@ class AConnection(AsyncContextManager[None]):
                 name, num_params=num_params, aggregate_class=aggregate_class
             )
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)
 
     async def create_collation(
         self, name: str, callable: Callable[..., SQL_TYPES]
@@ -123,7 +123,7 @@ class AConnection(AsyncContextManager[None]):
         def cont() -> None:
             self._conn.create_collation(name, callable=callable)
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)
 
     def interrupt(self) -> None:
         self._conn.interrupt()
@@ -136,4 +136,4 @@ class AConnection(AsyncContextManager[None]):
             finally:
                 cursor.close()
 
-        return await self._exe.submit(cont)
+        return await self._aexe.submit(cont)

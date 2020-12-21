@@ -20,3 +20,8 @@ class AExe(IsolatedAsyncioTestCase):
         aexe = AExecutor(daemon=True)
         two = await aexe.submit(lambda: 1 + 1)
         self.assertEqual(two, 2)
+
+    async def test_4(self) -> None:
+        aexe = AExecutor(daemon=False)
+        two = await aexe.submit(lambda: 1 + 1)
+        self.assertEqual(two, 2)

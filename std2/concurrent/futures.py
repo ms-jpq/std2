@@ -1,8 +1,8 @@
 from concurrent.futures import Future
+from functools import partial
 from queue import SimpleQueue
 from threading import Thread
 from typing import Any, Callable, Optional, Tuple, TypeVar
-from functools import partial
 
 from ..asyncio import run_in_executor
 
