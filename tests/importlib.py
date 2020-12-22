@@ -7,9 +7,9 @@ from ._consts import TOP_LEVEL
 
 class ModFromPath(TestCase):
     def test_1(self) -> None:
-        setup_py = join(TOP_LEVEL, "setup.py")
+        setup_py = join(TOP_LEVEL, "__init__.py")
         mod = module_from_path(setup_py, top_level=TOP_LEVEL)
-        self.assertEqual(mod.__name__, ".setup")
+        self.assertEqual(mod.__name__, ".__init__")
 
     def test_2(self) -> None:
         common = join(*"abc")
