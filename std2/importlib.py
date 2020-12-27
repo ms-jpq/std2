@@ -1,15 +1,14 @@
 from importlib.abc import Loader
 from importlib.util import module_from_spec, spec_from_file_location
-from os import PathLike
 from pathlib import PurePath
 from sys import modules
 from types import ModuleType
-from typing import Iterator, cast
+from typing import Iterator, Union, cast
 
 from .itertools import deiter
 
 
-def _gen_mod_name(path: PathLike, top_level: PathLike) -> str:
+def _gen_mod_name(path: Union[PurePath, str], top_level: Union[PurePath, str]) -> str:
     pp = PurePath(path)
     front_parts = (pp.parent / pp.stem).parts
 
@@ -40,10 +39,15 @@ def _gen_mod_name(path: PathLike, top_level: PathLike) -> str:
     return "".join(cont())
 
 
-def module_from_path(path: PathLike, top_level: PathLike) -> ModuleType:
+def module_from_path(
+    path: Union[PurePath, str], top_level: Union[PurePath, str]
+) -> ModuleType:
     name = _gen_mod_name(path, top_level=top_level)
-    spec = spec_from_file_location(name, path, submodule_search_locations=[])
-    mod = module_from_spec(spec)
-    modules[mod.__name__] = mod
-    cast(Loader, spec.loader).exec_module(mod)
-    return mod
+    if name in modules:
+        raise ImportError()
+    else:
+        spec = spec_from_file_location(name, path, submodule_search_locations=[])
+        mod = module_from_spec(spec)
+        modules[mod.__name__] = mod
+        cast(Loader, spec.loader).exec_module(mod)
+        return mod
