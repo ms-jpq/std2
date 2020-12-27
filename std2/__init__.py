@@ -1,1 +1,0 @@
-from ._prelude import slurp, spit
