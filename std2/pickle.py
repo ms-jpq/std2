@@ -71,7 +71,7 @@ def decode(tp: Any, thing: Any) -> T:
             return cast(T, thing)
 
     elif origin is Union:
-        errs: MutableMapping[Exception] = []
+        errs: MutableSequence[Exception] = []
         for member in args:
             try:
                 return decode(member, thing)
