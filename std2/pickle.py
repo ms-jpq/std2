@@ -1,11 +1,12 @@
 from collections.abc import Mapping, Sequence, Set
 from dataclasses import fields, is_dataclass
+from enum import Enum
 from itertools import repeat
 from operator import attrgetter
 from typing import (
     Any,
+    Callable,
     Iterable,
-    Optional,
     Type,
     TypeVar,
     Union,
@@ -24,8 +25,10 @@ class CoderError(Exception):
 def encode(thing: Any) -> Any:
     if isinstance(thing, Mapping):
         return {encode(k): encode(v) for k, v in thing.items()}
-    if isinstance(thing, Iterable):
+    elif isinstance(thing, Iterable):
         return tuple(thing)
+    elif isinstance(thing, Enum):
+        return thing.value
     elif is_dataclass(thing):
         return {
             field.name: encode(attrgetter(field.name)(thing)) for field in fields(thing)
@@ -34,7 +37,7 @@ def encode(thing: Any) -> Any:
         return thing
 
 
-def decode(tp: Optional[Type[T]], thing: Any) -> T:
+def decode(tp: Union[Type[T], None], thing: Any) -> T:
     origin, args = get_origin(tp), get_args(tp)
 
     if tp is None:
@@ -84,11 +87,14 @@ def decode(tp: Optional[Type[T]], thing: Any) -> T:
             )
             return cast(T, tuple(decode(t, item) for t, item in zip(tps, thing)))
 
+    elif issubclass(tp, Enum):
+        return cast(T, tp(thing))
+
     elif is_dataclass(tp):
         if not isinstance(thing, Mapping):
             raise CoderError(tp, thing)
         else:
-            return tp(
+            return cast(Callable[..., T], tp)(
                 **{
                     field.name: decode(field.type, thing[field.name])
                     for field in fields(tp)
