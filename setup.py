@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+
+
 from setuptools import find_packages, setup
 
 setup(
     name="std2",
     version="0.1.0",
     description="STD #2",
-    long_description=open("README.md").read(),
+    long_description=Path("README.md").read_text(),
     long_description_content_type="text/markdown",
     author="ms-jpq",
     author_email="github@bigly.dog",
