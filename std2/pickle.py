@@ -2,6 +2,7 @@ from collections.abc import (
     ByteString,
     Iterable,
     Mapping,
+    MutableMapping,
     MutableSequence,
     MutableSet,
     Sequence,
@@ -11,9 +12,24 @@ from dataclasses import fields, is_dataclass
 from enum import Enum
 from itertools import chain, repeat
 from operator import attrgetter
-from typing import Any, Callable, TypeVar, Union, cast, get_args, get_origin
+from typing import Any, Callable, Dict, FrozenSet, List
+from typing import Mapping as T_Mapping
+from typing import MutableMapping as T_MutableMapping
+from typing import MutableSequence as T_MutableSequence
+from typing import Sequence as T_Sequence
+from typing import TypeVar, Union, cast, get_args, get_origin
 
 T = TypeVar("T")
+
+
+_MAPS_M = {MutableMapping, T_MutableMapping, Dict, dict}
+_MAPS = {Mapping, T_Mapping} | _MAPS_M
+
+_SETS_M = {MutableSet}
+_SETS = {FrozenSet, frozenset} | _SETS_M
+
+_SEQS_M = {MutableSequence, T_MutableSequence, List, list}
+_SEQS = {Sequence, T_Sequence} | _SEQS_M
 
 
 class DecodeError(Exception):
@@ -60,28 +76,28 @@ def decode(tp: Any, thing: Any) -> T:
         else:
             raise DecodeError(tp, thing)
 
-    elif issubclass(origin, Mapping):
+    elif tp in _MAPS:
         if not isinstance(thing, Mapping):
             raise DecodeError(tp, thing)
         else:
             lhs, rhs = args
             return cast(T, {decode(lhs, k): decode(rhs, v) for k, v in thing.items()})
 
-    elif issubclass(origin, (MutableSet, Set)):
+    elif tp in _SETS:
         if not isinstance(thing, Iterable):
             raise DecodeError(tp, thing)
         else:
             t, *_ = args
             it = (decode(t, item) for item in thing)
-            return cast(T, {*it} if issubclass(origin, MutableSet) else frozenset(it))
+            return cast(T, {*it} if tp in _SETS_M else frozenset(it))
 
-    elif issubclass(origin, (MutableSequence, Sequence)):
+    elif tp in _SEQS:
         if not isinstance(thing, Iterable):
             raise DecodeError(tp, thing)
         else:
             t, *_ = args
             it = (decode(t, item) for item in thing)
-            return cast(T, [*it] if issubclass(origin, MutableSequence) else tuple(it))
+            return cast(T, [*it] if tp in _SEQS_M else tuple(it))
 
     elif origin is tuple:
         if not isinstance(thing, Sequence):
