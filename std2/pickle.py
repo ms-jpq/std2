@@ -1,4 +1,12 @@
-from collections.abc import ByteString, Iterable, Mapping, Sequence, Set
+from collections.abc import (
+    ByteString,
+    Iterable,
+    Mapping,
+    MutableSequence,
+    MutableSet,
+    Sequence,
+    Set,
+)
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from itertools import chain, repeat
@@ -52,27 +60,28 @@ def decode(tp: Any, thing: Any) -> T:
         else:
             raise DecodeError(tp, thing)
 
-    elif origin in {Mapping, dict}:
+    elif issubclass(origin, Mapping):
         if not isinstance(thing, Mapping):
             raise DecodeError(tp, thing)
         else:
             lhs, rhs = args
             return cast(T, {decode(lhs, k): decode(rhs, v) for k, v in thing.items()})
 
-    elif origin is Set:
-        if not isinstance(thing, Iterable):
-            raise DecodeError(tp, thing)
-        else:
-            t, *_ = args
-            return cast(T, {decode(t, item) for item in thing})
-
-    elif origin in {Sequence, list}:
+    elif issubclass(origin, (MutableSet, Set)):
         if not isinstance(thing, Iterable):
             raise DecodeError(tp, thing)
         else:
             t, *_ = args
             it = (decode(t, item) for item in thing)
-            return cast(T, tuple(it) if origin is Sequence else [*it])
+            return cast(T, {*it} if issubclass(origin, MutableSet) else frozenset(it))
+
+    elif issubclass(origin, (MutableSequence, Sequence)):
+        if not isinstance(thing, Iterable):
+            raise DecodeError(tp, thing)
+        else:
+            t, *_ = args
+            it = (decode(t, item) for item in thing)
+            return cast(T, [*it] if issubclass(origin, MutableSequence) else tuple(it))
 
     elif origin is tuple:
         if not isinstance(thing, Sequence):
