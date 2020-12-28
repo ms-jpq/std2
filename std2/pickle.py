@@ -119,7 +119,7 @@ def decode(tp: Any, thing: Any) -> T:
         if not isinstance(thing, Mapping):
             raise DecodeError(tp, thing)
         else:
-            kwargs = {
+            kwargs: Mapping[str, Any] = {
                 field.name: decode(field.type, thing[field.name])
                 for field in fields(tp)
                 if field.name in thing
