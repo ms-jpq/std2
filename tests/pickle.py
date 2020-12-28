@@ -99,6 +99,7 @@ class Decode(TestCase):
         class C:
             a: int
             b: List[str]
+            c: bool = False
 
         thing: C = decode(C, {"a": 1, "b": []})
-        self.assertEqual(thing, C(a=1, b=[]))
+        self.assertEqual(thing, C(a=1, b=[], c=False))
