@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple, Union
+from enum import Enum
+from typing import Any, Optional, Sequence, Set, Tuple, Union
 from unittest import TestCase
 
 from ..std2.pickle import CoderError, decode, encode
@@ -7,8 +8,24 @@ from ..std2.pickle import CoderError, decode, encode
 
 class Encode(TestCase):
     def test_1(self) -> None:
-        thing = encode({1, 2, 3})
+        thing = encode([1, 2, 3])
         self.assertEqual(thing, (1, 2, 3))
+
+    def test_2(self) -> None:
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: Set[str]
+
+        thing = encode(C(a=1, b=["a", "b"]))
+        self.assertEqual(thing, {"a": 1, "b": ("a", "b")})
+
+    def test_3(self) -> None:
+        class C(Enum):
+            a = b"a"
+
+        thing = encode(C.a)
+        self.assertEqual(thing, b"a")
 
 
 class Decode(TestCase):
@@ -47,3 +64,7 @@ class Decode(TestCase):
     def test_9(self) -> None:
         thing: None = decode(Any, None)
         self.assertEqual(thing, None)
+
+    def test_10(self) -> None:
+        thing: Tuple[int, ...] = decode(Tuple[int, ...], [1, 2, 3, 4, 5])
+        self.assertEqual(thing, (1, 2, 3, 4, 5))

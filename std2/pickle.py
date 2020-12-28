@@ -1,7 +1,7 @@
 from collections.abc import Mapping, Sequence, Set
 from dataclasses import fields, is_dataclass
 from enum import Enum
-from itertools import repeat
+from itertools import chain, repeat
 from operator import attrgetter
 from typing import Any, Callable, Iterable, TypeVar, Union, cast, get_args, get_origin
 
@@ -15,14 +15,18 @@ class CoderError(Exception):
 def encode(thing: Any) -> Any:
     if isinstance(thing, Mapping):
         return {encode(k): encode(v) for k, v in thing.items()}
+
     elif isinstance(thing, Iterable):
         return tuple(thing)
+
     elif isinstance(thing, Enum):
         return thing.value
+
     elif is_dataclass(thing):
         return {
             field.name: encode(attrgetter(field.name)(thing)) for field in fields(thing)
         }
+
     else:
         return thing
 
@@ -74,7 +78,7 @@ def decode(tp: Any, thing: Any) -> T:
             raise CoderError(tp, thing)
         else:
             tps = (
-                (*args[:-1], *repeat(args[-2]))
+                chain(args[:-1], repeat(args[-2]))
                 if len(args) >= 2 and args[-1] is Ellipsis
                 else args
             )
