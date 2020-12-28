@@ -30,7 +30,10 @@ def encode(thing: Any) -> Any:
 def decode(tp: Any, thing: Any) -> T:
     origin, args = get_origin(tp), get_args(tp)
 
-    if tp is None:
+    if tp is Any:
+        return thing
+
+    elif tp is None:
         if thing is not None:
             raise CoderError(tp, thing)
         else:
