@@ -1,18 +1,9 @@
-from collections.abc import Mapping, Sequence, Set
+from collections.abc import ByteString, Iterable, Mapping, Sequence, Set
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from itertools import chain, repeat
 from operator import attrgetter
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    TypeVar,
-    Union,
-    cast,
-    get_args,
-    get_origin,
-)
+from typing import Any, Callable, TypeVar, Union, cast, get_args, get_origin
 
 T = TypeVar("T")
 
@@ -25,7 +16,7 @@ def encode(thing: Any) -> Any:
     if isinstance(thing, Mapping):
         return {encode(k): encode(v) for k, v in thing.items()}
 
-    elif isinstance(thing, Iterable):
+    elif isinstance(thing, Iterable) and not isinstance(thing, (str, ByteString)):
         return tuple(thing)
 
     elif isinstance(thing, Enum):
@@ -61,7 +52,7 @@ def decode(tp: Any, thing: Any) -> T:
         else:
             raise DecodeError(tp, thing)
 
-    elif origin is Mapping:
+    elif origin in {Mapping, dict}:
         if not isinstance(thing, Mapping):
             raise DecodeError(tp, thing)
         else:
@@ -75,12 +66,13 @@ def decode(tp: Any, thing: Any) -> T:
             t, *_ = args
             return cast(T, {decode(t, item) for item in thing})
 
-    elif origin is Sequence:
+    elif origin in {Sequence, list}:
         if not isinstance(thing, Iterable):
             raise DecodeError(tp, thing)
         else:
             t, *_ = args
-            return cast(T, tuple(decode(t, item) for item in thing))
+            it = (decode(t, item) for item in thing)
+            return cast(T, tuple(it) if origin is Sequence else [*it])
 
     elif origin is tuple:
         if not isinstance(thing, Sequence):
