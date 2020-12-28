@@ -3,12 +3,21 @@ from dataclasses import fields, is_dataclass
 from enum import Enum
 from itertools import chain, repeat
 from operator import attrgetter
-from typing import Any, Callable, Iterable, TypeVar, Union, cast, get_args, get_origin
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 
 T = TypeVar("T")
 
 
-class CoderError(Exception):
+class DecodeError(Exception):
     ...
 
 
@@ -39,7 +48,7 @@ def decode(tp: Any, thing: Any) -> T:
 
     elif tp is None:
         if thing is not None:
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
         else:
             return cast(T, thing)
 
@@ -47,35 +56,35 @@ def decode(tp: Any, thing: Any) -> T:
         for member in args:
             try:
                 return decode(member, thing)
-            except CoderError:
+            except DecodeError:
                 pass
         else:
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
 
     elif origin is Mapping:
         if not isinstance(thing, Mapping):
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
         else:
             lhs, rhs = args
             return cast(T, {decode(lhs, k): decode(rhs, v) for k, v in thing.items()})
 
     elif origin is Set:
         if not isinstance(thing, Iterable):
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
         else:
             t, *_ = args
             return cast(T, {decode(t, item) for item in thing})
 
     elif origin is Sequence:
         if not isinstance(thing, Iterable):
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
         else:
             t, *_ = args
             return cast(T, tuple(decode(t, item) for item in thing))
 
     elif origin is tuple:
         if not isinstance(thing, Sequence):
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
         else:
             tps = (
                 chain(args[:-1], repeat(args[-2]))
@@ -89,7 +98,7 @@ def decode(tp: Any, thing: Any) -> T:
 
     elif is_dataclass(tp):
         if not isinstance(thing, Mapping):
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
         else:
             return cast(Callable[..., T], tp)(
                 **{
@@ -101,6 +110,6 @@ def decode(tp: Any, thing: Any) -> T:
 
     else:
         if not isinstance(thing, tp):
-            raise CoderError(tp, thing)
+            raise DecodeError(tp, thing)
         else:
             return cast(T, thing)
