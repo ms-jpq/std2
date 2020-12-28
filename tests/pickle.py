@@ -1,10 +1,17 @@
+from dataclasses import dataclass
+from typing import Optional, Tuple, Union
 from unittest import TestCase
 
-from ..std2.pickle import CoderError, decode
-from typing import Tuple, Union, Optional
+from ..std2.pickle import CoderError, decode, encode
 
 
-class Pickle(TestCase):
+class Encode(TestCase):
+    def test_1(self) -> None:
+        thing = encode({1, 2, 3})
+        self.assertEqual(thing, (1, 2, 3))
+
+
+class Decode(TestCase):
     def test_1(self) -> None:
         thing = decode(None, None)
         self.assertEqual(thing, None)

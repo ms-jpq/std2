@@ -1,6 +1,7 @@
 from collections.abc import Mapping, Sequence, Set
 from dataclasses import fields, is_dataclass
 from itertools import repeat
+from operator import attrgetter
 from typing import (
     Any,
     Iterable,
@@ -18,6 +19,19 @@ T = TypeVar("T")
 
 class CoderError(Exception):
     ...
+
+
+def encode(thing: Any) -> Any:
+    if isinstance(thing, Mapping):
+        return {encode(k): encode(v) for k, v in thing.items()}
+    if isinstance(thing, Iterable):
+        return tuple(thing)
+    elif is_dataclass(thing):
+        return {
+            field.name: encode(attrgetter(field.name)(thing)) for field in fields(thing)
+        }
+    else:
+        return thing
 
 
 def decode(tp: Optional[Type[T]], thing: Any) -> T:
