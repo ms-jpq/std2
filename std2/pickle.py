@@ -16,7 +16,9 @@ from typing import Any, Callable, Dict, FrozenSet, List
 from typing import Mapping as T_Mapping
 from typing import MutableMapping as T_MutableMapping
 from typing import MutableSequence as T_MutableSequence
+from typing import MutableSet as T_MutableSet
 from typing import Sequence as T_Sequence
+from typing import Set as T_Set
 from typing import TypeVar, Union, cast, get_args, get_origin
 
 T = TypeVar("T")
@@ -25,7 +27,7 @@ T = TypeVar("T")
 _MAPS_M = {MutableMapping, T_MutableMapping, Dict, dict}
 _MAPS = {Mapping, T_Mapping} | _MAPS_M
 
-_SETS_M = {MutableSet}
+_SETS_M = {MutableSet, T_MutableSet, Set, T_Set}
 _SETS = {FrozenSet, frozenset} | _SETS_M
 
 _SEQS_M = {MutableSequence, T_MutableSequence, List, list}
