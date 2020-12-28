@@ -119,14 +119,13 @@ def decode(tp: Any, thing: Any) -> T:
         if not isinstance(thing, Mapping):
             raise DecodeError(tp, thing)
         else:
+            kwargs = {
+                field.name: decode(field.type, thing[field.name])
+                for field in fields(tp)
+                if field.name in thing
+            }
             try:
-                return cast(Callable[..., T], tp)(
-                    **{
-                        field.name: decode(field.type, thing[field.name])
-                        for field in fields(tp)
-                        if field.name in thing
-                    }
-                )
+                return cast(Callable[..., T], tp)(**kwargs)
             except TypeError:
                 raise DecodeError(tp, thing)
 
