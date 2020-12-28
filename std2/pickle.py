@@ -27,7 +27,7 @@ T = TypeVar("T")
 _MAPS_M = {MutableMapping, T_MutableMapping, Dict, dict}
 _MAPS = {Mapping, T_Mapping} | _MAPS_M
 
-_SETS_M = {MutableSet, T_MutableSet, Set, T_Set}
+_SETS_M = {MutableSet, T_MutableSet, Set, T_Set, set}
 _SETS = {FrozenSet, frozenset} | _SETS_M
 
 _SEQS_M = {MutableSequence, T_MutableSequence, List, list}
