@@ -3,17 +3,7 @@ from dataclasses import fields, is_dataclass
 from enum import Enum
 from itertools import repeat
 from operator import attrgetter
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    get_args,
-    get_origin,
-)
+from typing import Any, Callable, Iterable, TypeVar, Union, cast, get_args, get_origin
 
 T = TypeVar("T")
 
@@ -37,7 +27,7 @@ def encode(thing: Any) -> Any:
         return thing
 
 
-def decode(tp: Union[Type[T], None], thing: Any) -> T:
+def decode(tp: Any, thing: Any) -> T:
     origin, args = get_origin(tp), get_args(tp)
 
     if tp is None:
@@ -106,4 +96,4 @@ def decode(tp: Union[Type[T], None], thing: Any) -> T:
         if not isinstance(thing, tp):
             raise CoderError(tp, thing)
         else:
-            return thing
+            return cast(T, thing)
