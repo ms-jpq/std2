@@ -10,6 +10,7 @@ from collections.abc import (
 )
 from dataclasses import fields, is_dataclass
 from enum import Enum
+from inspect import isclass
 from itertools import chain, repeat
 from operator import attrgetter
 from typing import Any, Callable, Dict, FrozenSet, Iterator, List
@@ -70,13 +71,14 @@ def decode(tp: Any, thing: Any) -> T:
             return cast(T, thing)
 
     elif origin is Union:
+        errs: MutableMapping[Exception] = []
         for member in args:
             try:
                 return decode(member, thing)
-            except DecodeError:
-                pass
+            except DecodeError as e:
+                errs.append(e)
         else:
-            raise DecodeError(tp, thing)
+            raise DecodeError(tp, thing, errs)
 
     elif origin in _MAPS:
         if not isinstance(thing, Mapping):
@@ -112,7 +114,7 @@ def decode(tp: Any, thing: Any) -> T:
             )
             return cast(T, tuple(decode(t, item) for t, item in zip(tps, thing)))
 
-    elif issubclass(tp, Enum):
+    elif isclass(tp) and issubclass(tp, Enum):
         return cast(T, tp(thing))
 
     elif is_dataclass(tp):
@@ -126,8 +128,8 @@ def decode(tp: Any, thing: Any) -> T:
             }
             try:
                 return cast(Callable[..., T], tp)(**kwargs)
-            except TypeError:
-                raise DecodeError(tp, thing)
+            except TypeError as e:
+                raise DecodeError(tp, thing, e)
 
     else:
         if not isinstance(thing, tp):
