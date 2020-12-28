@@ -78,28 +78,28 @@ def decode(tp: Any, thing: Any) -> T:
         else:
             raise DecodeError(tp, thing)
 
-    elif tp in _MAPS:
+    elif origin in _MAPS:
         if not isinstance(thing, Mapping):
             raise DecodeError(tp, thing)
         else:
             lhs, rhs = args
             return cast(T, {decode(lhs, k): decode(rhs, v) for k, v in thing.items()})
 
-    elif tp in _SETS:
+    elif origin in _SETS:
         if not isinstance(thing, Iterable):
             raise DecodeError(tp, thing)
         else:
             t, *_ = args
             it = (decode(t, item) for item in thing)
-            return cast(T, {*it} if tp in _SETS_M else frozenset(it))
+            return cast(T, {*it} if origin in _SETS_M else frozenset(it))
 
-    elif tp in _SEQS:
+    elif origin in _SEQS:
         if not isinstance(thing, Iterable):
             raise DecodeError(tp, thing)
         else:
             t, *_ = args
             it = (decode(t, item) for item in thing)
-            return cast(T, [*it] if tp in _SEQS_M else tuple(it))
+            return cast(T, [*it] if origin in _SEQS_M else tuple(it))
 
     elif origin is tuple:
         if not isinstance(thing, Sequence):
