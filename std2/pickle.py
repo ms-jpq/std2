@@ -12,7 +12,7 @@ from dataclasses import fields, is_dataclass
 from enum import Enum
 from itertools import chain, repeat
 from operator import attrgetter
-from typing import Any, Callable, Dict, FrozenSet, List
+from typing import Any, Callable, Dict, FrozenSet, Iterator, List
 from typing import Mapping as T_Mapping
 from typing import MutableMapping as T_MutableMapping
 from typing import MutableSequence as T_MutableSequence
@@ -61,7 +61,7 @@ def decode(tp: Any, thing: Any) -> T:
     origin, args = get_origin(tp), get_args(tp)
 
     if tp is Any:
-        return thing
+        return cast(T, thing)
 
     elif tp is None:
         if thing is not None:
@@ -90,7 +90,7 @@ def decode(tp: Any, thing: Any) -> T:
             raise DecodeError(tp, thing)
         else:
             t, *_ = args
-            it = (decode(t, item) for item in thing)
+            it: Iterator[Any] = (decode(t, item) for item in thing)
             return cast(T, {*it} if origin in _SETS_M else frozenset(it))
 
     elif origin in _SEQS:
