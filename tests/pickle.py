@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum
+from inspect import isclass
 from typing import Any, ClassVar, List, Mapping, Optional, Sequence, Tuple, Union
 from unittest import TestCase
+from uuid import UUID, uuid4
 
-from ..std2.pickle import DecodeError, decode, encode
+from ..std2.pickle import DecodeError, Decoders, decode, encode
 
 
 class Encode(TestCase):
@@ -127,3 +129,14 @@ class Decode(TestCase):
         with self.assertRaises(DecodeError):
             decode("str", True)
 
+    def test_22(self) -> None:
+        uuid = uuid4()
+        is_uuid = lambda tp: isclass(tp) and issubclass(tp, UUID)
+
+        def decoder(
+            tp: Any, thing: Any, decoders: Decoders, parent: Optional[Any]
+        ) -> UUID:
+            return UUID(hex=thing)
+
+        thing: UUID = decode(UUID, uuid.hex, decoders={is_uuid: decoder})
+        self.assertEqual(uuid, thing)
