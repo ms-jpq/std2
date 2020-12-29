@@ -210,10 +210,7 @@ def decode(
 
         else:
             ttp = (
-                (
-                    (attrgetter(tp)(builtins) if hasattr(builtins, tp) else None)
-                    or globals().get(tp)
-                )
+                (attrgetter(tp)(builtins) if hasattr(builtins, tp) else None)
                 if type(tp) is str
                 else tp
             )
