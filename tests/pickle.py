@@ -28,7 +28,7 @@ class Encode(TestCase):
             a = b"a"
 
         thing = encode(C.a)
-        self.assertEqual(thing, b"a")
+        self.assertEqual(thing, C.a.name)
 
 
 class Decode(TestCase):
@@ -140,3 +140,11 @@ class Decode(TestCase):
 
         thing: UUID = decode(UUID, uuid.hex, decoders={is_uuid: decoder})
         self.assertEqual(uuid, thing)
+
+    def test_23(self) -> None:
+        class C(Enum):
+            a = "b"
+            b = "a"
+
+        thing: Sequence[C] = decode(Sequence[C], ["a", "b"])
+        self.assertEqual(thing, (C.a, C.b))

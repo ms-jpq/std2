@@ -70,7 +70,7 @@ def encode(thing: Any, encoders: Encoders = {}) -> Any:
             return tuple(thing)
 
         elif isinstance(thing, Enum):
-            return thing.value
+            return thing.name
 
         elif is_dataclass(thing):
             return {
@@ -180,7 +180,14 @@ def decode(
                 )
 
         elif isclass(tp) and issubclass(tp, Enum):
-            return cast(T, tp(thing))
+            if type(thing) is str and hasattr(tp, thing):
+                enum = attrgetter(thing)(tp)
+                if isinstance(enum, tp):
+                    return enum
+                else:
+                    raise DecodeError(parent, tp, thing)
+            else:
+                raise DecodeError(parent, tp, thing)
 
         elif is_dataclass(tp):
             if not isinstance(thing, Mapping):
