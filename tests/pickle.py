@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Optional, Sequence, Tuple, Union, List
+from typing import Any, ClassVar, List, Mapping, Optional, Sequence, Tuple, Union
 from unittest import TestCase
 
 from ..std2.pickle import DecodeError, decode, encode
@@ -103,3 +103,27 @@ class Decode(TestCase):
 
         thing: C = decode(C, {"a": 1, "b": []})
         self.assertEqual(thing, C(a=1, b=[], c=False))
+
+    def test_18(self) -> None:
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
+            z: ClassVar[bool] = True
+
+        thing: C = decode(C, {"a": 1, "b": []})
+        self.assertEqual(thing, C(a=1, b=[], c=False))
+
+    def test_19(self) -> None:
+        thing: bool = decode("bool", True)
+        self.assertEqual(thing, True)
+
+    def test_20(self) -> None:
+        thing: int = decode("int", True)
+        self.assertEqual(thing, True)
+
+    def test_21(self) -> None:
+        with self.assertRaises(DecodeError):
+            decode("str", True)
+

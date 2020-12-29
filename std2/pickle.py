@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 from collections.abc import (
     ByteString,
     Iterable,
@@ -42,12 +43,22 @@ class DecodeError(Exception):
     ...
 
 
-def encode(
-    thing: Any, encoders: Mapping[Callable[[Any], bool], Callable[[Any], Any]] = {}
-) -> Any:
+class Encoder(Protocol):
+    def __call__(
+        self,
+        thing: Any,
+        encoders: Encoders,
+    ) -> T:
+        ...
+
+
+Encoders = Mapping[Callable[[Any], bool], Encoder]
+
+
+def encode(thing: Any, encoders: Encoders = {}) -> Any:
     for predicate, encoder in encoders.items():
         if predicate(thing):
-            return encoder(thing)
+            return encoder(thing, encoders=encoders)
     else:
         if isinstance(thing, Mapping):
             return {
@@ -76,21 +87,27 @@ class Decoder(Protocol[T]):
         self,
         tp: Any,
         thing: Any,
-        decoders: Mapping[Callable[[Any], bool], Decoder[T]],
+        decoders: Decoders[T],
         parent: Optional[Any],
     ) -> T:
         ...
 
 
+Decoders = Mapping[Callable[[Any], bool], Decoder[T]]
+
+
 def decode(
     tp: Any,
     thing: Any,
-    decoders: Mapping[Callable[[Any], bool], Decoder[T]] = {},
+    decoders: Decoders[T] = {},
     parent: Optional[Any] = None,
 ) -> T:
     for predicate, decoder in decoders.items():
-        if predicate(tp):
-            return decoder(tp, thing=thing, decoders=decoders, parent=parent)
+        try:
+            if predicate(tp):
+                return decoder(tp, thing=thing, decoders=decoders, parent=parent)
+        except DecodeError:
+            pass
 
     else:
         origin, args = get_origin(tp), get_args(tp)
@@ -189,12 +206,17 @@ def decode(
                     raise DecodeError(parent, tp, thing, e)
 
         else:
-            conforms = (
-                type(thing).__qualname__ == tp
+            ttp = (
+                (
+                    (attrgetter(tp)(builtins) if hasattr(builtins, tp) else None)
+                    or globals().get(tp)
+                )
                 if type(tp) is str
-                else isinstance(thing, tp)
+                else tp
             )
-            if not conforms:
+            if ttp is None:
+                raise DecodeError(parent, tp, thing)
+            elif not isinstance(thing, ttp):
                 raise DecodeError(parent, tp, thing)
             else:
                 return cast(T, thing)
