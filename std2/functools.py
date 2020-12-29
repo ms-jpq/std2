@@ -1,0 +1,19 @@
+from typing import Any, Callable, TypeVar
+
+T = TypeVar("T")
+U = TypeVar("U")
+
+
+def constantly(thing: T) -> Callable[..., T]:
+    def f(*args: Any, **kwargs: Any) -> T:
+        return thing
+
+    return f
+
+
+def identity(thing: T) -> T:
+    return thing
+
+
+async def apure(item: T, apply: Callable[[T], U]) -> U:
+    return apply(item)

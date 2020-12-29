@@ -9,10 +9,6 @@ from typing import Any, Callable, Sequence, Tuple, TypeVar
 T = TypeVar("T")
 
 
-async def pure(item: T) -> T:
-    return item
-
-
 async def race(aw: Future[T], *aws: Future[T]) -> Tuple[T, Sequence[Future[T]]]:
     done, pending = await wait(tuple((aw, *aws)), return_when=FIRST_COMPLETED)
     ret = done.pop().result()
