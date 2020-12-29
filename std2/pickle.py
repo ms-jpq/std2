@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import (
     ByteString,
     Iterable,
@@ -18,7 +20,7 @@ from typing import Mapping as T_Mapping
 from typing import MutableMapping as T_MutableMapping
 from typing import MutableSequence as T_MutableSequence
 from typing import MutableSet as T_MutableSet
-from typing import Optional
+from typing import Optional, Protocol
 from typing import Sequence as T_Sequence
 from typing import Set as T_Set
 from typing import TypeVar, Union, cast, get_args, get_origin
@@ -40,109 +42,159 @@ class DecodeError(Exception):
     ...
 
 
-def encode(thing: Any) -> Any:
-    if isinstance(thing, Mapping):
-        return {encode(k): encode(v) for k, v in thing.items()}
-
-    elif isinstance(thing, Iterable) and not isinstance(thing, (str, ByteString)):
-        return tuple(thing)
-
-    elif isinstance(thing, Enum):
-        return thing.value
-
-    elif is_dataclass(thing):
-        return {
-            field.name: encode(attrgetter(field.name)(thing)) for field in fields(thing)
-        }
-
+def encode(
+    thing: Any, encoders: Mapping[Callable[[Any], bool], Callable[[Any], Any]] = {}
+) -> Any:
+    for predicate, encoder in encoders.items():
+        if predicate(thing):
+            return encoder(thing)
     else:
-        return thing
-
-
-def decode(tp: Any, thing: Any, parent: Optional[Any] = None) -> T:
-    origin, args = get_origin(tp), get_args(tp)
-
-    if tp is Any:
-        return cast(T, thing)
-
-    elif tp is None:
-        if thing is not None:
-            raise DecodeError(parent, tp, thing)
-        else:
-            return cast(T, thing)
-
-    elif origin is Union:
-        errs: MutableSequence[Exception] = []
-        for member in args:
-            try:
-                return decode(member, thing, parent=tp)
-            except DecodeError as e:
-                errs.append(e)
-        else:
-            raise DecodeError(parent, tp, thing, errs)
-
-    elif origin in _MAPS:
-        if not isinstance(thing, Mapping):
-            raise DecodeError(parent, tp, thing)
-        else:
-            lhs, rhs = args
-            mapping: Mapping[Any, Any] = {
-                decode(lhs, k, parent=tp): decode(rhs, v, parent=tp)
+        if isinstance(thing, Mapping):
+            return {
+                encode(k, encoders=encoders): encode(v, encoders=encoders)
                 for k, v in thing.items()
             }
-            return cast(T, mapping)
 
-    elif origin in _SETS:
-        if not isinstance(thing, Iterable):
-            raise DecodeError(parent, tp, thing)
-        else:
-            t, *_ = args
-            it: Iterator[Any] = (decode(t, item, parent=tp) for item in thing)
-            return cast(T, {*it} if origin in _SETS_M else frozenset(it))
+        elif isinstance(thing, Iterable) and not isinstance(thing, (str, ByteString)):
+            return tuple(thing)
 
-    elif origin in _SEQS:
-        if not isinstance(thing, Iterable):
-            raise DecodeError(parent, tp, thing)
-        else:
-            t, *_ = args
-            it = (decode(t, item, parent=tp) for item in thing)
-            return cast(T, [*it] if origin in _SEQS_M else tuple(it))
+        elif isinstance(thing, Enum):
+            return thing.value
 
-    elif origin is tuple:
-        if not isinstance(thing, Sequence):
-            raise DecodeError(parent, tp, thing)
-        else:
-            tps = (
-                chain(args[:-1], repeat(args[-2]))
-                if len(args) >= 2 and args[-1] is Ellipsis
-                else args
-            )
-            return cast(
-                T, tuple(decode(t, item, parent=tp) for t, item in zip(tps, thing))
-            )
-
-    elif isclass(tp) and issubclass(tp, Enum):
-        return cast(T, tp(thing))
-
-    elif is_dataclass(tp):
-        if not isinstance(thing, Mapping):
-            raise DecodeError(parent, tp, thing)
-        else:
-            kwargs: Mapping[str, Any] = {
-                field.name: decode(field.type, thing[field.name], parent=tp)
-                for field in fields(tp)
-                if field.name in thing
+        elif is_dataclass(thing):
+            return {
+                field.name: encode(attrgetter(field.name)(thing), encoders=encoders)
+                for field in fields(thing)
             }
-            try:
-                return cast(Callable[..., T], tp)(**kwargs)
-            except TypeError as e:
-                raise DecodeError(parent, tp, thing, e)
+
+        else:
+            return thing
+
+
+class Decoder(Protocol[T]):
+    def __call__(
+        self,
+        tp: Any,
+        thing: Any,
+        decoders: Mapping[Callable[[Any], bool], Decoder[T]],
+        parent: Optional[Any],
+    ) -> T:
+        ...
+
+
+def decode(
+    tp: Any,
+    thing: Any,
+    decoders: Mapping[Callable[[Any], bool], Decoder[T]] = {},
+    parent: Optional[Any] = None,
+) -> T:
+    for predicate, decoder in decoders.items():
+        if predicate(tp):
+            return decoder(tp, thing=thing, decoders=decoders, parent=parent)
 
     else:
-        conforms = (
-            type(thing).__qualname__ == tp if type(tp) is str else isinstance(thing, tp)
-        )
-        if not conforms:
-            raise DecodeError(parent, tp, thing)
-        else:
+        origin, args = get_origin(tp), get_args(tp)
+
+        if tp is Any:
             return cast(T, thing)
+
+        elif tp is None:
+            if thing is not None:
+                raise DecodeError(parent, tp, thing)
+            else:
+                return cast(T, thing)
+
+        elif origin is Union:
+            errs: MutableSequence[Exception] = []
+            for member in args:
+                try:
+                    return decode(member, thing=thing, decoders=decoders, parent=tp)
+                except DecodeError as e:
+                    errs.append(e)
+            else:
+                raise DecodeError(parent, tp, thing, errs)
+
+        elif origin in _MAPS:
+            if not isinstance(thing, Mapping):
+                raise DecodeError(parent, tp, thing)
+            else:
+                lhs, rhs = args
+                mapping: Mapping[Any, Any] = {
+                    decode(lhs, thing=k, decoders=decoders, parent=tp): decode(
+                        rhs, thing=v, decoders=decoders, parent=tp
+                    )
+                    for k, v in thing.items()
+                }
+                return cast(T, mapping)
+
+        elif origin in _SETS:
+            if not isinstance(thing, Iterable):
+                raise DecodeError(parent, tp, thing)
+            else:
+                t, *_ = args
+                it: Iterator[Any] = (
+                    decode(t, thing=item, decoders=decoders, parent=tp)
+                    for item in thing
+                )
+                return cast(T, {*it} if origin in _SETS_M else frozenset(it))
+
+        elif origin in _SEQS:
+            if not isinstance(thing, Iterable):
+                raise DecodeError(parent, tp, thing)
+            else:
+                t, *_ = args
+                it = (
+                    decode(t, thing=item, decoders=decoders, parent=tp)
+                    for item in thing
+                )
+                return cast(T, [*it] if origin in _SEQS_M else tuple(it))
+
+        elif origin is tuple:
+            if not isinstance(thing, Sequence):
+                raise DecodeError(parent, tp, thing)
+            else:
+                tps = (
+                    chain(args[:-1], repeat(args[-2]))
+                    if len(args) >= 2 and args[-1] is Ellipsis
+                    else args
+                )
+                return cast(
+                    T,
+                    tuple(
+                        decode(t, thing=item, decoders=decoders, parent=tp)
+                        for t, item in zip(tps, thing)
+                    ),
+                )
+
+        elif isclass(tp) and issubclass(tp, Enum):
+            return cast(T, tp(thing))
+
+        elif is_dataclass(tp):
+            if not isinstance(thing, Mapping):
+                raise DecodeError(parent, tp, thing)
+            else:
+                kwargs: Mapping[str, Any] = {
+                    field.name: decode(
+                        field.type,
+                        thing=thing[field.name],
+                        decoders=decoders,
+                        parent=tp,
+                    )
+                    for field in fields(tp)
+                    if field.name in thing
+                }
+                try:
+                    return cast(Callable[..., T], tp)(**kwargs)
+                except TypeError as e:
+                    raise DecodeError(parent, tp, thing, e)
+
+        else:
+            conforms = (
+                type(thing).__qualname__ == tp
+                if type(tp) is str
+                else isinstance(thing, tp)
+            )
+            if not conforms:
+                raise DecodeError(parent, tp, thing)
+            else:
+                return cast(T, thing)
