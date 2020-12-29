@@ -140,7 +140,7 @@ def decode(tp: Any, thing: Any, parent: Optional[Any] = None) -> T:
 
     else:
         conforms = (
-            type(thing).__name__ == tp if type(tp) is str else isinstance(thing, tp)
+            type(thing).__qualname__ == tp if type(tp) is str else isinstance(thing, tp)
         )
         if not conforms:
             raise DecodeError(parent, tp, thing)
