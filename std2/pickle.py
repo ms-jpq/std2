@@ -183,7 +183,7 @@ def decode(
             if type(thing) is str and hasattr(tp, thing):
                 enum = attrgetter(thing)(tp)
                 if isinstance(enum, tp):
-                    return enum
+                    return cast(T, enum)
                 else:
                     raise DecodeError(parent, tp, thing)
             else:
