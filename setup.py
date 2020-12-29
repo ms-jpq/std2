@@ -2,8 +2,10 @@
 
 from pathlib import Path
 
-
 from setuptools import find_packages, setup
+
+packages = find_packages(exclude=("tests*",))
+package_data = {pkg: ("py.typed",) for pkg in packages}
 
 setup(
     name="std2",
@@ -14,5 +16,6 @@ setup(
     author="ms-jpq",
     author_email="github@bigly.dog",
     url="https://github.com/ms-jpq/std2",
-    packages=find_packages(exclude=("tests*",)),
+    packages=packages,
+    package_data=package_data,
 )
