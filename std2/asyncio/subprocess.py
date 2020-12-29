@@ -2,11 +2,13 @@ from asyncio.subprocess import PIPE, create_subprocess_exec
 from dataclasses import dataclass
 from os import environ, getcwd
 from subprocess import CalledProcessError
-from typing import Mapping, Optional, cast
+from typing import Mapping, Optional, Sequence, cast
 
 
 @dataclass(frozen=True)
 class ProcReturn:
+    prog: str
+    args: Sequence[str]
     code: int
     out: bytes
     err: str
@@ -40,4 +42,6 @@ async def call(
             stderr=stderr.decode(),
         )
     else:
-        return ProcReturn(code=code, out=stdout, err=stderr.decode())
+        return ProcReturn(
+            prog=prog, args=args, code=code, out=stdout, err=stderr.decode()
+        )
