@@ -1,14 +1,11 @@
-from typing import Iterable, Iterator, MutableSequence, TypeVar
+from itertools import islice
+from typing import Iterable, Iterator, MutableSequence, Sequence, TypeVar
 
 T = TypeVar("T")
 
 
-def take(it: Iterable[T], n: int) -> Iterator[T]:
-    for _ in range(n):
-        try:
-            yield next(iter(it))
-        except StopIteration:
-            break
+def take(it: Iterable[T], n: int) -> Sequence[T]:
+    return tuple(islice(it, n))
 
 
 class deiter(Iterator[T]):
