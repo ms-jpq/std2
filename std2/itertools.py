@@ -3,6 +3,14 @@ from typing import Iterable, Iterator, MutableSequence, TypeVar
 T = TypeVar("T")
 
 
+async def take(it: Iterable[T], n: int) -> Iterator[T]:
+    for _ in range(n):
+        try:
+            yield await next(iter(it))
+        except StopAsyncIteration:
+            break
+
+
 class deiter(Iterator[T]):
     def __init__(self, it: Iterable[T]) -> None:
         self._s: MutableSequence[T] = []
