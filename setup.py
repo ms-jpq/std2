@@ -9,6 +9,7 @@ package_data = {pkg: ("py.typed",) for pkg in packages}
 
 setup(
     name="std2",
+    python_requires=">=3.8.0",
     version="0.1.0",
     description="STD #2",
     long_description=Path("README.md").read_text(),
