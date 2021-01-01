@@ -48,9 +48,9 @@ class AExecutor:
             else:
                 break
 
-    def _submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> Future[T]:
+    def _submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> Future:
         self._th.start()
-        fut: Future[T] = Future()
+        fut: Future = Future()
         func = partial(f, *args, **kwargs)
         self._ch.put_nowait((fut, func))
         return fut
