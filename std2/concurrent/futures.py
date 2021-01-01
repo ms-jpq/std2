@@ -4,7 +4,7 @@ from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
 from threading import Thread, _register_atexit  # type: ignore
-from typing import Any, Callable, MutableSequence, Optional, Tuple, TypeVar
+from typing import Any, Callable, MutableSequence, Optional, TypeVar
 
 from ..asyncio import run_in_executor
 
@@ -25,9 +25,7 @@ T = TypeVar("T")
 class AExecutor:
     def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
         self._th = Thread(target=self._cont, daemon=daemon, name=name)
-        self._ch: SimpleQueue[
-            Optional[Tuple[Future, Callable[[], Any]]]
-        ] = SimpleQueue()
+        self._ch: SimpleQueue = SimpleQueue()
         _aexes.append(self)
 
     def _cont(self) -> None:
