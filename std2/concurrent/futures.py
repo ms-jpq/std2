@@ -4,7 +4,7 @@ from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
 from threading import Thread, _register_atexit  # type: ignore
-from typing import Any, Callable, MutableSequence, Optional, TypeVar
+from typing import Any, Callable, MutableSequence, Optional, TypeVar, cast
 
 from ..asyncio import run_in_executor
 
@@ -55,7 +55,7 @@ class AExecutor:
 
     def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         fut = self._submit(f, *args, **kwargs)
-        return fut.result()
+        return cast(T, fut.result())
 
     async def submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         fut = self._submit(f, *args, **kwargs)

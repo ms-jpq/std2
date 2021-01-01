@@ -1,42 +1,52 @@
 from __future__ import annotations
 
 import builtins
-from collections.abc import (
-    ByteString,
-    Iterable,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    MutableSet,
-    Sequence,
-    Set,
-)
+from collections.abc import ByteString
+from collections.abc import Iterable as ABC_Iterable
+from collections.abc import Mapping as ABC_Mapping
+from collections.abc import MutableMapping as ABC_MutableMapping
+from collections.abc import MutableSequence as ABC_MutableSequence
+from collections.abc import MutableSet as ABC_MutableSet
+from collections.abc import Sequence as ABC_Sequence
+from collections.abc import Set as ABC_Set
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
 from operator import attrgetter
-from typing import Any, Callable, Dict, FrozenSet, Iterator, List
-from typing import Mapping as T_Mapping
-from typing import MutableMapping as T_MutableMapping
-from typing import MutableSequence as T_MutableSequence
-from typing import MutableSet as T_MutableSet
-from typing import Optional, Protocol
-from typing import Sequence as T_Sequence
-from typing import Set as T_Set
-from typing import TypeVar, Union, cast, get_args, get_origin
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    FrozenSet,
+    Iterator,
+    List,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    MutableSet,
+    Optional,
+    Protocol,
+    Sequence,
+    Set,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 
 T = TypeVar("T")
 
 
-_MAPS_M = {MutableMapping, T_MutableMapping, Dict, dict}
-_MAPS = {Mapping, T_Mapping} | _MAPS_M
+_MAPS_M = {MutableMapping, ABC_MutableMapping, Dict, dict}
+_MAPS = {Mapping, ABC_Mapping} | _MAPS_M
 
-_SETS_M = {MutableSet, T_MutableSet, Set, T_Set, set}
+_SETS_M = {MutableSet, ABC_MutableSet, Set, ABC_Set, set}
 _SETS = {FrozenSet, frozenset} | _SETS_M
 
-_SEQS_M = {MutableSequence, T_MutableSequence, List, list}
-_SEQS = {Sequence, T_Sequence} | _SEQS_M
+_SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
+_SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
 class DecodeError(Exception):
@@ -66,7 +76,7 @@ def encode(thing: Any, encoders: Encoders = {}) -> Any:
                 for k, v in thing.items()
             }
 
-        elif isinstance(thing, Iterable) and not isinstance(thing, (str, ByteString)):
+        elif isinstance(thing, ABC_Iterable) and not isinstance(thing, (str, ByteString)):
             return tuple(thing)
 
         elif isinstance(thing, Enum):
@@ -145,7 +155,7 @@ def decode(
                 return cast(T, mapping)
 
         elif origin in _SETS:
-            if not isinstance(thing, Iterable):
+            if not isinstance(thing, ABC_Iterable):
                 raise DecodeError(parent, tp, thing)
             else:
                 t, *_ = args
@@ -155,7 +165,7 @@ def decode(
                 return cast(T, {*it} if origin in _SETS_M else frozenset(it))
 
         elif origin in _SEQS:
-            if not isinstance(thing, Iterable):
+            if not isinstance(thing, ABC_Iterable):
                 raise DecodeError(parent, tp, thing)
             else:
                 t, *_ = args
