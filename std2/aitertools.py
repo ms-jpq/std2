@@ -1,5 +1,14 @@
 from itertools import count
-from typing import AsyncIterable, AsyncIterator, Iterable, Tuple, TypeVar, Union, cast
+from typing import (
+    AsyncIterable,
+    AsyncIterator,
+    Awaitable,
+    Iterable,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from .types import Void, VoidType
 
@@ -26,6 +35,11 @@ async def anext(
 async def to_async(it: Iterable[T]) -> AsyncIterator[T]:
     for item in it:
         yield item
+
+
+async def aiterify(aws: Iterable[Awaitable[T]]) -> AsyncIterator[T]:
+    for aw in aws:
+        yield await aw
 
 
 async def aenumerate(
