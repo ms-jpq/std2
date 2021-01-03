@@ -21,6 +21,7 @@ from typing import (
     FrozenSet,
     Iterator,
     List,
+    Literal,
     Mapping,
     MutableMapping,
     MutableSequence,
@@ -76,7 +77,9 @@ def encode(thing: Any, encoders: Encoders = {}) -> Any:
                 for k, v in thing.items()
             }
 
-        elif isinstance(thing, ABC_Iterable) and not isinstance(thing, (str, ByteString)):
+        elif isinstance(thing, ABC_Iterable) and not isinstance(
+            thing, (str, ByteString)
+        ):
             return tuple(thing)
 
         elif isinstance(thing, Enum):
@@ -127,6 +130,13 @@ def decode(
 
         elif tp is None:
             if thing is not None:
+                raise DecodeError(parent, tp, thing)
+            else:
+                return cast(T, thing)
+
+        elif origin is Literal:
+            arg, *_ = args
+            if thing != arg:
                 raise DecodeError(parent, tp, thing)
             else:
                 return cast(T, thing)
@@ -225,6 +235,8 @@ def decode(
                 else tp
             )
             if ttp is None:
+                raise DecodeError(parent, tp, thing)
+            elif isinstance(ttp, TypeVar):
                 raise DecodeError(parent, tp, thing)
             elif not isinstance(thing, ttp):
                 raise DecodeError(parent, tp, thing)
