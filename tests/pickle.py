@@ -1,7 +1,17 @@
 from dataclasses import dataclass
 from enum import Enum
 from inspect import isclass
-from typing import Any, ClassVar, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    ClassVar,
+    List,
+    Literal,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 from unittest import TestCase
 from uuid import UUID, uuid4
 
@@ -148,3 +158,13 @@ class Decode(TestCase):
 
         thing: Sequence[C] = decode(Sequence[C], ["a", "b"])
         self.assertEqual(thing, (C.a, C.b))
+
+    def test_24(self) -> None:
+        thing: Tuple[Literal[5], Literal[2]] = decode(
+            Tuple[Literal[5], Literal[2]], [5, 2]
+        )
+        self.assertEqual(thing, (5, 2))
+
+    def test_25(self) -> None:
+        with self.assertRaises(DecodeError):
+            decode(Literal[b"a"], "a")
