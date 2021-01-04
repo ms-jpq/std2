@@ -199,6 +199,9 @@ def decode(
                     ),
                 )
 
+        elif origin and len(args):
+            raise DecodeError(parent, tp, thing)
+
         elif isclass(tp) and issubclass(tp, Enum):
             if type(thing) is str and hasattr(tp, thing):
                 enum = attrgetter(thing)(tp)

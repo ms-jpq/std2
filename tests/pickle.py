@@ -4,18 +4,22 @@ from inspect import isclass
 from typing import (
     Any,
     ClassVar,
+    Generic,
     List,
     Literal,
     Mapping,
     Optional,
     Sequence,
     Tuple,
+    TypeVar,
     Union,
 )
 from unittest import TestCase
 from uuid import UUID, uuid4
 
 from ..std2.pickle import DecodeError, Decoders, decode, encode
+
+T = TypeVar("T")
 
 
 class Encode(TestCase):
@@ -168,3 +172,11 @@ class Decode(TestCase):
     def test_25(self) -> None:
         with self.assertRaises(DecodeError):
             decode(Literal[b"a"], "a")
+
+    def test_26(self) -> None:
+        @dataclass(frozen=True)
+        class C(Generic[T]):
+            t: T
+
+        with self.assertRaises(DecodeError):
+            decode(C[int], {"t": True})
