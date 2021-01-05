@@ -8,7 +8,7 @@ from collections.abc import MutableSequence as ABC_MutableSequence
 from collections.abc import MutableSet as ABC_MutableSet
 from collections.abc import Sequence as ABC_Sequence
 from collections.abc import Set as ABC_Set
-from dataclasses import MISSING, Field, fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
@@ -255,11 +255,11 @@ def decode(
                 throw()
 
             else:
-                dc_fields: MutableMapping[str, Field] = {}
+                dc_fields: MutableMapping[str, Type] = {}
                 required: MutableSet[str] = set()
                 for field in fields(tp):
                     if field.init:
-                        dc_fields[field.name] = field
+                        dc_fields[field.name] = field.type
                         if (
                             field.default is MISSING
                             and field.default_factory is MISSING  # type: ignore
@@ -278,13 +278,13 @@ def decode(
                 else:
                     kwargs: Mapping[str, Any] = {
                         f_name: decode(
-                            field.type,
+                            f_type,
                             thing[f_name],
                             strict=strict,
                             decoders=decoders,
-                            path=tuple((*new_path, field)),
+                            path=tuple((*new_path, f"-> {f_name}")),
                         )
-                        for f_name, field in dc_fields.items()
+                        for f_name, f_type in dc_fields.items()
                         if f_name in thing
                     }
                     return cast(Callable[..., T], tp)(**kwargs)
