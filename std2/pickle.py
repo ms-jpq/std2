@@ -100,6 +100,7 @@ class Decoder(Protocol[T]):
         self,
         tp: Any,
         thing: Any,
+        strict: bool,
         decoders: Decoders[T],
         parent: Optional[Any],
     ) -> T:
@@ -112,13 +113,16 @@ Decoders = Mapping[Callable[[Any], bool], Decoder[T]]
 def decode(
     tp: Any,
     thing: Any,
+    strict: bool = True,
     decoders: Decoders[T] = {},
     parent: Optional[Any] = None,
 ) -> T:
     for predicate, decoder in decoders.items():
         try:
             if predicate(tp):
-                return decoder(tp, thing, decoders=decoders, parent=parent)
+                return decoder(
+                    tp, thing, strict=strict, decoders=decoders, parent=parent
+                )
         except DecodeError:
             pass
 
@@ -145,7 +149,9 @@ def decode(
             errs: MutableSequence[Exception] = []
             for member in args:
                 try:
-                    return decode(member, thing, decoders=decoders, parent=tp)
+                    return decode(
+                        member, thing, strict=strict, decoders=decoders, parent=tp
+                    )
                 except DecodeError as e:
                     errs.append(e)
             else:
@@ -157,8 +163,8 @@ def decode(
             else:
                 lhs, rhs = args
                 mapping: Mapping[Any, Any] = {
-                    decode(lhs, k, decoders=decoders, parent=tp): decode(
-                        rhs, v, decoders=decoders, parent=tp
+                    decode(lhs, k, strict=strict, decoders=decoders, parent=tp): decode(
+                        rhs, v, strict=strict, decoders=decoders, parent=tp
                     )
                     for k, v in thing.items()
                 }
@@ -170,7 +176,8 @@ def decode(
             else:
                 t, *_ = args
                 it: Iterator[Any] = (
-                    decode(t, item, decoders=decoders, parent=tp) for item in thing
+                    decode(t, item, strict=strict, decoders=decoders, parent=tp)
+                    for item in thing
                 )
                 return cast(T, {*it} if origin in _SETS_M else frozenset(it))
 
@@ -179,7 +186,10 @@ def decode(
                 raise DecodeError(parent, tp, thing)
             else:
                 t, *_ = args
-                it = (decode(t, item, decoders=decoders, parent=tp) for item in thing)
+                it = (
+                    decode(t, item, strict=strict, decoders=decoders, parent=tp)
+                    for item in thing
+                )
                 return cast(T, [*it] if origin in _SEQS_M else tuple(it))
 
         elif origin is tuple:
@@ -194,7 +204,7 @@ def decode(
                 return cast(
                     T,
                     tuple(
-                        decode(t, item, decoders=decoders, parent=tp)
+                        decode(t, item, strict=strict, decoders=decoders, parent=tp)
                         for t, item in zip(tps, thing)
                     ),
                 )
@@ -216,20 +226,26 @@ def decode(
             if not isinstance(thing, Mapping):
                 raise DecodeError(parent, tp, thing)
             else:
-                kwargs: Mapping[str, Any] = {
-                    field.name: decode(
-                        field.type,
-                        thing[field.name],
-                        decoders=decoders,
-                        parent=tp,
-                    )
-                    for field in fields(tp)
-                    if field.name in thing
-                }
-                try:
-                    return cast(Callable[..., T], tp)(**kwargs)
-                except TypeError as e:
-                    raise DecodeError(parent, tp, thing, e)
+                dc_fields = {field.name: field.type for field in fields(tp)}
+                extra_keys = thing.keys() - dc_fields.keys()
+                if strict and extra_keys:
+                    raise DecodeError(parent, tp, thing, extra_keys)
+                else:
+                    kwargs: Mapping[str, Any] = {
+                        f_name: decode(
+                            f_type,
+                            thing[f_name],
+                            strict=strict,
+                            decoders=decoders,
+                            parent=tp,
+                        )
+                        for f_name, f_type in dc_fields.items()
+                        if f_name in thing
+                    }
+                    try:
+                        return cast(Callable[..., T], tp)(**kwargs)
+                    except TypeError as e:
+                        raise DecodeError(parent, tp, thing, e)
 
         else:
             ttp = (
