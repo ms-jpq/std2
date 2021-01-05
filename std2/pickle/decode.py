@@ -37,6 +37,7 @@ from typing import (
 )
 
 T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 
 _MAPS_M = {MutableMapping, ABC_MutableMapping, Dict, dict}
@@ -53,7 +54,7 @@ class DecodeError(Exception):
     ...
 
 
-class Decoder(Protocol[T]):
+class Decoder(Protocol[T_co]):
     def __call__(
         self,
         tp: Any,
@@ -61,7 +62,7 @@ class Decoder(Protocol[T]):
         strict: bool,
         decoders: Decoders,
         parent: Optional[Any],
-    ) -> T:
+    ) -> T_co:
         ...
 
 
@@ -77,7 +78,9 @@ def decode(
 ) -> T:
     for decoder in decoders:
         try:
-            return decoder(tp, thing, strict=strict, decoders=decoders, parent=parent)
+            return cast(Decoder[T], decoder)(
+                tp, thing, strict=strict, decoders=decoders, parent=parent
+            )
         except DecodeError:
             pass
 

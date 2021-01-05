@@ -8,19 +8,19 @@ from enum import Enum
 from operator import attrgetter
 from typing import Any, Protocol, Sequence, TypeVar
 
-T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 
 class EncodeError(Exception):
     ...
 
 
-class Encoder(Protocol[T]):
+class Encoder(Protocol[T_co]):
     def __call__(
         self,
         thing: Any,
         encoders: Encoders,
-    ) -> T:
+    ) -> T_co:
         ...
 
 
