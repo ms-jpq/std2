@@ -14,6 +14,7 @@ from inspect import isclass
 from itertools import chain, repeat
 from locale import strxfrm
 from operator import attrgetter
+from os import linesep
 from typing import (
     Any,
     Callable,
@@ -58,12 +59,22 @@ class DecodeError(Exception):
         *args: Any,
         path: Sequence[Any],
         actual: Any,
-        missing: Sequence[str] = (),
-        extra: Sequence[str] = ()
+        missing_keys: Sequence[str] = (),
+        extra_keys: Sequence[str] = (),
     ) -> None:
-        super().__init__(path, actual, missing, extra, *args)
+        super().__init__(*args)
         self.path, self.actual = path, actual
-        self.missing, self.extra = missing, extra
+        self.missing_keys, self.extra_keys = missing_keys, extra_keys
+
+    def __str__(self) -> str:
+        path = " -> ".join(self.path)
+        missing = ", ".join(self.missing_keys)
+        extra = ", ".join(self.extra_keys)
+        l1 = f"Path: {path}"
+        l2 = f"Actual: {self.actual}"
+        l3 = f"Missing Keys: {{{missing}}}"
+        l4 = f"Extra Keys: {{{extra}}}"
+        return linesep.join((l1, l2, l3, l4))
 
 
 class Decoder(Protocol[T_co]):
@@ -94,7 +105,7 @@ def decode(
         *args: Any, missing: Sequence[str] = (), extra: Sequence[str] = ()
     ) -> NoReturn:
         raise DecodeError(
-            *args, path=new_path, actual=thing, missing=missing, extra=extra
+            *args, path=new_path, actual=thing, missing_keys=missing, extra_keys=extra
         )
 
     for decoder in decoders:
