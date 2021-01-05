@@ -11,10 +11,10 @@ from typing import Any, Callable, Mapping, Protocol, TypeVar
 T = TypeVar("T")
 
 
-class Encoder(Protocol):
+class Encoder(Protocol[T]):
     def __call__(
         self,
-        thing: Any,
+        thing: T,
         encoders: Encoders,
     ) -> T:
         ...

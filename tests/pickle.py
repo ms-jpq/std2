@@ -17,7 +17,8 @@ from typing import (
 from unittest import TestCase
 from uuid import UUID, uuid4
 
-from ..std2.pickle import DecodeError, Decoders, decode, encode
+from ..std2.pickle import DecodeError, decode, encode
+from ..std2.pickle.coders import UUID_DECODER
 
 T = TypeVar("T")
 
@@ -145,14 +146,7 @@ class Decode(TestCase):
 
     def test_22(self) -> None:
         uuid = uuid4()
-        is_uuid = lambda tp: isclass(tp) and issubclass(tp, UUID)
-
-        def decoder(
-            tp: Any, thing: Any, strict: bool, decoders: Decoders, parent: Optional[Any]
-        ) -> UUID:
-            return UUID(hex=thing)
-
-        thing: UUID = decode(UUID, uuid.hex, decoders={is_uuid: decoder})
+        thing: UUID = decode(UUID, uuid.hex, decoders=UUID_DECODER)
         self.assertEqual(uuid, thing)
 
     def test_23(self) -> None:
