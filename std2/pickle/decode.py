@@ -253,6 +253,7 @@ def decode(
         elif is_dataclass(tp):
             if not isinstance(thing, Mapping):
                 throw()
+
             else:
                 dc_fields: MutableMapping[str, Type] = {}
                 required: MutableSet[str] = set()
@@ -267,6 +268,7 @@ def decode(
 
                 missing_keys = required - thing.keys()
                 extra_keys = thing.keys() - dc_fields.keys()
+
                 if missing_keys or (strict and extra_keys):
                     throw(
                         missing=sorted(missing_keys, key=strxfrm),
