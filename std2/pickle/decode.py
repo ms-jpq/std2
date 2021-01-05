@@ -70,11 +70,13 @@ class DecodeError(Exception):
         path = " -> ".join(str(p) for p in self.path)
         missing = ", ".join(self.missing_keys)
         extra = ", ".join(self.extra_keys)
+        args = ", ".join(str(a) for a in self.args)
         l1 = f"Path:         {path}"
         l2 = f"Actual:       {self.actual}"
         l3 = f"Missing Keys: {{{missing}}}"
         l4 = f"Extra Keys:   {{{extra}}}"
-        return linesep.join((linesep, l1, l2, l3, l4))
+        l5 = f"Args:         ({args})"
+        return linesep.join((linesep, l1, l2, l3, l4, l5))
 
 
 class Decoder(Protocol[T_co]):
