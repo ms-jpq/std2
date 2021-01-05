@@ -148,7 +148,7 @@ class Decode(TestCase):
         is_uuid = lambda tp: isclass(tp) and issubclass(tp, UUID)
 
         def decoder(
-            tp: Any, thing: Any, decoders: Decoders, parent: Optional[Any]
+            tp: Any, thing: Any, strict: bool, decoders: Decoders, parent: Optional[Any]
         ) -> UUID:
             return UUID(hex=thing)
 
@@ -180,3 +180,23 @@ class Decode(TestCase):
 
         with self.assertRaises(DecodeError):
             decode(C[int], {"t": True})
+
+    def test_27(self) -> None:
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
+
+        thing: C = decode(C, {"a": 1, "b": [], "d": "d"}, strict=False)
+        self.assertEqual(thing, C(a=1, b=[], c=False))
+
+    def test_28(self) -> None:
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
+
+        with self.assertRaises(DecodeError):
+            decode(C, {"a": 1, "b": [], "d": "d"}, strict=True)
