@@ -1,10 +1,12 @@
 from typing import Any, Callable, TypeVar
 
+from .types import AnyFun
+
 T = TypeVar("T")
 U = TypeVar("U")
 
 
-def constantly(thing: T) -> Callable[..., T]:
+def constantly(thing: T) -> AnyFun[T]:
     def f(*args: Any, **kwargs: Any) -> T:
         return thing
 
