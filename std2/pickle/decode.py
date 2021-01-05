@@ -14,7 +14,6 @@ from itertools import chain, repeat
 from locale import strxfrm
 from operator import attrgetter
 from os import linesep
-from sys import modules
 from typing import (
     Any,
     Callable,
@@ -37,6 +36,7 @@ from typing import (
     cast,
     get_args,
     get_origin,
+    get_type_hints,
 )
 
 T = TypeVar("T")
@@ -255,19 +255,12 @@ def decode(
                 throw()
 
             else:
+                hints = get_type_hints(tp, globalns=None, localns=None)
                 dc_fields: MutableMapping[str, Type] = {}
                 required: MutableSet[str] = set()
                 for field in fields(tp):
                     if field.init:
-                        ftp: Union[str, Type] = field.type
-                        if isinstance(ftp, str):
-                            mod = modules.get(cast(object, tp).__module__)
-                            if hasattr(mod, ftp):
-                                ftp = attrgetter(ftp)(mod)
-                            else:
-                                ftp = eval(ftp)
-
-                        dc_fields[field.name] = cast(Type, ftp)
+                        dc_fields[field.name] = hints[field.name]
                         if (
                             field.default is MISSING
                             and field.default_factory is MISSING  # type: ignore
