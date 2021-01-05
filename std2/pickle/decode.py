@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import builtins
 from collections.abc import Iterable as ABC_Iterable
 from collections.abc import Mapping as ABC_Mapping
 from collections.abc import MutableMapping as ABC_MutableMapping
@@ -109,6 +108,9 @@ def decode(
         raise DecodeError(
             *args, path=new_path, actual=thing, missing_keys=missing, extra_keys=extra
         )
+
+    if type(tp) is str:
+        tp = eval(tp)
 
     for decoder in decoders:
         try:
@@ -290,16 +292,9 @@ def decode(
                     return cast(Callable[..., T], tp)(**kwargs)
 
         else:
-            ttp = (
-                (attrgetter(tp)(builtins) if hasattr(builtins, tp) else None)
-                if type(tp) is str
-                else tp
-            )
-            if ttp is None:
+            if isinstance(tp, TypeVar):
                 throw()
-            elif isinstance(ttp, TypeVar):
-                throw()
-            elif not isinstance(thing, ttp):
+            elif not isinstance(thing, tp):
                 throw()
             else:
                 return cast(T, thing)
