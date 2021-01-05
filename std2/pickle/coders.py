@@ -1,5 +1,5 @@
 from inspect import isclass
-from typing import Any, Optional
+from typing import Any, Sequence
 from uuid import UUID
 
 from .decode import DecodeError, Decoders
@@ -14,9 +14,9 @@ def uuid_encoder(thing: Any, encoders: Encoders) -> str:
 
 
 def uuid_decoder(
-    tp: Any, thing: Any, strict: bool, decoders: Decoders, parent: Optional[Any]
+    tp: Any, thing: Any, strict: bool, decoders: Decoders, path: Sequence[Any]
 ) -> UUID:
     if not isclass(tp) and issubclass(tp, UUID) and isinstance(thing, str):
-        raise DecodeError()
+        raise DecodeError(path=tuple((*path, tp)), actual=thing)
     else:
         return UUID(hex=thing)

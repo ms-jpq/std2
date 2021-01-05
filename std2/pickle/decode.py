@@ -51,23 +51,16 @@ _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
 class DecodeError(Exception):
-    def __init__(
-        self, *args: Any, parents: Sequence[Any], expected: Any, actual: Any
-    ) -> None:
-        super().__init__(parents, expected, actual, *args)
-        self.parents, self.expected, self.actual = parents, expected, actual
+    def __init__(self, *args: Any, path: Sequence[Any], actual: Any) -> None:
+        super().__init__(path, actual, *args)
+        self.path, self.actual = path, actual
 
 
 class ExtraKeyError(DecodeError):
     def __init__(
-        self,
-        *args: Any,
-        parents: Sequence[Any],
-        expected: Any,
-        actual: Any,
-        keys: Sequence[Any]
+        self, *args: Any, path: Sequence[Any], actual: Any, keys: Sequence[Any]
     ) -> None:
-        super().__init__(keys, *args, parents=parents, expected=expected, actual=actual)
+        super().__init__(keys, *args, path=path, actual=actual)
         self.keys = keys
 
 
@@ -78,7 +71,7 @@ class Decoder(Protocol[T_co]):
         thing: Any,
         strict: bool,
         decoders: Decoders,
-        parents: Sequence[Any],
+        path: Sequence[Any],
     ) -> T_co:
         ...
 
@@ -91,12 +84,12 @@ def decode(
     thing: Any,
     strict: bool = True,
     decoders: Decoders = (),
-    parents: Sequence[Any] = (),
+    path: Sequence[Any] = (),
 ) -> T:
-    new_parents = tuple((*parents, tp))
+    new_path = tuple((*path, tp))
 
     def throw(*args: Any) -> NoReturn:
-        raise DecodeError(*args, parents=parents, expected=tp, actual=thing)
+        raise DecodeError(*args, path=new_path, actual=thing)
 
     for decoder in decoders:
         try:
@@ -105,7 +98,7 @@ def decode(
                 thing,
                 strict=strict,
                 decoders=decoders,
-                parents=new_parents,
+                path=new_path,
             )
         except DecodeError:
             pass
@@ -137,7 +130,7 @@ def decode(
                         thing,
                         strict=strict,
                         decoders=decoders,
-                        parents=new_parents,
+                        path=new_path,
                     )
                 except DecodeError:
                     pass
@@ -155,13 +148,13 @@ def decode(
                         k,
                         strict=strict,
                         decoders=decoders,
-                        parents=new_parents,
+                        path=new_path,
                     ): decode(
                         rhs,
                         v,
                         strict=strict,
                         decoders=decoders,
-                        parents=new_parents,
+                        path=new_path,
                     )
                     for k, v in thing.items()
                 }
@@ -178,7 +171,7 @@ def decode(
                         item,
                         strict=strict,
                         decoders=decoders,
-                        parents=new_parents,
+                        path=new_path,
                     )
                     for item in thing
                 )
@@ -195,7 +188,7 @@ def decode(
                         item,
                         strict=strict,
                         decoders=decoders,
-                        parents=new_parents,
+                        path=new_path,
                     )
                     for item in thing
                 )
@@ -218,7 +211,7 @@ def decode(
                             item,
                             strict=strict,
                             decoders=decoders,
-                            parents=new_parents,
+                            path=new_path,
                         )
                         for t, item in zip(tps, thing)
                     ),
@@ -242,11 +235,9 @@ def decode(
                 throw()
             else:
                 dc_fields = {field.name: field.type for field in fields(tp)}
-                extra_keys = thing.keys() - dc_fields.keys()
+                extra_keys = tuple(thing.keys() - dc_fields.keys())
                 if strict and extra_keys:
-                    raise ExtraKeyError(
-                        parents=parents, expected=tp, actual=thing, keys=extra_keys
-                    )
+                    raise ExtraKeyError(path=new_path, actual=thing, keys=extra_keys)
                 else:
                     kwargs: Mapping[str, Any] = {
                         f_name: decode(
@@ -254,7 +245,7 @@ def decode(
                             thing[f_name],
                             strict=strict,
                             decoders=decoders,
-                            parents=new_parents,
+                            path=new_path,
                         )
                         for f_name, f_type in dc_fields.items()
                         if f_name in thing
