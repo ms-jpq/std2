@@ -191,5 +191,17 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        with self.assertRaises(DecodeError):
+        with self.assertRaises(DecodeError) as e:
             decode(C, {"a": 1, "b": [], "d": "d"}, strict=True)
+        self.assertEqual(e.exception.extra_keys, ["d"])
+
+    def test_29(self) -> None:
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
+
+        with self.assertRaises(DecodeError) as e:
+            decode(C, {"a": 1})
+        self.assertEqual(e.exception.missing_keys, ["b"])
