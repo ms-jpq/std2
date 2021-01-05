@@ -282,7 +282,7 @@ def decode(
                             thing[f_name],
                             strict=strict,
                             decoders=decoders,
-                            path=tuple((*new_path, f"-> {f_name}")),
+                            path=tuple((*new_path, f"<{f_name}>")),
                         )
                         for f_name, f_type in dc_fields.items()
                         if f_name in thing
