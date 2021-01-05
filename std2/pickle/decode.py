@@ -109,9 +109,6 @@ def decode(
             *args, path=new_path, actual=thing, missing_keys=missing, extra_keys=extra
         )
 
-    if type(tp) is str:
-        tp = eval(tp)
-
     for decoder in decoders:
         try:
             return cast(Decoder[T], decoder)(
@@ -261,7 +258,20 @@ def decode(
                 required: MutableSet[str] = set()
                 for field in fields(tp):
                     if field.init:
-                        dc_fields[field.name] = field.type
+                        ftp: Union[str, Type] = field.type
+                        if isinstance(ftp, str):
+                            try:
+                                val = eval(ftp)
+                            except NameError:
+                                mod = cast(object, tp).__module__
+                                if hasattr(mod, ftp):
+                                    ftp = attrgetter(ftp)(mod)
+                                else:
+                                    throw()
+                            else:
+                                ftp = val
+
+                        dc_fields[field.name] = cast(Type, ftp)
                         if (
                             field.default is MISSING
                             and field.default_factory is MISSING  # type: ignore
