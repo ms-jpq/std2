@@ -25,7 +25,7 @@ from typing import (
     MutableMapping,
     MutableSequence,
     MutableSet,
-    Optional,
+    NoReturn,
     Protocol,
     Sequence,
     Set,
@@ -52,21 +52,23 @@ _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 class DecodeError(Exception):
     def __init__(
-        self, parent: Optional[Any], expected: Any, actual: Any, *args: Any
+        self, *args: Any, parents: Sequence[Any], expected: Any, actual: Any
     ) -> None:
-        super().__init__(parent, expected, actual, *args)
+        super().__init__(parents, expected, actual, *args)
+        self.parents, self.expected, self.actual = parents, expected, actual
 
 
 class ExtraKeyError(DecodeError):
     def __init__(
         self,
-        parent: Optional[Any],
+        *args: Any,
+        parents: Sequence[Any],
         expected: Any,
         actual: Any,
-        keys: Set[str],
-        *args: Any
+        keys: Sequence[Any]
     ) -> None:
-        super().__init__(parent, expected, actual, keys, *args)
+        super().__init__(keys, *args, parents=parents, expected=expected, actual=actual)
+        self.keys = keys
 
 
 class Decoder(Protocol[T_co]):
@@ -76,7 +78,7 @@ class Decoder(Protocol[T_co]):
         thing: Any,
         strict: bool,
         decoders: Decoders,
-        parent: Optional[Any],
+        parents: Sequence[Any],
     ) -> T_co:
         ...
 
@@ -89,12 +91,21 @@ def decode(
     thing: Any,
     strict: bool = True,
     decoders: Decoders = (),
-    parent: Optional[Any] = None,
+    parents: Sequence[Any] = (),
 ) -> T:
+    new_parents = tuple((*parents, tp))
+
+    def throw(*args: Any) -> NoReturn:
+        raise DecodeError(*args, parents=parents, expected=tp, actual=thing)
+
     for decoder in decoders:
         try:
             return cast(Decoder[T], decoder)(
-                tp, thing, strict=strict, decoders=decoders, parent=parent
+                tp,
+                thing,
+                strict=strict,
+                decoders=decoders,
+                parents=new_parents,
             )
         except DecodeError:
             pass
@@ -107,37 +118,50 @@ def decode(
 
         elif tp is None:
             if thing is not None:
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 return cast(T, thing)
 
         elif origin is Literal:
             arg, *_ = args
             if thing != arg:
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 return cast(T, thing)
 
         elif origin is Union:
-            errs: MutableSequence[Exception] = []
             for member in args:
                 try:
                     return decode(
-                        member, thing, strict=strict, decoders=decoders, parent=tp
+                        member,
+                        thing,
+                        strict=strict,
+                        decoders=decoders,
+                        parents=new_parents,
                     )
-                except DecodeError as e:
-                    errs.append(e)
+                except DecodeError:
+                    pass
             else:
-                raise DecodeError(parent, tp, thing, errs)
+                throw()
 
         elif origin in _MAPS:
             if not isinstance(thing, Mapping):
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 lhs, rhs = args
                 mapping: Mapping[Any, Any] = {
-                    decode(lhs, k, strict=strict, decoders=decoders, parent=tp): decode(
-                        rhs, v, strict=strict, decoders=decoders, parent=tp
+                    decode(
+                        lhs,
+                        k,
+                        strict=strict,
+                        decoders=decoders,
+                        parents=new_parents,
+                    ): decode(
+                        rhs,
+                        v,
+                        strict=strict,
+                        decoders=decoders,
+                        parents=new_parents,
                     )
                     for k, v in thing.items()
                 }
@@ -145,29 +169,41 @@ def decode(
 
         elif origin in _SETS:
             if not isinstance(thing, ABC_Iterable):
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 t, *_ = args
                 it: Iterator[Any] = (
-                    decode(t, item, strict=strict, decoders=decoders, parent=tp)
+                    decode(
+                        t,
+                        item,
+                        strict=strict,
+                        decoders=decoders,
+                        parents=new_parents,
+                    )
                     for item in thing
                 )
                 return cast(T, {*it} if origin in _SETS_M else frozenset(it))
 
         elif origin in _SEQS:
             if not isinstance(thing, ABC_Iterable):
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 t, *_ = args
                 it = (
-                    decode(t, item, strict=strict, decoders=decoders, parent=tp)
+                    decode(
+                        t,
+                        item,
+                        strict=strict,
+                        decoders=decoders,
+                        parents=new_parents,
+                    )
                     for item in thing
                 )
                 return cast(T, [*it] if origin in _SEQS_M else tuple(it))
 
         elif origin is tuple:
             if not isinstance(thing, Sequence):
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 tps = (
                     chain(args[:-1], repeat(args[-2]))
@@ -177,13 +213,19 @@ def decode(
                 return cast(
                     T,
                     tuple(
-                        decode(t, item, strict=strict, decoders=decoders, parent=tp)
+                        decode(
+                            t,
+                            item,
+                            strict=strict,
+                            decoders=decoders,
+                            parents=new_parents,
+                        )
                         for t, item in zip(tps, thing)
                     ),
                 )
 
         elif origin and len(args):
-            raise DecodeError(parent, tp, thing)
+            throw()
 
         elif isclass(tp) and issubclass(tp, Enum):
             if type(thing) is str and hasattr(tp, thing):
@@ -191,18 +233,20 @@ def decode(
                 if isinstance(enum, tp):
                     return cast(T, enum)
                 else:
-                    raise DecodeError(parent, tp, thing)
+                    throw()
             else:
-                raise DecodeError(parent, tp, thing)
+                throw()
 
         elif is_dataclass(tp):
             if not isinstance(thing, Mapping):
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 dc_fields = {field.name: field.type for field in fields(tp)}
                 extra_keys = thing.keys() - dc_fields.keys()
                 if strict and extra_keys:
-                    raise DecodeError(parent, tp, thing, extra_keys)
+                    raise ExtraKeyError(
+                        parents=parents, expected=tp, actual=thing, keys=extra_keys
+                    )
                 else:
                     kwargs: Mapping[str, Any] = {
                         f_name: decode(
@@ -210,7 +254,7 @@ def decode(
                             thing[f_name],
                             strict=strict,
                             decoders=decoders,
-                            parent=tp,
+                            parents=new_parents,
                         )
                         for f_name, f_type in dc_fields.items()
                         if f_name in thing
@@ -218,7 +262,7 @@ def decode(
                     try:
                         return cast(Callable[..., T], tp)(**kwargs)
                     except TypeError as e:
-                        raise DecodeError(parent, tp, thing, e)
+                        throw()
 
         else:
             ttp = (
@@ -227,10 +271,10 @@ def decode(
                 else tp
             )
             if ttp is None:
-                raise DecodeError(parent, tp, thing)
+                throw()
             elif isinstance(ttp, TypeVar):
-                raise DecodeError(parent, tp, thing)
+                throw()
             elif not isinstance(thing, ttp):
-                raise DecodeError(parent, tp, thing)
+                throw()
             else:
                 return cast(T, thing)
