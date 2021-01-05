@@ -253,7 +253,7 @@ def decode(
                     try:
                         return cast(Callable[..., T], tp)(**kwargs)
                     except TypeError as e:
-                        throw()
+                        throw(e)
 
         else:
             ttp = (
