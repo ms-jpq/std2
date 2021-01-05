@@ -8,7 +8,7 @@ from collections.abc import MutableSequence as ABC_MutableSequence
 from collections.abc import MutableSet as ABC_MutableSet
 from collections.abc import Sequence as ABC_Sequence
 from collections.abc import Set as ABC_Set
-from dataclasses import fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
@@ -29,6 +29,7 @@ from typing import (
     Protocol,
     Sequence,
     Set,
+    Type,
     TypeVar,
     Union,
     cast,
@@ -56,12 +57,17 @@ class DecodeError(Exception):
         self.path, self.actual = path, actual
 
 
-class ExtraKeyError(DecodeError):
+class DecodeKeyError(DecodeError):
     def __init__(
-        self, *args: Any, path: Sequence[Any], actual: Any, keys: Sequence[Any]
+        self,
+        *args: Any,
+        path: Sequence[Any],
+        actual: Any,
+        missing: Sequence[str],
+        extra: Sequence[str]
     ) -> None:
-        super().__init__(keys, *args, path=path, actual=actual)
-        self.keys = keys
+        super().__init__(missing, extra, *args, path=path, actual=actual)
+        self.missing, self.extra = missing, extra
 
 
 class Decoder(Protocol[T_co]):
@@ -123,6 +129,7 @@ def decode(
                 return cast(T, thing)
 
         elif origin is Union:
+            errs: MutableSequence[Exception] = []
             for member in args:
                 try:
                     return decode(
@@ -132,10 +139,10 @@ def decode(
                         decoders=decoders,
                         path=new_path,
                     )
-                except DecodeError:
-                    pass
+                except DecodeError as e:
+                    errs.append(e)
             else:
-                throw()
+                throw(*errs)
 
         elif origin in _MAPS:
             if not isinstance(thing, Mapping):
@@ -234,10 +241,27 @@ def decode(
             if not isinstance(thing, Mapping):
                 throw()
             else:
-                dc_fields = {field.name: field.type for field in fields(tp)}
+                dc_fields: MutableMapping[str, Type] = {}
+                required: MutableSet[str] = set()
+                for field in fields(tp):
+                    if field.init:
+                        dc_fields[field.name] = field.type
+                        if (
+                            field.default is MISSING
+                            and field.default_factory is MISSING
+                        ):
+                            required.add(field.name)
+
+                missing_keys = tuple(required - thing.keys())
                 extra_keys = tuple(thing.keys() - dc_fields.keys())
-                if strict and extra_keys:
-                    raise ExtraKeyError(path=new_path, actual=thing, keys=extra_keys)
+                if missing_keys or (strict and extra_keys):
+                    raise DecodeKeyError(
+                        path=new_path,
+                        actual=thing,
+                        missing=missing_keys,
+                        extra=extra_keys,
+                    )
+
                 else:
                     kwargs: Mapping[str, Any] = {
                         f_name: decode(
@@ -250,10 +274,7 @@ def decode(
                         for f_name, f_type in dc_fields.items()
                         if f_name in thing
                     }
-                    try:
-                        return cast(Callable[..., T], tp)(**kwargs)
-                    except TypeError as e:
-                        throw(e)
+                    return cast(Callable[..., T], tp)(**kwargs)
 
         else:
             ttp = (
