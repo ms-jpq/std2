@@ -1,7 +1,12 @@
 from abc import abstractmethod
-from typing import Any, Final, Protocol, TypeVar
+from typing import Any, Final, NoReturn, Protocol, TypeVar, Union, cast
 
+T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
+
+
+def never() -> NoReturn:
+    assert False
 
 
 class VoidType:
@@ -13,6 +18,10 @@ class VoidType:
 
 
 Void: Final[VoidType] = VoidType()
+
+
+def or_else(thing: Union[T, VoidType], default: T) -> T:
+    return default if thing is Void else cast(T, thing)
 
 
 class AnyFun(Protocol[T_co]):
