@@ -59,28 +59,25 @@ class Decoder(Protocol[T]):
         tp: Any,
         thing: Any,
         strict: bool,
-        decoders: Decoders[T],
+        decoders: Decoders,
         parent: Optional[Any],
     ) -> T:
         ...
 
 
-Decoders = Mapping[Callable[[Any], bool], Decoder[T]]
+Decoders = Sequence[Decoder[Any]]
 
 
 def decode(
     tp: Any,
     thing: Any,
     strict: bool = True,
-    decoders: Decoders[T] = {},
+    decoders: Decoders = (),
     parent: Optional[Any] = None,
 ) -> T:
-    for predicate, decoder in decoders.items():
+    for decoder in decoders:
         try:
-            if predicate(tp):
-                return decoder(
-                    tp, thing, strict=strict, decoders=decoders, parent=parent
-                )
+            return decoder(tp, thing, strict=strict, decoders=decoders, parent=parent)
         except DecodeError:
             pass
 

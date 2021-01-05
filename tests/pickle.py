@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-from inspect import isclass
 from typing import (
     Any,
     ClassVar,
@@ -18,7 +17,7 @@ from unittest import TestCase
 from uuid import UUID, uuid4
 
 from ..std2.pickle import DecodeError, decode, encode
-from ..std2.pickle.coders import UUID_DECODER
+from ..std2.pickle.coders import uuid_decoder
 
 T = TypeVar("T")
 
@@ -146,7 +145,7 @@ class Decode(TestCase):
 
     def test_22(self) -> None:
         uuid = uuid4()
-        thing: UUID = decode(UUID, uuid.hex, decoders=UUID_DECODER)
+        thing: UUID = decode(UUID, uuid.hex, decoders=(uuid_decoder,))
         self.assertEqual(uuid, thing)
 
     def test_23(self) -> None:

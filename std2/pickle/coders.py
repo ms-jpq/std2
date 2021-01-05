@@ -2,24 +2,21 @@ from inspect import isclass
 from typing import Any, Optional
 from uuid import UUID
 
-from .decode import Decoders
-from .encode import Encoders
-
-_encode_is_uuid = lambda thing: isinstance(thing, UUID)
+from .decode import DecodeError, Decoders
+from .encode import EncodeError, Encoders
 
 
-def _uuid_encoder(thing: UUID, encoders: Encoders) -> str:
-    return thing.hex
+def uuid_encoder(thing: Any, encoders: Encoders) -> str:
+    if not isinstance(thing, UUID):
+        raise EncodeError()
+    else:
+        return thing.hex
 
 
-_decode_is_uuid = lambda tp: isclass(tp) and issubclass(tp, UUID)
-
-
-def _uuid_decoder(
+def uuid_decoder(
     tp: Any, thing: Any, strict: bool, decoders: Decoders, parent: Optional[Any]
 ) -> UUID:
-    return UUID(hex=thing)
-
-
-UUID_ENCODER: Encoders = {_encode_is_uuid: _uuid_encoder}
-UUID_DECODER: Decoders = {_decode_is_uuid: _uuid_decoder}
+    if not isclass(tp) and issubclass(tp, UUID) and isinstance(thing, str):
+        raise DecodeError()
+    else:
+        return UUID(hex=thing)

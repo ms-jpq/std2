@@ -6,27 +6,34 @@ from collections.abc import Mapping as ABC_Mapping
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from operator import attrgetter
-from typing import Any, Callable, Mapping, Protocol, TypeVar
+from typing import Any, Protocol, Sequence, TypeVar
 
 T = TypeVar("T")
+
+
+class EncodeError(Exception):
+    ...
 
 
 class Encoder(Protocol[T]):
     def __call__(
         self,
-        thing: T,
+        thing: Any,
         encoders: Encoders,
     ) -> T:
         ...
 
 
-Encoders = Mapping[Callable[[Any], bool], Encoder]
+Encoders = Sequence[Encoder[Any]]
 
 
-def encode(thing: Any, encoders: Encoders = {}) -> Any:
-    for predicate, encoder in encoders.items():
-        if predicate(thing):
+def encode(thing: Any, encoders: Encoders = ()) -> Any:
+    for encoder in encoders:
+        try:
             return encoder(thing, encoders=encoders)
+        except EncodeError:
+            pass
+
     else:
         if isinstance(thing, ABC_Mapping):
             return {
