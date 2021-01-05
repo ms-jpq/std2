@@ -51,7 +51,22 @@ _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
 class DecodeError(Exception):
-    ...
+    def __init__(
+        self, parent: Optional[Any], expected: Any, actual: Any, *args: Any
+    ) -> None:
+        super().__init__(parent, expected, actual, *args)
+
+
+class ExtraKeyError(DecodeError):
+    def __init__(
+        self,
+        parent: Optional[Any],
+        expected: Any,
+        actual: Any,
+        keys: Set[str],
+        *args: Any
+    ) -> None:
+        super().__init__(parent, expected, actual, keys, *args)
 
 
 class Decoder(Protocol[T_co]):
