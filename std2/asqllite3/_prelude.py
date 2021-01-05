@@ -1,7 +1,7 @@
-from typing import Iterator, Set
+from typing import FrozenSet, Iterator
 
 
-def sql_escape(param: str, nono: Set[str], escape: str) -> str:
+def sql_escape(param: str, nono: FrozenSet[str], escape: str) -> str:
     def cont() -> Iterator[str]:
         for char in param:
             if char in nono:
