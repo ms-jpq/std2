@@ -248,7 +248,7 @@ def decode(
                         dc_fields[field.name] = field.type
                         if (
                             field.default is MISSING
-                            and field.default_factory is MISSING
+                            and field.default_factory is MISSING  # type: ignore# type
                         ):
                             required.add(field.name)
 
