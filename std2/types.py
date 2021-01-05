@@ -5,8 +5,8 @@ T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 
 
-def never() -> NoReturn:
-    assert False
+def never(value: NoReturn) -> NoReturn:
+    assert False, type(value).__name__
 
 
 class VoidType:
