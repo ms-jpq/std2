@@ -14,6 +14,7 @@ from itertools import chain, repeat
 from locale import strxfrm
 from operator import attrgetter
 from os import linesep
+from sys import modules
 from typing import (
     Any,
     Callable,
@@ -260,16 +261,11 @@ def decode(
                     if field.init:
                         ftp: Union[str, Type] = field.type
                         if isinstance(ftp, str):
-                            try:
-                                val = eval(ftp)
-                            except NameError:
-                                mod = cast(object, tp).__module__
-                                if hasattr(mod, ftp):
-                                    ftp = attrgetter(ftp)(mod)
-                                else:
-                                    throw()
+                            mod = modules.get(cast(object, tp).__module__)
+                            if hasattr(mod, ftp):
+                                ftp = attrgetter(ftp)(mod)
                             else:
-                                ftp = val
+                                ftp = eval(ftp)
 
                         dc_fields[field.name] = cast(Type, ftp)
                         if (
