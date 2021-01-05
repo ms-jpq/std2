@@ -53,21 +53,16 @@ _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
 class DecodeError(Exception):
-    def __init__(self, *args: Any, path: Sequence[Any], actual: Any) -> None:
-        super().__init__(path, actual, *args)
-        self.path, self.actual = path, actual
-
-
-class DecodeKeyError(DecodeError):
     def __init__(
         self,
         *args: Any,
         path: Sequence[Any],
         actual: Any,
-        missing: Sequence[str],
-        extra: Sequence[str]
+        missing: Sequence[str] = (),
+        extra: Sequence[str] = ()
     ) -> None:
-        super().__init__(missing, extra, *args, path=path, actual=actual)
+        super().__init__(path, actual, missing, extra, *args)
+        self.path, self.actual = path, actual
         self.missing, self.extra = missing, extra
 
 
@@ -95,8 +90,12 @@ def decode(
 ) -> T:
     new_path = tuple((*path, tp))
 
-    def throw(*args: Any) -> NoReturn:
-        raise DecodeError(*args, path=new_path, actual=thing)
+    def throw(
+        *args: Any, missing: Sequence[str] = (), extra: Sequence[str] = ()
+    ) -> NoReturn:
+        raise DecodeError(
+            *args, path=new_path, actual=thing, missing=missing, extra=extra
+        )
 
     for decoder in decoders:
         try:
@@ -256,9 +255,7 @@ def decode(
                 missing_keys = required - thing.keys()
                 extra_keys = thing.keys() - dc_fields.keys()
                 if missing_keys or (strict and extra_keys):
-                    raise DecodeKeyError(
-                        path=new_path,
-                        actual=thing,
+                    throw(
                         missing=sorted(missing_keys, key=strxfrm),
                         extra=sorted(extra_keys, key=strxfrm),
                     )
