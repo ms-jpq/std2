@@ -12,6 +12,7 @@ from dataclasses import MISSING, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
+from locale import strxfrm
 from operator import attrgetter
 from typing import (
     Any,
@@ -252,14 +253,14 @@ def decode(
                         ):
                             required.add(field.name)
 
-                missing_keys = tuple(required - thing.keys())
-                extra_keys = tuple(thing.keys() - dc_fields.keys())
+                missing_keys = required - thing.keys()
+                extra_keys = thing.keys() - dc_fields.keys()
                 if missing_keys or (strict and extra_keys):
                     raise DecodeKeyError(
                         path=new_path,
                         actual=thing,
-                        missing=missing_keys,
-                        extra=extra_keys,
+                        missing=sorted(missing_keys, key=strxfrm),
+                        extra=sorted(extra_keys, key=strxfrm),
                     )
 
                 else:
