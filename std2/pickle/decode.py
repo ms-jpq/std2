@@ -67,14 +67,14 @@ class DecodeError(Exception):
         self.missing_keys, self.extra_keys = missing_keys, extra_keys
 
     def __str__(self) -> str:
-        path = " -> ".join(self.path)
+        path = " -> ".join(str(p) for p in self.path)
         missing = ", ".join(self.missing_keys)
         extra = ", ".join(self.extra_keys)
-        l1 = f"Path: {path}"
-        l2 = f"Actual: {self.actual}"
+        l1 = f"Path:         {path}"
+        l2 = f"Actual:       {self.actual}"
         l3 = f"Missing Keys: {{{missing}}}"
-        l4 = f"Extra Keys: {{{extra}}}"
-        return linesep.join((l1, l2, l3, l4))
+        l4 = f"Extra Keys:   {{{extra}}}"
+        return linesep.join((linesep, l1, l2, l3, l4))
 
 
 class Decoder(Protocol[T_co]):
