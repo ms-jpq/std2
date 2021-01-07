@@ -1,6 +1,6 @@
 from unittest import IsolatedAsyncioTestCase
 
-from ...std2.concurrent.futures import AExecutor
+from ...std2.asyncio.aexecutor import AExecutor
 
 
 class AExe(IsolatedAsyncioTestCase):

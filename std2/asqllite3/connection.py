@@ -13,7 +13,7 @@ from typing import (
     cast,
 )
 
-from ..concurrent.futures import AExecutor
+from ..asyncio.aexecutor import AExecutor
 from .cursor import ACursor
 from .types import SQL_TYPES
 
