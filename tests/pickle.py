@@ -132,16 +132,36 @@ class Decode(TestCase):
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
     def test_19(self) -> None:
-        thing: bool = decode("bool", True)
-        self.assertEqual(thing, True)
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
+
+        thing: C = decode(C, {"a": 1, "b": [], "d": "d"}, strict=False)
+        self.assertEqual(thing, C(a=1, b=[], c=False))
 
     def test_20(self) -> None:
-        thing: int = decode("int", True)
-        self.assertEqual(thing, True)
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
+
+        with self.assertRaises(DecodeError) as e:
+            decode(C, {"a": 1, "b": [], "d": "d"}, strict=True)
+        self.assertEqual(e.exception.extra_keys, ["d"])
 
     def test_21(self) -> None:
-        with self.assertRaises(DecodeError):
-            decode("str", True)
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
+
+        with self.assertRaises(DecodeError) as e:
+            decode(C, {"a": 1})
+        self.assertEqual(e.exception.missing_keys, ["b"])
 
     def test_22(self) -> None:
         uuid = uuid4()
@@ -173,35 +193,3 @@ class Decode(TestCase):
 
         with self.assertRaises(DecodeError):
             decode(C[int], {"t": True})
-
-    def test_27(self) -> None:
-        @dataclass(frozen=True)
-        class C:
-            a: int
-            b: List[str]
-            c: bool = False
-
-        thing: C = decode(C, {"a": 1, "b": [], "d": "d"}, strict=False)
-        self.assertEqual(thing, C(a=1, b=[], c=False))
-
-    def test_28(self) -> None:
-        @dataclass(frozen=True)
-        class C:
-            a: int
-            b: List[str]
-            c: bool = False
-
-        with self.assertRaises(DecodeError) as e:
-            decode(C, {"a": 1, "b": [], "d": "d"}, strict=True)
-        self.assertEqual(e.exception.extra_keys, ["d"])
-
-    def test_29(self) -> None:
-        @dataclass(frozen=True)
-        class C:
-            a: int
-            b: List[str]
-            c: bool = False
-
-        with self.assertRaises(DecodeError) as e:
-            decode(C, {"a": 1})
-        self.assertEqual(e.exception.missing_keys, ["b"])
