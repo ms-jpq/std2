@@ -8,6 +8,10 @@ def take(it: Iterable[T], n: int) -> Sequence[T]:
     return tuple(islice(it, n))
 
 
+def chunk(it: Iterable[T], n: int) -> Iterator[Sequence[T]]:
+    return iter(lambda: take(it, n), ())
+
+
 class deiter(Iterator[T]):
     def __init__(self, it: Iterable[T]) -> None:
         self._s: MutableSequence[T] = []
