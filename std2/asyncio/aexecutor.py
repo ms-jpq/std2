@@ -30,7 +30,7 @@ def _clean_up() -> None:
         aexes = tuple(_aexes)
 
     for aexe in aexes:
-        aexe.shutdown_sync()
+        aexe.close()
 
 
 _register_atexit(_clean_up)
@@ -54,10 +54,10 @@ class AExecutor(ContextManager["AExecutor"], AsyncContextManager["AExecutor"]):
                 _aexes.add(self)
 
     def __exit__(self, *_: Any) -> None:
-        self.shutdown_sync()
+        self.close()
 
     async def __aexit__(self, *_: Any) -> None:
-        await self.shutdown()
+        await self.aclose()
 
     def _cont(self) -> None:
         while True:
@@ -77,7 +77,7 @@ class AExecutor(ContextManager["AExecutor"], AsyncContextManager["AExecutor"]):
             else:
                 break
 
-    def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    def submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         with _lock, self._lock:
             if _is_shutdown or not self._is_alive:
                 raise RuntimeError()
@@ -90,10 +90,10 @@ class AExecutor(ContextManager["AExecutor"], AsyncContextManager["AExecutor"]):
                 self._ch.put((fut, func))
                 return cast(T, fut.result())
 
-    async def submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-        return await run_in_executor(self.submit_sync, f, *args, **kwargs)
+    async def asubmit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+        return await run_in_executor(self.submit, f, *args, **kwargs)
 
-    def shutdown_sync(self) -> None:
+    def close(self) -> None:
         with self._lock:
             self._is_alive = False
 
@@ -105,5 +105,5 @@ class AExecutor(ContextManager["AExecutor"], AsyncContextManager["AExecutor"]):
             if self in _aexes:
                 _aexes.remove(self)
 
-    async def shutdown(self) -> None:
-        await run_in_executor(self.shutdown_sync)
+    async def aclose(self) -> None:
+        await run_in_executor(self.close)
