@@ -4,7 +4,17 @@ from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
 from threading import Lock, Thread, _register_atexit  # type: ignore
-from typing import Any, Callable, MutableSet, Optional, Tuple, TypeVar, cast
+from typing import (
+    Any,
+    AsyncContextManager,
+    Callable,
+    ContextManager,
+    MutableSet,
+    Optional,
+    Tuple,
+    TypeVar,
+    cast,
+)
 
 from ..asyncio import run_in_executor
 
@@ -29,18 +39,28 @@ _register_atexit(_clean_up)
 T = TypeVar("T")
 
 
-class AExecutor:
+class AExecutor(ContextManager[AExecutor], AsyncContextManager[AExecutor]):
     def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
         self._th = Thread(target=self._cont, daemon=daemon, name=name)
         self._ch: SimpleQueue = SimpleQueue()
+
+        self._lock = Lock()
+        self._is_alive = True
+
         with _lock:
             if _is_shutdown:
                 raise RuntimeError()
             else:
                 _aexes.add(self)
 
+    def __exit__(self, *_: Any) -> None:
+        self.shutdown_sync()
+
+    async def __aexit__(self, *_: Any) -> None:
+        await self.shutdown()
+
     def _cont(self) -> None:
-        while not _is_shutdown:
+        while True:
             work: Optional[Tuple[Future, Callable[[], Any]]] = self._ch.get()
             if work:
                 fut, func = work
@@ -58,17 +78,25 @@ class AExecutor:
                 break
 
     def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-        if not self._th.is_alive():
-            self._th.start()
-        fut: Future = Future()
-        func = partial(f, *args, **kwargs)
-        self._ch.put((fut, func))
-        return cast(T, fut.result())
+        with self._lock:
+            if not self._is_alive:
+                raise RuntimeError()
+            else:
+                if not self._th.is_alive():
+                    self._th.start()
+
+                fut: Future = Future()
+                func = partial(f, *args, **kwargs)
+                self._ch.put((fut, func))
+                return cast(T, fut.result())
 
     async def submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         return await run_in_executor(self.submit_sync, f, *args, **kwargs)
 
     def shutdown_sync(self) -> None:
+        with self._lock:
+            self._is_alive = False
+
         if self._th.is_alive():
             self._ch.put(None)
             self._th.join()
