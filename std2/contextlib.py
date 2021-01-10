@@ -1,12 +1,9 @@
-from contextlib import asynccontextmanager, contextmanager
-from typing import AsyncIterator, Iterator
+from contextlib import asynccontextmanager
+from typing import AsyncIterator, TypeVar
 
-
-@contextmanager
-def nil_manager() -> Iterator[None]:
-    yield None
+T = TypeVar("T")
 
 
 @asynccontextmanager
-async def nil_amanager() -> AsyncIterator[None]:
-    yield None
+async def nullacontext(enter_result: T = None) -> AsyncIterator[T]:
+    yield enter_result

@@ -4,7 +4,7 @@ from os import environ, getcwd
 from subprocess import CalledProcessError
 from typing import Any, AsyncContextManager, Mapping, Optional, Sequence, cast
 
-from ..contextlib import nil_amanager
+from ..contextlib import nullacontext
 
 
 @dataclass(frozen=True)
@@ -25,7 +25,7 @@ async def call(
     expected_code: Optional[int] = None,
     ctx_mgr: Optional[AsyncContextManager[Any]] = None,
 ) -> ProcReturn:
-    async with ctx_mgr or nil_amanager():
+    async with ctx_mgr or nullacontext():
         proc = await create_subprocess_exec(
             prog,
             *args,
