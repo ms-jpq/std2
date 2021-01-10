@@ -9,14 +9,18 @@ from typing import Any, Callable, MutableSet, Optional, Tuple, TypeVar, cast
 from ..asyncio import run_in_executor
 
 _lock = Lock()
+_is_shutdown = False
 _aexes: MutableSet[AExecutor] = set()
 
 
 def _clean_up() -> None:
+    global _is_shutdown
     with _lock:
-        while _aexes:
-            aexe = _aexes.pop()
-            aexe.shutdown_sync()
+        _is_shutdown = True
+        aexes = tuple(_aexes)
+
+    for aexe in aexes:
+        aexe.shutdown_sync()
 
 
 _register_atexit(_clean_up)
@@ -30,10 +34,13 @@ class AExecutor:
         self._th = Thread(target=self._cont, daemon=daemon, name=name)
         self._ch: SimpleQueue = SimpleQueue()
         with _lock:
-            _aexes.add(self)
+            if _is_shutdown:
+                raise RuntimeError()
+            else:
+                _aexes.add(self)
 
     def _cont(self) -> None:
-        while True:
+        while not _is_shutdown:
             work: Optional[Tuple[Future, Callable[[], T]]] = self._ch.get()
             if work:
                 fut, func = work
