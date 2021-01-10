@@ -4,17 +4,7 @@ from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
 from threading import Lock, Thread, _register_atexit  # type: ignore
-from typing import (
-    Any,
-    AsyncContextManager,
-    Callable,
-    ContextManager,
-    MutableSet,
-    Optional,
-    Tuple,
-    TypeVar,
-    cast,
-)
+from typing import Any, Callable, MutableSet, Optional, Tuple, TypeVar, cast
 
 from ..asyncio import run_in_executor
 
@@ -39,7 +29,7 @@ _register_atexit(_clean_up)
 T = TypeVar("T")
 
 
-class AExecutor(ContextManager["AExecutor"], AsyncContextManager["AExecutor"]):
+class AExecutor:
     def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
         self._th = Thread(target=self._cont, daemon=daemon, name=name)
         self._ch: SimpleQueue = SimpleQueue()
@@ -52,12 +42,6 @@ class AExecutor(ContextManager["AExecutor"], AsyncContextManager["AExecutor"]):
                 raise RuntimeError()
             else:
                 _aexes.add(self)
-
-    def __exit__(self, *_: Any) -> None:
-        self.close()
-
-    async def __aexit__(self, *_: Any) -> None:
-        await self.aclose()
 
     def _cont(self) -> None:
         while True:

@@ -1,14 +1,12 @@
-from __future__ import annotations
-
 from sqlite3 import Connection, Cursor, Row, connect
-from typing import Any, AsyncContextManager, Callable, ContextManager, TypeVar
+from typing import Any, Callable, TypeVar
 
 from .concurrent.aexecutor import AExecutor
 
 T = TypeVar("T")
 
 
-class AConnection(ContextManager["AConnection"], AsyncContextManager["AConnection"]):
+class AConnection:
     def __init__(self, database: str = ":memory:") -> None:
         self._aexe = AExecutor(daemon=False)
 
@@ -18,12 +16,6 @@ class AConnection(ContextManager["AConnection"], AsyncContextManager["AConnectio
             return conn
 
         self._conn = self._aexe.submit(cont)
-
-    def __exit__(self, *_: Any) -> None:
-        self.close()
-
-    async def __aexit__(self, *_: Any) -> None:
-        await self.aclose()
 
     def close(self) -> None:
         return self._aexe.submit(self._conn.close)

@@ -1,9 +1,11 @@
+from contextlib import contextmanager
+from sqlite3 import Cursor
 from typing import FrozenSet, Iterator, Union
 
 SQL_TYPES = Union[int, float, str, bytes, None]
 
 
-def sql_escape(nono: FrozenSet[str], escape: str, param: str) -> str:
+def escape(nono: FrozenSet[str], escape: str, param: str) -> str:
     escape_chars = nono | {escape}
 
     def cont() -> Iterator[str]:
@@ -13,3 +15,12 @@ def sql_escape(nono: FrozenSet[str], escape: str, param: str) -> str:
             yield char
 
     return "".join(cont())
+
+
+@contextmanager
+def with_transaction(cursor: Cursor) -> Iterator[None]:
+    try:
+        cursor.execute("BEGIN")
+        yield None
+    finally:
+        cursor.execute("END")
