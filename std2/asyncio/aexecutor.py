@@ -39,7 +39,7 @@ _register_atexit(_clean_up)
 T = TypeVar("T")
 
 
-class AExecutor(ContextManager[AExecutor], AsyncContextManager[AExecutor]):
+class AExecutor(ContextManager["AExecutor"], AsyncContextManager["AExecutor"]):
     def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
         self._th = Thread(target=self._cont, daemon=daemon, name=name)
         self._ch: SimpleQueue = SimpleQueue()
@@ -78,8 +78,8 @@ class AExecutor(ContextManager[AExecutor], AsyncContextManager[AExecutor]):
                 break
 
     def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-        with self._lock:
-            if not self._is_alive:
+        with _lock, self._lock:
+            if _is_shutdown or not self._is_alive:
                 raise RuntimeError()
             else:
                 if not self._th.is_alive():
