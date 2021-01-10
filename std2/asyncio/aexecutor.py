@@ -3,17 +3,20 @@ from __future__ import annotations
 from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
-from threading import Thread, _register_atexit  # type: ignore
-from typing import Any, Callable, MutableSequence, Optional, Tuple, TypeVar, cast
+from threading import Lock, Thread, _register_atexit  # type: ignore
+from typing import Any, Callable, MutableSet, Optional, Tuple, TypeVar, cast
 
 from ..asyncio import run_in_executor
 
-_aexes: MutableSequence[AExecutor] = []
+_lock = Lock()
+_aexes: MutableSet[AExecutor] = set()
 
 
 def _clean_up() -> None:
-    for aexe in _aexes:
-        aexe.shutdown_sync()
+    with _lock:
+        while _aexes:
+            aexe = _aexes.pop()
+            aexe.shutdown_sync()
 
 
 _register_atexit(_clean_up)
@@ -26,7 +29,8 @@ class AExecutor:
     def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
         self._th = Thread(target=self._cont, daemon=daemon, name=name)
         self._ch: SimpleQueue = SimpleQueue()
-        _aexes.append(self)
+        with _lock:
+            _aexes.add(self)
 
     def _cont(self) -> None:
         while True:
@@ -50,7 +54,7 @@ class AExecutor:
         self._th.start()
         fut: Future = Future()
         func = partial(f, *args, **kwargs)
-        self._ch.put_nowait((fut, func))
+        self._ch.put((fut, func))
         return fut
 
     def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
@@ -63,8 +67,12 @@ class AExecutor:
 
     def shutdown_sync(self) -> None:
         if self._th.is_alive():
-            self._ch.put_nowait(None)
+            self._ch.put(None)
             self._th.join()
+
+        with _lock:
+            if self in _aexes:
+                _aexes.remove(self)
 
     async def shutdown(self) -> None:
         await run_in_executor(self.shutdown_sync)
