@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import (
     Any,
@@ -17,7 +18,14 @@ from unittest import TestCase
 from uuid import UUID, uuid4
 
 from ..std2.pickle import DecodeError, decode, encode
-from ..std2.pickle.coders import uuid_decoder
+from ..std2.pickle.coders import (
+    datetime_float_decoder,
+    datetime_float_encoder,
+    datetime_str_decoder,
+    datetime_str_encoder,
+    uuid_decoder,
+    uuid_encoder,
+)
 
 T = TypeVar("T")
 
@@ -193,3 +201,23 @@ class Decode(TestCase):
 
         with self.assertRaises(DecodeError):
             decode(C[int], {"t": True})
+
+
+class RoundTrip(TestCase):
+    def test_1(self) -> None:
+        before = uuid4()
+        thing = encode(before, encoders=(uuid_encoder,))
+        after: UUID = decode(UUID, thing, decoders=(uuid_decoder,))
+        self.assertEqual(after, before)
+
+    def test_2(self) -> None:
+        before = datetime.now(tz=timezone.utc)
+        thing = encode(before, encoders=(datetime_str_encoder,))
+        after: datetime = decode(datetime, thing, decoders=(datetime_str_decoder,))
+        self.assertEqual(after, before)
+
+    def test_3(self) -> None:
+        before = datetime.now(tz=timezone.utc)
+        thing = encode(before, encoders=(datetime_float_encoder,))
+        after: datetime = decode(datetime, thing, decoders=(datetime_float_decoder,))
+        self.assertEqual(after, before)
