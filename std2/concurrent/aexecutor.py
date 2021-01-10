@@ -73,7 +73,8 @@ class AExecutor(Closable, AClosable):
                 fut: Future = Future()
                 func = partial(f, *args, **kwargs)
                 self._ch.put((fut, func))
-                return cast(T, fut.result())
+
+        return cast(T, fut.result())
 
     async def asubmit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         return await run_in_executor(self.submit, f, *args, **kwargs)
