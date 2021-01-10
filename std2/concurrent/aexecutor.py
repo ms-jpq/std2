@@ -7,6 +7,7 @@ from threading import Lock, Thread, _register_atexit  # type: ignore
 from typing import Any, Callable, MutableSet, Optional, Tuple, TypeVar, cast
 
 from ..asyncio import run_in_executor
+from ..contextlib import AClosable, Closable
 
 _lock = Lock()
 _is_shutdown = False
@@ -29,7 +30,7 @@ _register_atexit(_clean_up)
 T = TypeVar("T")
 
 
-class AExecutor:
+class AExecutor(Closable, AClosable):
     def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
         self._th = Thread(target=self._cont, daemon=daemon, name=name)
         self._ch: SimpleQueue = SimpleQueue()

@@ -1,12 +1,13 @@
 from sqlite3 import Connection, Cursor, Row, connect
-from typing import Any, Callable, TypeVar
+from typing import Callable, TypeVar
 
 from .concurrent.aexecutor import AExecutor
+from .contextlib import AClosable, Closable
 
 T = TypeVar("T")
 
 
-class AConnection:
+class AConnection(Closable, AClosable):
     def __init__(self, database: str = ":memory:") -> None:
         self._aexe = AExecutor(daemon=False)
 

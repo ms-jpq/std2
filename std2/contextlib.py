@@ -13,6 +13,12 @@ from typing import (
 T = TypeVar("T")
 
 
+class Closable(Protocol):
+    @abstractmethod
+    def close(self) -> None:
+        ...
+
+
 class AClosable(Protocol):
     @abstractmethod
     async def aclose(self) -> None:
