@@ -4,7 +4,7 @@ from concurrent.futures import Future
 from functools import partial
 from queue import SimpleQueue
 from threading import Thread, _register_atexit  # type: ignore
-from typing import Any, Callable, MutableSequence, Optional, TypeVar, cast
+from typing import Any, Callable, MutableSequence, Optional, Tuple, TypeVar, cast
 
 from ..asyncio import run_in_executor
 
@@ -30,7 +30,7 @@ class AExecutor:
 
     def _cont(self) -> None:
         while True:
-            work = self._ch.get()
+            work: Optional[Tuple[Future, Callable[[], T]]] = self._ch.get()
             if work:
                 fut, func = work
 
