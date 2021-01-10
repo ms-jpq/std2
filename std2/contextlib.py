@@ -1,6 +1,14 @@
 from abc import abstractmethod
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Generic, Optional, Protocol, TypeVar, cast
+from typing import (
+    Any,
+    AsyncContextManager,
+    AsyncIterator,
+    Optional,
+    Protocol,
+    TypeVar,
+    cast,
+)
 
 T = TypeVar("T")
 
@@ -14,7 +22,7 @@ class AClosable(Protocol):
 _T2 = TypeVar("_T2", bound=AClosable)
 
 
-class aclosing(Generic[_T2]):
+class aclosing(AsyncContextManager[_T2]):
     def __init__(self, thing: _T2) -> None:
         self._thing = thing
 
