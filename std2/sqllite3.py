@@ -20,7 +20,7 @@ def escape(nono: FrozenSet[str], escape: str, param: str) -> str:
 @contextmanager
 def with_transaction(cursor: Cursor) -> Iterator[None]:
     try:
-        cursor.execute("BEGIN")
+        cursor.execute("BEGIN TRANSACTION")
         yield None
     finally:
-        cursor.execute("END")
+        cursor.execute("END TRANSACTION")
