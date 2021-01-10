@@ -41,7 +41,7 @@ class AExecutor:
 
     def _cont(self) -> None:
         while not _is_shutdown:
-            work: Optional[Tuple[Future, Callable[[], T]]] = self._ch.get()
+            work: Optional[Tuple[Future, Callable[[], Any]]] = self._ch.get()
             if work:
                 fut, func = work
 
@@ -57,20 +57,16 @@ class AExecutor:
             else:
                 break
 
-    def _submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> Future:
-        self._th.start()
+    def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+        if not self._th.is_alive():
+            self._th.start()
         fut: Future = Future()
         func = partial(f, *args, **kwargs)
         self._ch.put((fut, func))
-        return fut
-
-    def submit_sync(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-        fut = self._submit(f, *args, **kwargs)
         return cast(T, fut.result())
 
     async def submit(self, f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-        fut = self._submit(f, *args, **kwargs)
-        return await run_in_executor(fut.result)
+        return await run_in_executor(self.submit_sync, f, *args, **kwargs)
 
     def shutdown_sync(self) -> None:
         if self._th.is_alive():
