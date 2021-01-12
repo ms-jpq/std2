@@ -1,10 +1,27 @@
 from datetime import datetime, timezone
 from inspect import isclass
-from typing import Any, Sequence, SupportsFloat
+from pathlib import PurePath
+from typing import Any, Sequence, SupportsFloat, cast
 from uuid import UUID
 
 from .decode import DecodeError, Decoders
 from .encode import EncodeError, Encoders
+
+
+def path_encoder(thing: Any, encoders: Encoders) -> str:
+    if not isinstance(thing, PurePath):
+        raise EncodeError()
+    else:
+        return str(thing)
+
+
+def path_decoder(
+    tp: Any, thing: Any, strict: bool, decoders: Decoders, path: Sequence[Any]
+) -> PurePath:
+    if not (isclass(tp) and issubclass(tp, PurePath) and isinstance(thing, str)):
+        raise DecodeError(path=tuple((*path, tp)), actual=thing)
+    else:
+        return cast(PurePath, tp(thing))
 
 
 def uuid_encoder(thing: Any, encoders: Encoders) -> str:
