@@ -13,7 +13,7 @@ def constantly(thing: T) -> AnyFun[T]:
     return f
 
 
-def identity(thing: T) -> T:
+def identity(thing: T, *args: Any, **kwargs: Any) -> T:
     return thing
 
 
