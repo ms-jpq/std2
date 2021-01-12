@@ -7,6 +7,10 @@ from uuid import UUID
 from .decode import DecodeError, Decoders
 from .encode import EncodeError, Encoders
 
+"""
+Pure Path -> str
+"""
+
 
 def path_encoder(thing: Any, encoders: Encoders) -> str:
     if not isinstance(thing, PurePath):
@@ -22,6 +26,11 @@ def path_decoder(
         raise DecodeError(path=tuple((*path, tp)), actual=thing)
     else:
         return cast(PurePath, tp(thing))
+
+
+"""
+UUID -> str
+"""
 
 
 def uuid_encoder(thing: Any, encoders: Encoders) -> str:
@@ -40,6 +49,11 @@ def uuid_decoder(
         return UUID(hex=thing)
 
 
+"""
+datetime -> str
+"""
+
+
 def datetime_str_encoder(thing: Any, encoders: Encoders) -> str:
     if not isinstance(thing, datetime):
         raise EncodeError()
@@ -54,6 +68,11 @@ def datetime_str_decoder(
         raise DecodeError(path=tuple((*path, tp)), actual=thing)
     else:
         return datetime.fromisoformat(thing)
+
+
+"""
+datetime -> float
+"""
 
 
 def datetime_float_encoder(thing: Any, encoders: Encoders) -> float:
