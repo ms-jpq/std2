@@ -4,8 +4,9 @@ from os import PathLike, environ, getcwd
 from subprocess import CalledProcessError
 from typing import Any, AsyncContextManager, Mapping, Optional, Sequence, Union, cast
 
-AnyPath = Union[PathLike, str, bytes]
 from ..contextlib import nullacontext
+
+AnyPath = Union[PathLike, str, bytes]
 
 
 @dataclass(frozen=True)
