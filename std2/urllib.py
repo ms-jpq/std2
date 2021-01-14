@@ -3,7 +3,7 @@ from typing import Union, cast
 from urllib.request import Request, build_opener
 
 
-async def urlopen(req: Union[Request, str]) -> HTTPResponse:
+def urlopen(req: Union[Request, str]) -> HTTPResponse:
     opener = build_opener()
     with opener.open(req) as resp:
         return cast(HTTPResponse, resp)
