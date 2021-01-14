@@ -2,7 +2,7 @@ from asyncio.subprocess import PIPE, create_subprocess_exec
 from dataclasses import dataclass
 from os import PathLike, environ, getcwd
 from subprocess import CalledProcessError
-from typing import Any, AsyncContextManager, Mapping, Optional, Sequence, cast
+from typing import Any, AsyncContextManager, Mapping, Optional, Sequence, Union, cast
 
 from ..contextlib import nullacontext
 
@@ -20,7 +20,7 @@ async def call(
     prog: str,
     *args: str,
     stdin: Optional[bytes] = None,
-    cwd: Optional[PathLike] = None,
+    cwd: Optional[Union[PathLike, str]] = None,
     env: Optional[Mapping[str, str]] = None,
     expected_code: Optional[int] = None,
     ctx_mgr: Optional[AsyncContextManager[Any]] = None,
