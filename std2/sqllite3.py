@@ -1,11 +1,11 @@
 from contextlib import contextmanager
 from sqlite3 import Cursor
-from typing import FrozenSet, Iterator, Union
+from typing import AbstractSet, Iterator, Union
 
 SQL_TYPES = Union[int, float, str, bytes, None]
 
 
-def escape(nono: FrozenSet[str], escape: str, param: str) -> str:
+def escape(nono: AbstractSet[str], escape: str, param: str) -> str:
     escape_chars = nono | {escape}
 
     def cont() -> Iterator[str]:
