@@ -23,7 +23,7 @@ def path_decoder(
     tp: Any, thing: Any, strict: bool, decoders: Decoders, path: Sequence[Any]
 ) -> PurePath:
     if not (isclass(tp) and issubclass(tp, PurePath) and isinstance(thing, str)):
-        raise DecodeError(path=tuple((*path, tp)), actual=thing)
+        raise DecodeError(path=(*path, tp), actual=thing)
     else:
         return cast(PurePath, tp(thing))
 
@@ -44,7 +44,7 @@ def uuid_decoder(
     tp: Any, thing: Any, strict: bool, decoders: Decoders, path: Sequence[Any]
 ) -> UUID:
     if not (isclass(tp) and issubclass(tp, UUID) and isinstance(thing, str)):
-        raise DecodeError(path=tuple((*path, tp)), actual=thing)
+        raise DecodeError(path=(*path, tp), actual=thing)
     else:
         return UUID(hex=thing)
 
@@ -65,7 +65,7 @@ def datetime_str_decoder(
     tp: Any, thing: Any, strict: bool, decoders: Decoders, path: Sequence[Any]
 ) -> datetime:
     if not (isclass(tp) and issubclass(tp, datetime) and isinstance(thing, str)):
-        raise DecodeError(path=tuple((*path, tp)), actual=thing)
+        raise DecodeError(path=(*path, tp), actual=thing)
     else:
         return datetime.fromisoformat(thing)
 
@@ -88,6 +88,6 @@ def datetime_float_decoder(
     if not (
         isclass(tp) and issubclass(tp, datetime) and isinstance(thing, SupportsFloat)
     ):
-        raise DecodeError(path=tuple((*path, tp)), actual=thing)
+        raise DecodeError(path=(*path, tp), actual=thing)
     else:
         return datetime.fromtimestamp(float(thing), tz=timezone.utc)

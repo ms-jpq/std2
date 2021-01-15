@@ -102,7 +102,7 @@ def decode(
     decoders: Decoders = (),
     path: Sequence[Any] = (),
 ) -> T:
-    new_path = tuple((*path, tp))
+    new_path = (*path, tp)
 
     def throw(
         *args: Any, missing: Sequence[str] = (), extra: Sequence[str] = ()
