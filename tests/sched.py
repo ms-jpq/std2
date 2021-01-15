@@ -2,16 +2,16 @@ from asyncio import sleep
 from unittest import IsolatedAsyncioTestCase
 
 from ..std2.aitertools import aenumerate
-from ..std2.sched import ticker
+from ..std2.sched import aticker
 from ._consts import SMOL_REP_FACTOR
 
 
-class Ticker(IsolatedAsyncioTestCase):
+class ATicker(IsolatedAsyncioTestCase):
     async def test_1(self) -> None:
         period = 0.3
         slep = 0.1
         async for i, (delay, elapsed), in aenumerate(
-            ticker(period, immediately=True),
+            aticker(period, immediately=True),
         ):
             if i == SMOL_REP_FACTOR:
                 break
@@ -29,7 +29,7 @@ class Ticker(IsolatedAsyncioTestCase):
         period = 0.3
         slep = 0.1
         async for i, (delay, elapsed), in aenumerate(
-            ticker(period, immediately=False),
+            aticker(period, immediately=False),
         ):
             if i == SMOL_REP_FACTOR:
                 break
@@ -47,7 +47,7 @@ class Ticker(IsolatedAsyncioTestCase):
         period = 0.1
         slep = 0.3
         async for i, (delay, elapsed), in aenumerate(
-            ticker(period, immediately=True),
+            aticker(period, immediately=True),
         ):
             if i == SMOL_REP_FACTOR:
                 break
