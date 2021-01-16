@@ -7,13 +7,14 @@ from collections.abc import MutableSequence as ABC_MutableSequence
 from collections.abc import MutableSet as ABC_MutableSet
 from collections.abc import Sequence as ABC_Sequence
 from collections.abc import Set as ABC_Set
-from dataclasses import MISSING, fields, is_dataclass
+from dataclasses import MISSING, Field, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
 from locale import strxfrm
 from operator import attrgetter
 from os import linesep
+from pprint import pformat
 from typing import (
     AbstractSet,
     Any,
@@ -31,6 +32,7 @@ from typing import (
     Protocol,
     Sequence,
     Set,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -54,6 +56,25 @@ _SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
 _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
+def _is_optional(field: Field) -> bool:
+    return field.default is MISSING and field.default_factory is MISSING
+
+
+def _pprn(thingy: Any) -> str:
+    if is_dataclass(thingy):
+        fs = sorted(fields(thingy), key=lambda f: strxfrm(f.name))
+        listed = ", ".join(map(_pprn, fs))
+        return f"[ {listed} ]"
+    elif isinstance(thingy, Field):
+        return f"{thingy.name}: {thingy.type}"
+    elif isclass(thingy) and issubclass(thingy, Enum):
+        members = tuple(member.name for member in thingy)
+        listed = ", ".join(members)
+        return f"{{ one of: {listed} }}"
+    else:
+        return str(thingy)
+
+
 class DecodeError(Exception):
     def __init__(
         self,
@@ -68,12 +89,13 @@ class DecodeError(Exception):
         self.missing_keys, self.extra_keys = missing_keys, extra_keys
 
     def __str__(self) -> str:
-        path = " -> ".join(str(p) for p in self.path)
+        path = f"{linesep} ->           ".join(map(_pprn, self.path))
         missing = ", ".join(self.missing_keys)
         extra = ", ".join(self.extra_keys)
-        args = ", ".join(str(a) for a in self.args)
+        args = ", ".join(map(str, self.args))
+        actual = pformat(self.actual, indent=2)
         l1 = f"Path:         {path}"
-        l2 = f"Actual:       {self.actual}"
+        l2 = f"Actual:       {actual}"
         l3 = f"Missing Keys: {{{missing}}}"
         l4 = f"Extra Keys:   {{{extra}}}"
         l5 = f"Args:         ({args})"
@@ -257,15 +279,12 @@ def decode(
 
             else:
                 hints = get_type_hints(tp, globalns=None, localns=None)
-                dc_fields: MutableMapping[str, Type] = {}
+                dc_fields: MutableMapping[str, Tuple[Type, Field]] = {}
                 required: MutableSet[str] = set()
                 for field in fields(tp):
                     if field.init:
-                        dc_fields[field.name] = hints[field.name]
-                        if (
-                            field.default is MISSING
-                            and field.default_factory is MISSING  # type: ignore
-                        ):
+                        dc_fields[field.name] = hints[field.name], field
+                        if _is_optional(field):
                             required.add(field.name)
 
                 missing_keys = required - thing.keys()
@@ -284,9 +303,9 @@ def decode(
                             thing[f_name],
                             strict=strict,
                             decoders=decoders,
-                            path=tuple((*new_path, f"<field '{f_name}'>")),
+                            path=tuple((*new_path, field)),
                         )
-                        for f_name, f_type in dc_fields.items()
+                        for f_name, (f_type, field) in dc_fields.items()
                         if f_name in thing
                     }
                     return cast(Callable[..., T], tp)(**kwargs)
