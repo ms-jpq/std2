@@ -57,7 +57,7 @@ _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
 def _is_optional(field: Field) -> bool:
-    return field.default is MISSING and field.default_factory is MISSING
+    return field.default is MISSING and field.default_factory is MISSING  # type: ignore
 
 
 def _pprn(thingy: Any) -> str:
