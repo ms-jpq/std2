@@ -89,13 +89,13 @@ class DecodeError(Exception):
         self.missing_keys, self.extra_keys = missing_keys, extra_keys
 
     def __str__(self) -> str:
-        path = f"{linesep} ->           ".join(map(_pprn, self.path))
+        path = f"{linesep}->{linesep}".join(map(_pprn, self.path))
         missing = ", ".join(self.missing_keys)
         extra = ", ".join(self.extra_keys)
         args = ", ".join(map(str, self.args))
         actual = pformat(self.actual, indent=2)
-        l1 = f"Path:         {path}"
-        l2 = f"Actual:       {actual}"
+        l1 = f"Path:{linesep}{path}"
+        l2 = f"Actual:{linesep}{actual}"
         l3 = f"Missing Keys: {{{missing}}}"
         l4 = f"Extra Keys:   {{{extra}}}"
         l5 = f"Args:         ({args})"
