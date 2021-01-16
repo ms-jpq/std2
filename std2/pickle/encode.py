@@ -44,7 +44,7 @@ def encode(thing: Any, encoders: Encoders = ()) -> Any:
         elif isinstance(thing, ABC_Iterable) and not isinstance(
             thing, (str, ByteString)
         ):
-            return tuple(thing)
+            return tuple(encode(item, encoders=encoders) for item in thing)
 
         elif isinstance(thing, Enum):
             return thing.name
