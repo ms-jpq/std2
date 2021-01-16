@@ -99,7 +99,7 @@ class DecodeError(Exception):
         l3 = f"Missing Keys: {{{missing}}}"
         l4 = f"Extra Keys:   {{{extra}}}"
         l5 = f"Args:         ({args})"
-        return linesep.join((linesep, l1, l2, l3, l4, l5))
+        return (linesep * 2).join((linesep, l1, l2, l3, l4, l5))
 
 
 class Decoder(Protocol[T_co]):
