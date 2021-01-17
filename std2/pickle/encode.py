@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import ByteString
-from collections.abc import Iterable as ABC_Iterable
 from collections.abc import Mapping as ABC_Mapping
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from operator import attrgetter
 from typing import Any, Protocol, Sequence, TypeVar
+
+from ..types import is_seq
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -41,9 +41,7 @@ def encode(thing: Any, encoders: Encoders = ()) -> Any:
                 for k, v in thing.items()
             }
 
-        elif isinstance(thing, ABC_Iterable) and not isinstance(
-            thing, (str, ByteString)
-        ):
+        elif is_seq(thing):
             return tuple(encode(item, encoders=encoders) for item in thing)
 
         elif isinstance(thing, Enum):
