@@ -13,13 +13,6 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
         return f"#{_r}{_g}{_b}"
 
 
-def rgb_inverse(r: int, g: int, b: int) -> Tuple[int, int, int]:
-    if r not in _RGB_RANGE or g not in _RGB_RANGE or b not in _RGB_RANGE:
-        raise ValueError((r, g, b))
-    else:
-        return _RGB_MAX - r, _RGB_MAX - g, _RGB_MAX - b
-
-
 def hex_to_rgb(hex: str) -> Tuple[int, int, int]:
     prefix, r1, r2, g1, g2, b1, b2 = tuple(hex)
     r, g, b = int(r1 + r2, 16), int(g1 + g2, 16), int(b1 + b2, 16)
@@ -32,3 +25,16 @@ def hex_to_rgb(hex: str) -> Tuple[int, int, int]:
         raise ValueError(hex)
     else:
         return r, g, b
+
+
+def rgb_inverse(r: int, g: int, b: int) -> Tuple[int, int, int]:
+    if r not in _RGB_RANGE or g not in _RGB_RANGE or b not in _RGB_RANGE:
+        raise ValueError((r, g, b))
+    else:
+        return _RGB_MAX - r, _RGB_MAX - g, _RGB_MAX - b
+
+
+def hex_inverse(hex: str) -> str:
+    rgb = hex_to_rgb(hex)
+    inversed = rgb_inverse(*rgb)
+    return rgb_to_hex(*inversed)
