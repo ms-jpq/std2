@@ -21,7 +21,7 @@ def rgb_inverse(r: int, g: int, b: int) -> Tuple[int, int, int]:
 
 
 def hex_to_rgb(hex: str) -> Tuple[int, int, int]:
-    prefix, r1, r2, g1, g2, b1, b2 = hex
+    prefix, r1, r2, g1, g2, b1, b2 = tuple(hex)
     r, g, b = int(r1 + r2, 16), int(g1 + g2, 16), int(b1 + b2, 16)
     if (
         prefix != "#"
