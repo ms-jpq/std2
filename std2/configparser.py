@@ -1,4 +1,4 @@
-from typing import Any, MutableMapping, Sequence, Mapping
+from typing import Any, Mapping, MutableMapping, Sequence
 
 from .types import is_seq
 
@@ -15,27 +15,33 @@ def _create_element_at(
         if not tail:
             thing[head] = val
         else:
-            step = thing.setdefault(head, {})
-            _create_element_at(step, val=val, paths=tail)
+            if not isinstance(thing.get(head), MutableMapping):
+                thing[head] = {}
+            _create_element_at(thing[head], val=val, paths=tail)
 
 
-def hydrate(config: Mapping[str, Any]) -> Mapping[str, Any]:
-    new_config: MutableMapping[str, Any] = {}
+def hydrate(thing: Mapping[str, Any]) -> Mapping[str, Any]:
+    if isinstance(thing, Mapping):
+        thing2 = {}
+        acc = []
 
-    def cont(src: Any, dest: Any) -> None:
-        if isinstance(src, Mapping):
-            for key, val in src.items():
-                if isinstance(key, str):
-                    paths = key.split(".")
-                    _create_element_at(dest, val=val, paths=paths)
+        for key, val in thing.items():
+            hydrated = hydrate(val)
+            if isinstance(key, str):
+                paths = key.split(".")
+                if len(paths) > 1:
+                    acc.append((paths, hydrated))
                 else:
-                    dest[key] = val
+                    thing2[key] = hydrated
+            else:
+                thing2[key] = hydrated
 
-        elif is_seq(src):
-            for el in src:
-                hydrate(el)
-        else:
-            pass
+        for paths, hydrated in acc:
+            _create_element_at(thing2, val=hydrated, paths=paths)
 
-    cont(src=config, dest=new_config)
-    return new_config
+        return thing2
+
+    elif is_seq(thing):
+        return tuple(map(hydrate, thing))
+    else:
+        return thing
