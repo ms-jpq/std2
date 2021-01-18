@@ -66,13 +66,13 @@ def _pprn(thingy: Any) -> str:
     if is_dataclass(thingy):
         fs = sorted(fields(thingy), key=lambda f: strxfrm(f.name))
         listed = ", ".join(map(_pprn, fs))
-        return f"[ {listed} ]"
+        return f"key of: [ {listed} ]"
     elif isinstance(thingy, Field):
         return f"{thingy.name}: {thingy.type}"
     elif isclass(thingy) and issubclass(thingy, Enum):
         members = tuple(member.name for member in thingy)
         listed = ", ".join(members)
-        return f"{{ one of: {listed} }}"
+        return f"one of: {{ {listed} }}"
     else:
         return str(thingy)
 
