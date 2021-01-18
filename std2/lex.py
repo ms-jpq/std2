@@ -22,7 +22,7 @@ def escape_with_replacement(stream: Iterable[T], escape: Mapping[T, T]) -> Itera
             yield unit
 
 
-def envsubst(text: Iterable[str], env: Mapping[str, str]) -> Iterator[str]:
+def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
     def it() -> Iterator[str]:
         it = iter(text)
         for c in it:
