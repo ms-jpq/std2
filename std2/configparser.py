@@ -11,7 +11,7 @@ def hydrate(config: Any) -> Any:
                 if not rhs:
                     new_config[lhs] = val
                 else:
-                    pass
+                    new_config[lhs] = val
             else:
                 new_config[key] = val
 
