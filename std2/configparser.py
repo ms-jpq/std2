@@ -1,22 +1,41 @@
-from collections.abc import ByteString, Iterable, MutableMapping
-from typing import Any
+from typing import Any, MutableMapping, Sequence, Mapping
+
+from .types import is_seq
 
 
-def hydrate(config: Any) -> Any:
-    if isinstance(config, MutableMapping):
-        new_config = {}
-        for key, val in config.items():
-            if isinstance(key, str):
-                lhs, _, rhs = key.partition(".")
-                if not rhs:
-                    new_config[lhs] = val
-                else:
-                    new_config[lhs] = val
-            else:
-                new_config[key] = val
-
-        return new_config
-    elif isinstance(config, Iterable) and not isinstance(config, (str, ByteString)):
-        return tuple(hydrate(el) for el in config)
+def _create_element_at(
+    thing: MutableMapping[str, Any], val: Any, paths: Sequence[str]
+) -> None:
+    if not isinstance(thing, MutableMapping):
+        raise ValueError(thing)
+    elif not paths:
+        return
     else:
-        return config
+        head, *tail = paths
+        if not tail:
+            thing[head] = val
+        else:
+            step = thing.setdefault(head, {})
+            _create_element_at(step, val=val, paths=tail)
+
+
+def hydrate(config: Mapping[str, Any]) -> Mapping[str, Any]:
+    new_config: MutableMapping[str, Any] = {}
+
+    def cont(src: Any, dest: Any) -> None:
+        if isinstance(src, Mapping):
+            for key, val in src.items():
+                if isinstance(key, str):
+                    paths = key.split(".")
+                    _create_element_at(dest, val=val, paths=paths)
+                else:
+                    dest[key] = val
+
+        elif is_seq(src):
+            for el in src:
+                hydrate(el)
+        else:
+            pass
+
+    cont(src=config, dest=new_config)
+    return new_config
