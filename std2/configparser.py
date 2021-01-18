@@ -1,6 +1,13 @@
 from locale import strxfrm
-from typing import (Any, Iterable, Mapping, MutableMapping, MutableSequence,
-                    Sequence, Tuple)
+from typing import (
+    Any,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+    Tuple,
+)
 
 from .types import is_seq
 
@@ -24,7 +31,7 @@ def _create_element_at(
             _create_element_at(thing[head], val=val, paths=tail)
 
 
-def _sort_keyby(index: _Index) -> Any:
+def _sort_keyby(index: _Index) -> Tuple[str, ...]:
     paths, _ = index
     return tuple(map(strxfrm, paths))
 
