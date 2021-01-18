@@ -1,4 +1,3 @@
-from locale import strxfrm
 from typing import (
     Any,
     Iterable,
@@ -31,9 +30,9 @@ def _create_element_at(
             _create_element_at(thing[head], val=val, paths=tail)
 
 
-def _sort_keyby(index: _Index) -> Tuple[str, ...]:
+def _sort_keyby(index: _Index) -> int:
     paths, _ = index
-    return tuple(map(strxfrm, paths))
+    return len(paths)
 
 
 def hydrate(thing: Any) -> Any:

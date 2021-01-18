@@ -33,3 +33,21 @@ class Hydrate(TestCase):
         config = hydrate(spec)
         expected = {"a": ({"b": {"c": 4}}, {"e": {"f": 5}})}
         self.assertEqual(config, expected)
+
+    def test_6(self) -> None:
+        spec = {"a.b": 2, "a": 1}
+        config = hydrate(spec)
+        expected = {"a": {"b": 2}}
+        self.assertEqual(config, expected)
+
+    def test_7(self) -> None:
+        spec = {"a.b": 2, "a": {}}
+        config = hydrate(spec)
+        expected = {"a": {"b": 2}}
+        self.assertEqual(config, expected)
+
+    def test_8(self) -> None:
+        spec = {"a.b.c": 3, "a.b": 2}
+        config = hydrate(spec)
+        expected = {"a": {"b": {"c": 3}}}
+        self.assertEqual(config, expected)
