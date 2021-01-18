@@ -35,7 +35,10 @@ def envsubst(text: Iterable[str], env: Mapping[str, str]) -> Iterator[str]:
                     for c in it:
                         if c == "}":
                             name = "".join(chars)
-                            yield env[name]
+                            if name in env:
+                                yield env[name]
+                            else:
+                                raise ParseError(f"KeyError: expected {name} in env")
                             break
                         else:
                             chars.append(c)
