@@ -20,3 +20,9 @@ class Hydrate(TestCase):
         config = hydrate(spec)
         expected = {"a": {"b": {"c": 2}}, "b": 3}
         self.assertEqual(config, expected)
+
+    def test_4(self) -> None:
+        spec = {"a": ({"b.c": 4}, 5)}
+        config = hydrate(spec)
+        expected = {"a": ({"b": {"c": 4}}, 5)}
+        self.assertEqual(config, expected)
