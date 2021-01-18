@@ -51,8 +51,8 @@ T_co = TypeVar("T_co", covariant=True)
 _MAPS_M = {MutableMapping, ABC_MutableMapping, Dict, dict}
 _MAPS = {Mapping, ABC_Mapping} | _MAPS_M
 
-_SETS_M = {MutableSet, ABC_MutableSet, Set, ABC_Set, set}
-_SETS = {AbstractSet, FrozenSet, frozenset} | _SETS_M
+_SETS_M = {MutableSet, ABC_MutableSet, Set, set}
+_SETS = {AbstractSet, ABC_Set, FrozenSet, frozenset} | _SETS_M
 
 _SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
 _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
