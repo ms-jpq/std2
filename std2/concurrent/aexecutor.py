@@ -32,7 +32,7 @@ T = TypeVar("T")
 
 class AExecutor(Closable, AClosable):
     def __init__(self, daemon: bool, name: Optional[str] = None) -> None:
-        self._th = Thread(target=self._cont, daemon=daemon, name=name)
+        self._th = Thread(target=self._loop, daemon=daemon, name=name)
         self._ch: SimpleQueue = SimpleQueue()
 
         self._lock = Lock()
@@ -44,21 +44,17 @@ class AExecutor(Closable, AClosable):
             else:
                 _aexes.add(self)
 
-    def _cont(self) -> None:
+    def _loop(self) -> None:
         while True:
             work: Optional[Tuple[Future, Callable[[], Any]]] = self._ch.get()
             if work:
                 fut, func = work
-
-                def cont() -> None:
-                    try:
-                        ret = func()
-                    except BaseException as e:
-                        fut.set_exception(e)
-                    else:
-                        fut.set_result(ret)
-
-                cont()
+                try:
+                    ret = func()
+                except BaseException as e:
+                    fut.set_exception(e)
+                else:
+                    fut.set_result(ret)
             else:
                 break
 
