@@ -3,13 +3,13 @@ from itertools import chain
 from locale import strxfrm
 from typing import AbstractSet, Any, Mapping
 
-from .types import is_seq
+from .types import is_it
 
 
 def recur_sort(data: Any) -> Any:
     if isinstance(data, Mapping):
         return {k: recur_sort(data[k]) for k in sorted(data, key=strxfrm)}
-    elif is_seq(data):
+    elif is_it(data):
         return tuple(recur_sort(el) for el in data)
     else:
         return data
@@ -21,7 +21,7 @@ def _merge(ds1: Any, ds2: Any, replace: bool = False) -> Any:
         return {**ds1, **append}
     elif isinstance(ds1, AbstractSet) and isinstance(ds2, AbstractSet):
         return frozenset(chain(ds1, ds2))
-    elif is_seq(ds1) and is_seq(ds2):
+    elif is_it(ds1) and is_it(ds2):
         if replace:
             return ds2
         else:

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import ByteString, Sequence
+from collections.abc import ByteString, Iterable
 from typing import Any, Final, NoReturn, Protocol, TypeVar, Union, cast
 
 T = TypeVar("T")
@@ -10,12 +10,12 @@ def never(val: NoReturn) -> NoReturn:
     assert False, type(val).__name__
 
 
-def is_seq(val: Any) -> bool:
+def is_it(val: Any) -> bool:
     """
     Excludes str, bytes, bytearray
     """
 
-    return isinstance(val, Sequence) and not isinstance(val, (str, ByteString))
+    return isinstance(val, Iterable) and not isinstance(val, (str, ByteString))
 
 
 class VoidType:

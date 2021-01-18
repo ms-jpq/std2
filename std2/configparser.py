@@ -9,7 +9,7 @@ from typing import (
     Tuple,
 )
 
-from .types import is_seq
+from .types import is_it
 
 _Index = Tuple[Sequence[str], Any]
 
@@ -57,7 +57,7 @@ def hydrate(thing: Any) -> Any:
             _create_element_at(thing2, val=hydrated, paths=ps)
 
         return thing2
-    elif is_seq(thing):
+    elif is_it(thing):
         return tuple(map(hydrate, thing))
     else:
         return thing

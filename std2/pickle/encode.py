@@ -6,7 +6,7 @@ from enum import Enum
 from operator import attrgetter
 from typing import Any, Protocol, Sequence, TypeVar
 
-from ..types import is_seq
+from ..types import is_it
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -41,7 +41,7 @@ def encode(thing: Any, encoders: Encoders = ()) -> Any:
                 for k, v in thing.items()
             }
 
-        elif is_seq(thing):
+        elif is_it(thing):
             return tuple(encode(item, encoders=encoders) for item in thing)
 
         elif isinstance(thing, Enum):

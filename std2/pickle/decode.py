@@ -42,7 +42,7 @@ from typing import (
     get_type_hints,
 )
 
-from ..types import is_seq
+from ..types import is_it
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
@@ -206,7 +206,7 @@ def decode(
                 return cast(T, mapping)
 
         elif origin in _SETS:
-            if not is_seq(thing):
+            if not is_it(thing):
                 throw()
             else:
                 t, *_ = args
@@ -223,7 +223,7 @@ def decode(
                 return cast(T, {*it} if origin in _SETS_M else frozenset(it))
 
         elif origin in _SEQS:
-            if not is_seq(thing):
+            if not is_it(thing):
                 throw()
             else:
                 t, *_ = args
@@ -240,7 +240,7 @@ def decode(
                 return cast(T, [*it] if origin in _SEQS_M else tuple(it))
 
         elif origin is tuple:
-            if not is_seq(thing):
+            if not is_it(thing):
                 throw()
             else:
                 tps = (
