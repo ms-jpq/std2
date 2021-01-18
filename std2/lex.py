@@ -1,6 +1,10 @@
-from typing import Iterable, Mapping, TypeVar
+from typing import Iterable, Iterator, Mapping, MutableSequence, TypeVar
 
 T = TypeVar("T")
+
+
+class ParseError(Exception):
+    ...
 
 
 def escape_with_prefix(stream: Iterable[T], escape: Mapping[T, T]) -> Iterable[T]:
@@ -16,3 +20,32 @@ def escape_with_replacement(stream: Iterable[T], escape: Mapping[T, T]) -> Itera
             yield escape[unit]
         else:
             yield unit
+
+
+def envsubst(text: Iterable[str], env: Mapping[str, str]) -> Iterator[str]:
+    def it() -> Iterator[str]:
+        it = iter(text)
+        for c in it:
+            if c == "$":
+                nc = next(it, "")
+                if nc == "$":
+                    yield nc
+                elif nc == "{":
+                    chars: MutableSequence[str] = []
+                    for c in it:
+                        if c == "}":
+                            name = "".join(chars)
+                            yield env[name]
+                            break
+                        else:
+                            chars.append(c)
+                    else:
+                        msg = "Unexpected EOF after ${"
+                        raise ParseError(msg, text)
+                else:
+                    msg = f"Unexpected char: {c} after $, expected $, {{"
+                    raise ParseError(msg, text)
+            else:
+                yield c
+
+    return "".join(it())
