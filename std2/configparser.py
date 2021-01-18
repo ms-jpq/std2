@@ -1,4 +1,4 @@
-from typing import Any, Mapping, MutableMapping, Sequence
+from typing import Any, Mapping, MutableMapping, MutableSequence, Sequence, Tuple
 
 from .types import is_seq
 
@@ -20,10 +20,10 @@ def _create_element_at(
             _create_element_at(thing[head], val=val, paths=tail)
 
 
-def hydrate(thing: Mapping[str, Any]) -> Mapping[str, Any]:
+def hydrate(thing: Any) -> Any:
     if isinstance(thing, Mapping):
-        thing2 = {}
-        acc = []
+        thing2: MutableMapping[str, Any] = {}
+        acc: MutableSequence[Tuple[Sequence[str], Any]] = []
 
         for key, val in thing.items():
             hydrated = hydrate(val)
@@ -36,8 +36,8 @@ def hydrate(thing: Mapping[str, Any]) -> Mapping[str, Any]:
             else:
                 thing2[key] = hydrated
 
-        for paths, hydrated in acc:
-            _create_element_at(thing2, val=hydrated, paths=paths)
+        for ps, hydrated in acc:
+            _create_element_at(thing2, val=hydrated, paths=ps)
 
         return thing2
 
