@@ -160,8 +160,7 @@ def decode(
                 return cast(T, thing)
 
         elif origin is Literal:
-            arg, *_ = args
-            if thing != arg:
+            if thing not in args:
                 throw()
             else:
                 return cast(T, thing)
