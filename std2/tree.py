@@ -15,7 +15,7 @@ def recur_sort(data: Any) -> Any:
         return data
 
 
-def _merge(ds1: Any, ds2: Any, replace: bool = False) -> Any:
+def _merge(ds1: Any, ds2: Any, replace: bool) -> Any:
     if isinstance(ds1, Mapping) and isinstance(ds2, Mapping):
         append = {k: _merge(ds1.get(k), v, replace) for k, v in ds2.items()}
         return {**ds1, **append}
