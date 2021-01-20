@@ -1,19 +1,19 @@
 from difflib import SequenceMatcher
-from typing import Iterable, Literal, Sequence, Tuple, TypeVar, cast
+from typing import Hashable, Iterable, Literal, Sequence, Tuple, TypeVar, cast
 
 from .types import never
 
-T = TypeVar("T")
+_H = TypeVar("_H", bound=Hashable)
 
 _OP_CODE = Literal["equal", "delete", "insert", "replace"]
 
 
 def trans_inplace(
-    src: Sequence[T], dest: Sequence[T], unifying: int
-) -> Iterable[Tuple[Tuple[int, int], Sequence[T]]]:
+    src: Sequence[_H], dest: Sequence[_H], unifying: int
+) -> Iterable[Tuple[Tuple[int, int], Tuple[int, int]]]:
     """
-    for (lo, hi), replace in inplace_trans(src, dest, n):
-      src[lo,hi] = replace
+    for (i1, i2), (j1, j2) in inplace_trans(src, dest, n):
+      src[i1:i2] = dest[j1:j2]
     """
 
     matcher = SequenceMatcher(isjunk=None, a=src, b=dest, autojunk=False)
@@ -28,15 +28,15 @@ def trans_inplace(
                 pass
 
             elif opcode == "delete":
-                yield (lo, hi), ()
+                yield (lo, hi), (j1, j2)
                 offset = offset - (i2 - i1)
 
             elif opcode == "insert":
-                yield (lo, hi), dest[j1:j2]
+                yield (lo, hi), (j1, j2)
                 offset = offset + (j2 - j1)
 
             elif opcode == "replace":
-                yield (lo, hi), dest[j1:j2]
+                yield (lo, hi), (j1, j2)
                 offset = offset - (i2 - i1) + (j2 - j1)
 
             else:

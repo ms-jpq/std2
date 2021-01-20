@@ -20,7 +20,7 @@ class TransInplace(TestCase):
         gen = _rand_gen(1, BIG_REP_FACTOR)
         for _ in range(BIG_REP_FACTOR):
             seq1, seq2 = next(gen)
-            for (lo, hi), replace in trans_inplace(seq1, seq2, unifying=3):
-                seq1[lo:hi] = replace
+            for (i1, i2), (j1, j2) in trans_inplace(seq1, seq2, unifying=3):
+                seq1[i1:i2] = seq2[j1:j2]
 
             self.assertEqual(seq1, seq2)
