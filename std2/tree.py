@@ -14,11 +14,11 @@ def recur_sort(
 
     if isinstance(data, Mapping):
         return {
-            k: recur_sort(data[k], key=key)
+            k: recur_sort(data[k], key=key, reverse=reverse)
             for k in sorted(data, key=key, reverse=reverse)
         }
     elif is_it(data):
-        return tuple(recur_sort(el, key=key) for el in data)
+        return tuple(recur_sort(el, key=key, reverse=reverse) for el in data)
     else:
         return data
 
