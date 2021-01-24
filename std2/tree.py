@@ -1,16 +1,24 @@
 from collections.abc import Mapping
 from itertools import chain
 from locale import strxfrm
-from typing import AbstractSet, Any, Mapping
+from typing import AbstractSet, Any, Callable, Mapping, Optional
 
 from .types import is_it
 
 
-def recur_sort(data: Any) -> Any:
+def recur_sort(
+    data: Any, key: Optional[Callable[[Any], Any]] = None, reverse: bool = False
+) -> Any:
+    if key is None:
+        key = strxfrm
+
     if isinstance(data, Mapping):
-        return {k: recur_sort(data[k]) for k in sorted(data, key=strxfrm)}
+        return {
+            k: recur_sort(data[k], key=key)
+            for k in sorted(data, key=key, reverse=reverse)
+        }
     elif is_it(data):
-        return tuple(recur_sort(el) for el in data)
+        return tuple(recur_sort(el, key=key) for el in data)
     else:
         return data
 
