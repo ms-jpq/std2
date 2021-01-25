@@ -1,4 +1,4 @@
-from asyncio.subprocess import PIPE, create_subprocess_exec
+from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
 from dataclasses import dataclass
 from os import PathLike, environ, getcwd
 from typing import Any, AsyncContextManager, Mapping, Optional, Sequence, Union, cast
@@ -29,7 +29,7 @@ async def call(
         proc = await create_subprocess_exec(
             prog,
             *args,
-            stdin=PIPE,
+            stdin=PIPE if stdin else DEVNULL,
             stdout=PIPE,
             stderr=PIPE,
             cwd=getcwd() if cwd is None else cwd,
