@@ -13,9 +13,9 @@ def walk(path: Path) -> Iterator[Path]:
             yield p
 
 
-def is_relative_to(p1: PurePath, *other: AnyPath) -> bool:
+def is_relative_to(origin: AnyPath, *other: AnyPath) -> bool:
     try:
-        p1.relative_to(*other)
+        PurePath(origin).relative_to(*other)
         return True
     except ValueError:
         return False
