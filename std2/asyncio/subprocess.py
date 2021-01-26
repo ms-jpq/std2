@@ -1,11 +1,10 @@
 from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
 from dataclasses import dataclass
-from os import PathLike, environ, getcwd
-from typing import Any, AsyncContextManager, Mapping, Optional, Sequence, Union, cast
+from os import environ, getcwd
+from typing import Any, AsyncContextManager, Mapping, Optional, Sequence, cast
 
 from ..contextlib import nullacontext
-
-AnyPath = Union[PathLike, str, bytes]
+from ..pathlib import AnyPath
 
 
 @dataclass(frozen=True)

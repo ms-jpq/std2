@@ -1,5 +1,8 @@
-from pathlib import Path
-from typing import Iterator
+from os import PathLike
+from pathlib import Path, PurePath
+from typing import Iterator, Optional, Union
+
+AnyPath = Union[PathLike, str]
 
 
 def walk(path: Path) -> Iterator[Path]:
@@ -8,3 +11,10 @@ def walk(path: Path) -> Iterator[Path]:
             yield from walk(p)
         elif p.is_file():
             yield p
+
+
+def longest_common_path(p1: AnyPath, p2: AnyPath) -> Optional[PurePath]:
+    parts = tuple(
+        lhs for lhs, rhs in zip(PurePath(p1).parts, PurePath(p2).parts) if lhs == rhs
+    )
+    return PurePath(*parts) if parts else None
