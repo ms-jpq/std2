@@ -13,6 +13,14 @@ def walk(path: Path) -> Iterator[Path]:
             yield p
 
 
+def is_relative_to(p1: PurePath, *other: AnyPath) -> bool:
+    try:
+        p1.relative_to(*other)
+        return True
+    except ValueError:
+        return False
+
+
 def longest_common_path(p1: AnyPath, p2: AnyPath) -> Optional[PurePath]:
     parts = tuple(
         lhs for lhs, rhs in zip(PurePath(p1).parts, PurePath(p2).parts) if lhs == rhs
