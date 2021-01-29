@@ -4,8 +4,8 @@ from pathlib import PurePath
 from typing import Any, Sequence, SupportsFloat, cast
 from uuid import UUID
 
-from .decode import DecodeError, Decoders
-from .encode import EncodeError, Encoders
+from .decoder import DecodeError, Decoders
+from .encoder import EncodeError, Encoders
 
 """
 Pure Path -> str

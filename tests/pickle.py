@@ -202,6 +202,10 @@ class Decode(TestCase):
         with self.assertRaises(DecodeError):
             decode(C[int], {"t": True})
 
+    def test_27(self) -> None:
+        a: float = decode(float, 0)
+        self.assertEqual(a, 0.0)
+
 
 class RoundTrip(TestCase):
     def test_1(self) -> None:
