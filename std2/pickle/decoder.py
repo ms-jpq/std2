@@ -10,7 +10,6 @@ from dataclasses import MISSING, Field, fields, is_dataclass
 from enum import Enum
 from itertools import chain, repeat
 from locale import strxfrm
-from operator import attrgetter
 from os import linesep
 from pprint import pformat
 from typing import (
