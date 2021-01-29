@@ -177,12 +177,12 @@ class Decode(TestCase):
         self.assertEqual(uuid, thing)
 
     def test_23(self) -> None:
-        class C(Enum):
+        class E(Enum):
             a = "b"
             b = "a"
 
-        thing: Sequence[C] = decode(Sequence[C], ["a", "b"])
-        self.assertEqual(thing, (C.a, C.b))
+        thing: Sequence[E] = decode(Sequence[E], ("a", "b"))
+        self.assertEqual(thing, (E.a, E.b))
 
     def test_24(self) -> None:
         thing: Tuple[Literal[5], Literal[2]] = decode(
@@ -205,6 +205,14 @@ class Decode(TestCase):
     def test_27(self) -> None:
         a: float = decode(float, 0)
         self.assertEqual(a, 0.0)
+
+    def test_28(self) -> None:
+        class E(Enum):
+            a = "b"
+            b = "a"
+
+        with self.assertRaises(DecodeError):
+            decode(Sequence[E], ("name", "b"))
 
 
 class RoundTrip(TestCase):

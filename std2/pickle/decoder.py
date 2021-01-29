@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterable as ABC_Iterable
 from collections.abc import Mapping as ABC_Mapping
 from collections.abc import MutableMapping as ABC_MutableMapping
 from collections.abc import MutableSequence as ABC_MutableSequence
@@ -9,7 +8,6 @@ from collections.abc import Sequence as ABC_Sequence
 from collections.abc import Set as ABC_Set
 from dataclasses import MISSING, Field, fields, is_dataclass
 from enum import Enum
-from inspect import isclass
 from itertools import chain, repeat
 from locale import strxfrm
 from operator import attrgetter
@@ -32,6 +30,7 @@ from typing import (
     Protocol,
     Sequence,
     Set,
+    SupportsFloat,
     Tuple,
     Type,
     TypeVar,
@@ -69,7 +68,7 @@ def _pprn(thingy: Any) -> str:
         return f"key of: [ {listed} ]"
     elif isinstance(thingy, Field):
         return f"{thingy.name}: {thingy.type}"
-    elif isclass(thingy) and issubclass(thingy, Enum):
+    elif issubclass(thingy, Enum):
         members = tuple(member.name for member in thingy)
         listed = ", ".join(members)
         return f"one of: {{ {listed} }}"
@@ -264,15 +263,14 @@ def decode(
         elif origin and len(args):
             throw()
 
-        elif isclass(tp) and issubclass(tp, Enum):
-            if type(thing) is str and hasattr(tp, thing):
-                enum = attrgetter(thing)(tp)
-                if isinstance(enum, tp):
-                    return cast(T, enum)
-                else:
-                    throw()
-            else:
+        elif issubclass(tp, Enum):
+            if not isinstance(thing, str):
                 throw()
+            else:
+                try:
+                    return cast(T, tp[thing])
+                except KeyError as e:
+                    throw()
 
         elif is_dataclass(tp):
             if not isinstance(thing, Mapping):
@@ -310,6 +308,12 @@ def decode(
                         if f_name in thing
                     }
                     return cast(Callable[..., T], tp)(**kwargs)
+
+        elif tp is float:
+            if not isinstance(thing, SupportsFloat):
+                throw()
+            else:
+                return cast(T, thing)
 
         else:
             if isinstance(tp, TypeVar):
