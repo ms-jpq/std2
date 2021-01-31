@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import ByteString, Iterable
+from collections.abc import ByteString, Container
 from typing import Any, Final, NoReturn, Protocol, TypeVar, Union, cast
 
 T = TypeVar("T")
@@ -15,7 +15,7 @@ def is_it(val: Any) -> bool:
     Excludes str, bytes, bytearray
     """
 
-    return isinstance(val, Iterable) and not isinstance(val, (str, ByteString))
+    return isinstance(val, Container) and not isinstance(val, (str, ByteString))
 
 
 class VoidType:
