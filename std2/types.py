@@ -1,9 +1,34 @@
 from abc import abstractmethod
 from collections.abc import ByteString, Container
-from typing import Any, Final, NoReturn, Protocol, TypeVar, Union, cast
+from typing import Any, Callable, Final, NoReturn, Protocol, TypeVar, Union, cast
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
+
+Real = TypeVar("Real", int, float)
+
+
+class _SupportsLT(Protocol):
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool:
+        ...
+
+
+SupportsLT = TypeVar("SupportsLT", bound=_SupportsLT)
+
+CallableT = TypeVar("CallableT", bound=Callable)
+
+
+class AnyFun(Protocol[T_co]):
+    @abstractmethod
+    def __call__(self, *args: Any, **kwds: Any) -> T_co:
+        ...
+
+
+class AnyAFun(Protocol[T_co]):
+    @abstractmethod
+    async def __call__(self, *args: Any, **kwds: Any) -> T_co:
+        ...
 
 
 def never(val: NoReturn) -> NoReturn:
@@ -31,15 +56,3 @@ Void: Final[VoidType] = VoidType()
 
 def or_else(thing: Union[T, VoidType], default: T) -> T:
     return default if thing is Void else cast(T, thing)
-
-
-class AnyFun(Protocol[T_co]):
-    @abstractmethod
-    def __call__(self, *args: Any, **kwds: Any) -> T_co:
-        ...
-
-
-class AnyAFun(Protocol[T_co]):
-    @abstractmethod
-    async def __call__(self, *args: Any, **kwds: Any) -> T_co:
-        ...
