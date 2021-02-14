@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
 
-utcnow = lambda: datetime.now(tz=timezone.utc)
-
 _MINUTE = 60
 _HOUR = 60 * _MINUTE
 _DAY = 24 * _HOUR
@@ -22,3 +20,10 @@ def to_days(seconds: float) -> float:
 
 def to_weeks(seconds: float) -> float:
     return seconds / _WEEK
+
+
+utcnow = lambda: datetime.now(tz=timezone.utc)
+
+
+def utc_to_local(dt: datetime) -> datetime:
+    return dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
