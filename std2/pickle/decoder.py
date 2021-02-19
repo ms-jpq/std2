@@ -8,6 +8,7 @@ from collections.abc import Sequence as ABC_Sequence
 from collections.abc import Set as ABC_Set
 from dataclasses import MISSING, Field, fields, is_dataclass
 from enum import Enum
+from inspect import isclass
 from itertools import chain, repeat
 from locale import strxfrm
 from os import linesep
@@ -262,7 +263,7 @@ def decode(
         elif origin and len(args):
             throw()
 
-        elif issubclass(tp, Enum):
+        elif isclass(tp) and issubclass(tp, Enum):
             if not isinstance(thing, str):
                 throw()
             else:
