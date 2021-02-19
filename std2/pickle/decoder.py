@@ -68,7 +68,7 @@ def _pprn(thingy: Any) -> str:
         return f"key of: [ {listed} ]"
     elif isinstance(thingy, Field):
         return f"{thingy.name}: {thingy.type}"
-    elif issubclass(thingy, Enum):
+    elif isclass(thingy) and issubclass(thingy, Enum):
         members = tuple(member.name for member in thingy)
         listed = ", ".join(members)
         return f"one of: {{ {listed} }}"
