@@ -6,8 +6,6 @@ from unittest import defaultTestLoader
 from unittest.runner import TextTestRunner
 from unittest.signals import installHandler
 
-from std2.pathlib import walk
-
 _TOP_LV = Path(__file__).parent
 _TESTS = _TOP_LV / "tests"
 
