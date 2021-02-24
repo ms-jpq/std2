@@ -25,7 +25,7 @@ async def call(
     proc = await create_subprocess_exec(
         prog,
         *args,
-        stdin=PIPE if stdin else DEVNULL,
+        stdin=PIPE if stdin is not None else DEVNULL,
         stdout=PIPE,
         stderr=PIPE,
         cwd=getcwd() if cwd is None else cwd,
