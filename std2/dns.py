@@ -1,4 +1,4 @@
-from typing import Iterable, Sequence
+from typing import Iterable, MutableSequence, Sequence
 
 
 def parts(dns: str, sep: str = ".") -> Sequence[str]:
@@ -10,3 +10,12 @@ def parents(dns: str, sep: str = ".") -> Iterable[str]:
     if rhs:
         yield rhs
         yield from parents(rhs, sep=sep)
+
+
+def common_ancestor(dns1: str, dns2: str, sep: str = ".") -> str:
+    acc: MutableSequence[str] = []
+    for lhs, rhs in zip(reversed(parts(dns1, sep=sep)), reversed(parts(dns2, sep=sep))):
+        if lhs == rhs:
+            acc.append(lhs)
+
+    return sep.join(reversed(acc))
