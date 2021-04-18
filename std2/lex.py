@@ -22,8 +22,8 @@ def escape_with_replacement(stream: Iterable[T], escape: Mapping[T, T]) -> Itera
             yield unit
 
 
-def split(text: str, sep=",", esc="\\") -> Iterator[str]:
-    acc = []
+def split(text: str, sep: str = ",", esc: str = "\\") -> Iterator[str]:
+    acc: MutableSequence[str] = []
     it = iter(text)
 
     for c in it:
