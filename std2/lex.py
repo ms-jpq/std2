@@ -22,8 +22,30 @@ def escape_with_replacement(stream: Iterable[T], escape: Mapping[T, T]) -> Itera
             yield unit
 
 
+def split(text: str, sep=",", esc="\\") -> Iterator[str]:
+    acc = []
+    it = iter(text)
+
+    for c in it:
+        if c == esc:
+            nc = next(it, "")
+            if nc in {sep, esc}:
+                yield nc
+            else:
+                msg = f"Unexpected char: {nc} after {esc}, expected: {esc} | {sep}"
+                raise ParseError(msg)
+        elif c == sep:
+            yield "".join(acc)
+            acc.clear()
+        else:
+            acc.append(c)
+
+    if acc:
+        yield "".join(acc)
+
+
 def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
-    def it() -> Iterator[str]:
+    def cont() -> Iterator[str]:
         it = iter(text)
         for c in it:
             if c == "$":
@@ -38,7 +60,8 @@ def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
                             if name in env:
                                 yield env[name]
                             else:
-                                raise ParseError(f"KeyError: expected {name} in env")
+                                msg = f"KeyError: expected {name} in env"
+                                raise ParseError(msg)
                             break
                         else:
                             chars.append(c)
@@ -51,4 +74,4 @@ def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
             else:
                 yield c
 
-    return "".join(it())
+    return "".join(cont())
