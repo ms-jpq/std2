@@ -6,4 +6,4 @@ RFC_1918 = (
     IPv4Network("10.0.0.0/8"),
 )
 
-RFC_4193 = IPv6Network("fd00::/8")
+RFC_4193 = IPv6Network("fc00::/7")
