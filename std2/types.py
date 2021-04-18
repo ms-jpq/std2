@@ -1,6 +1,13 @@
 from abc import abstractmethod
 from collections.abc import ByteString, Container
-from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
+from ipaddress import (
+    IPv4Address,
+    IPv4Interface,
+    IPv4Network,
+    IPv6Address,
+    IPv6Interface,
+    IPv6Network,
+)
 from typing import Any, Callable, Final, NoReturn, Protocol, TypeVar, Union, cast
 
 T = TypeVar("T")
@@ -10,6 +17,7 @@ Real = TypeVar("Real", int, float)
 
 IPAddress = Union[IPv4Address, IPv6Address]
 IPNetwork = Union[IPv4Network, IPv6Network]
+IPInterface = Union[IPv4Interface, IPv6Interface]
 
 
 class _SupportsLT(Protocol):

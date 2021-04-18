@@ -16,11 +16,7 @@ class EncodeError(Exception):
 
 
 class Encoder(Protocol[T_co]):
-    def __call__(
-        self,
-        thing: Any,
-        encoders: Encoders,
-    ) -> T_co:
+    def __call__(self, thing: Any, encoders: Encoders) -> T_co:
         ...
 
 
