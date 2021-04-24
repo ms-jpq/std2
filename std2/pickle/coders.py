@@ -210,3 +210,32 @@ def ipv6_interface_decoder(
         raise DecodeError(path=(*path, tp), actual=thing)
     else:
         return IPv6Interface(thing)
+
+
+"""
+Builtins
+"""
+
+BULITIN_ENCODERS: Encoders = (
+    path_encoder,
+    uuid_encoder,
+    datetime_str_encoder,
+    ipv4_addr_encoder,
+    ipv6_addr_encoder,
+    ipv4_network_encoder,
+    ipv6_network_encoder,
+    ipv4_interface_encoder,
+    ipv6_interface_encoder,
+)
+
+BUILTIN_DECODERS: Decoders = (
+    path_decoder,
+    uuid_decoder,
+    datetime_str_decoder,
+    ipv4_addr_decoder,
+    ipv6_addr_decoder,
+    ipv4_network_decoder,
+    ipv6_network_decoder,
+    ipv4_interface_decoder,
+    ipv6_interface_decoder,
+)
