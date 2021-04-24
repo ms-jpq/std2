@@ -216,7 +216,7 @@ def ipv6_interface_decoder(
 Builtins
 """
 
-BULITIN_ENCODERS: Encoders = (
+BUILTIN_ENCODERS: Encoders = (
     path_encoder,
     uuid_encoder,
     datetime_str_encoder,
