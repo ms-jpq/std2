@@ -126,7 +126,10 @@ def ipv4_addr_decoder(
     if not (isclass(tp) and issubclass(tp, IPv4Address) and isinstance(thing, str)):
         raise DecodeError(path=(*path, tp), actual=thing)
     else:
-        return IPv4Address(thing)
+        try:
+            return IPv4Address(thing)
+        except ValueError:
+            raise DecodeError(path=(*path, tp), actual=thing)
 
 
 def ipv6_addr_decoder(
@@ -135,7 +138,10 @@ def ipv6_addr_decoder(
     if not (isclass(tp) and issubclass(tp, IPv6Address) and isinstance(thing, str)):
         raise DecodeError(path=(*path, tp), actual=thing)
     else:
-        return IPv6Address(thing)
+        try:
+            return IPv6Address(thing)
+        except ValueError:
+            raise DecodeError(path=(*path, tp), actual=thing)
 
 
 """
@@ -163,7 +169,10 @@ def ipv4_network_decoder(
     if not (isclass(tp) and issubclass(tp, IPv4Network) and isinstance(thing, str)):
         raise DecodeError(path=(*path, tp), actual=thing)
     else:
-        return IPv4Network(thing)
+        try:
+            return IPv4Network(thing)
+        except ValueError:
+            raise DecodeError(path=(*path, tp), actual=thing)
 
 
 def ipv6_network_decoder(
@@ -172,8 +181,10 @@ def ipv6_network_decoder(
     if not (isclass(tp) and issubclass(tp, IPv6Network) and isinstance(thing, str)):
         raise DecodeError(path=(*path, tp), actual=thing)
     else:
-        return IPv6Network(thing)
-
+        try:
+            return IPv6Network(thing)
+        except ValueError:
+            raise DecodeError(path=(*path, tp), actual=thing)
 
 """
 ipinterface -> str
@@ -200,7 +211,10 @@ def ipv4_interface_decoder(
     if not (isclass(tp) and issubclass(tp, IPv4Interface) and isinstance(thing, str)):
         raise DecodeError(path=(*path, tp), actual=thing)
     else:
-        return IPv4Interface(thing)
+        try:
+            return IPv4Interface(thing)
+        except ValueError:
+            raise DecodeError(path=(*path, tp), actual=thing)
 
 
 def ipv6_interface_decoder(
@@ -209,7 +223,10 @@ def ipv6_interface_decoder(
     if not (isclass(tp) and issubclass(tp, IPv6Interface) and isinstance(thing, str)):
         raise DecodeError(path=(*path, tp), actual=thing)
     else:
-        return IPv6Interface(thing)
+        try:
+            return IPv6Interface(thing)
+        except ValueError:
+            raise DecodeError(path=(*path, tp), actual=thing)
 
 
 """
