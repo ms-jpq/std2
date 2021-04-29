@@ -8,3 +8,5 @@ RFC_1918 = (
 
 RFC_4193 = IPv6Network("fc00::/7")
 RFC_4193_LOCAL = IPv6Network("fd00::/8")
+
+LOCALHOST_V4 = IPv4Network("127.0.0.0/8")
