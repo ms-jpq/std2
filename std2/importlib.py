@@ -47,7 +47,10 @@ def module_from_path(
         raise ImportError()
     else:
         spec = spec_from_file_location(name, path, submodule_search_locations=[])
-        mod = module_from_spec(spec)
-        modules[mod.__name__] = mod
-        cast(Loader, spec.loader).exec_module(mod)
-        return mod
+        if not spec:
+            raise ImportError()
+        else:
+            mod = module_from_spec(spec)
+            modules[mod.__name__] = mod
+            cast(Loader, spec.loader).exec_module(mod)
+            return mod
