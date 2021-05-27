@@ -5,10 +5,12 @@ from typing import Iterator, Optional, Union
 AnyPath = Union[PathLike, str]
 
 
-def walk(path: Path) -> Iterator[Path]:
+def walk(path: Path, dirs: bool = False) -> Iterator[Path]:
     for p in path.iterdir():
         if p.is_dir():
-            yield from walk(p)
+            if dirs:
+                yield p
+            yield from walk(p, dirs=dirs)
         else:
             yield p
 
