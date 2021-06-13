@@ -10,7 +10,7 @@ _TOP_LV = Path(__file__).resolve().parent
 _TESTS = _TOP_LV / "tests"
 
 
-def parse_args() -> Namespace:
+def _parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("-v", "--verbosity", action="count", default=1)
     parser.add_argument("-f", "--fail", action="store_true", default=False)
@@ -20,7 +20,7 @@ def parse_args() -> Namespace:
 
 
 def main() -> None:
-    args = parse_args()
+    args = _parse_args()
     suite = defaultTestLoader.discover(
         str(_TESTS), top_level_dir=str(_TOP_LV.parent), pattern=args.pattern
     )
