@@ -51,9 +51,10 @@ async def aenumerate(
 
 
 async def atake(ait: AsyncIterable[T], n: int) -> AsyncIterator[T]:
+    ch = aiter(ait)
     for _ in range(n):
         try:
-            yield await anext(aiter(ait))
+            yield await ch.__anext__()
         except StopAsyncIteration:
             break
 
@@ -62,3 +63,4 @@ async def achain(*aits: AsyncIterable[T]) -> AsyncIterator[T]:
     for ait in aits:
         async for item in ait:
             yield item
+

@@ -5,9 +5,9 @@ from pathlib import Path
 def _xdg_path(env: str, *fallback: str) -> Path:
     home = environ.get(env)
     if home:
-        return Path(home)
+        return Path(home).resolve()
     else:
-        return Path(Path.home(), *fallback)
+        return Path(Path.home(), *fallback).resolve()
 
 
 def cache_home() -> Path:
@@ -20,3 +20,4 @@ def config_home() -> Path:
 
 def data_home() -> Path:
     return _xdg_path("XDG_DATA_HOME", ".local", "share")
+

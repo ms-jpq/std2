@@ -43,7 +43,6 @@ from typing import (
 
 from ..types import is_it
 
-T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 
 
@@ -124,7 +123,7 @@ def decode(
     strict: bool = True,
     decoders: Decoders = (),
     path: Sequence[Any] = (),
-) -> T:
+) -> Any:
     new_path = (*path, tp)
 
     def throw(
@@ -136,7 +135,7 @@ def decode(
 
     for decoder in decoders:
         try:
-            return cast(Decoder[T], decoder)(
+            return cast(Decoder[Any], decoder)(
                 tp,
                 thing,
                 strict=strict,
@@ -150,19 +149,19 @@ def decode(
         origin, args = get_origin(tp), get_args(tp)
 
         if tp is Any:
-            return cast(T, thing)
+            return thing
 
         elif tp is None:
             if thing is not None:
                 throw()
             else:
-                return cast(T, thing)
+                return thing
 
         elif origin is Literal:
             if thing not in args:
                 throw()
             else:
-                return cast(T, thing)
+                return thing
 
         elif origin is Union:
             errs: MutableSequence[Exception] = []
@@ -201,7 +200,7 @@ def decode(
                     )
                     for k, v in thing.items()
                 }
-                return cast(T, mapping)
+                return mapping
 
         elif origin in _SETS:
             if not is_it(thing):
@@ -218,7 +217,7 @@ def decode(
                     )
                     for item in thing
                 )
-                return cast(T, {*it} if origin in _SETS_M else frozenset(it))
+                return {*it} if origin in _SETS_M else frozenset(it)
 
         elif origin in _SEQS:
             if not is_it(thing):
@@ -235,7 +234,7 @@ def decode(
                     )
                     for item in thing
                 )
-                return cast(T, [*it] if origin in _SEQS_M else tuple(it))
+                return [*it] if origin in _SEQS_M else tuple(it)
 
         elif origin is tuple:
             if not is_it(thing):
@@ -246,18 +245,15 @@ def decode(
                     if len(args) >= 2 and args[-1] is Ellipsis
                     else args
                 )
-                return cast(
-                    T,
-                    tuple(
-                        decode(
-                            t,
-                            item,
-                            strict=strict,
-                            decoders=decoders,
-                            path=new_path,
-                        )
-                        for t, item in zip(tps, thing)
-                    ),
+                return tuple(
+                    decode(
+                        t,
+                        item,
+                        strict=strict,
+                        decoders=decoders,
+                        path=new_path,
+                    )
+                    for t, item in zip(tps, thing)
                 )
 
         elif origin and len(args):
@@ -268,7 +264,7 @@ def decode(
                 throw()
             else:
                 try:
-                    return cast(T, tp[thing])
+                    return tp[thing]
                 except KeyError as e:
                     throw()
 
@@ -307,13 +303,13 @@ def decode(
                         for f_name, (f_type, field) in dc_fields.items()
                         if f_name in thing
                     }
-                    return cast(Callable[..., T], tp)(**kwargs)
+                    return cast(Callable[..., Any], tp)(**kwargs)
 
         elif tp is float:
             if not isinstance(thing, SupportsFloat):
                 throw()
             else:
-                return cast(T, thing)
+                return thing
 
         else:
             if isinstance(tp, TypeVar):
@@ -321,4 +317,5 @@ def decode(
             elif not isinstance(thing, tp):
                 throw()
             else:
-                return cast(T, thing)
+                return thing
+

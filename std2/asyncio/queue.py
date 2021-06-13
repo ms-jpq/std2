@@ -1,9 +1,8 @@
 from asyncio.queues import Queue
-from typing import AsyncIterator, TypeVar
-
-T = TypeVar("T")
+from typing import Any, AsyncIterator
 
 
-async def to_iter(queue: Queue) -> AsyncIterator[T]:
+async def to_iter(queue: Queue) -> AsyncIterator[Any]:
     while True:
         yield await queue.get()
+

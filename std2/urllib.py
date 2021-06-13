@@ -1,9 +1,10 @@
 from http.client import HTTPResponse
-from typing import Union, cast
+from typing import Optional, Union, cast
 from urllib.request import Request, build_opener
 
 
-def urlopen(req: Union[Request, str]) -> HTTPResponse:
+def urlopen(req: Union[Request, str], timeout: Optional[float] = None) -> HTTPResponse:
     opener = build_opener()
-    resp = opener.open(req)
+    resp = opener.open(req, timeout=timeout)
     return cast(HTTPResponse, resp)
+
