@@ -135,7 +135,7 @@ def decode(
 
     for decoder in decoders:
         try:
-            return cast(Decoder[Any], decoder)(
+            return decoder(
                 tp,
                 thing,
                 strict=strict,
