@@ -6,19 +6,25 @@ from typing import AbstractSet, Any, Callable, Mapping, Optional
 from .types import is_it
 
 
+def _order(key: Any) -> Any:
+    if isinstance(key, str):
+        return strxfrm(key)
+    else:
+        return key
+
+
 def recur_sort(
     data: Any, key: Optional[Callable[[Any], Any]] = None, reverse: bool = False
 ) -> Any:
-    if key is None:
-        key = strxfrm
+    order = key or _order
 
     if isinstance(data, Mapping):
         return {
-            k: recur_sort(data[k], key=key, reverse=reverse)
-            for k in sorted(data, key=key, reverse=reverse)
+            k: recur_sort(data[k], key=order, reverse=reverse)
+            for k in sorted(data, key=order, reverse=reverse)
         }
     elif is_it(data):
-        return tuple(recur_sort(el, key=key, reverse=reverse) for el in data)
+        return tuple(recur_sort(el, key=order, reverse=reverse) for el in data)
     else:
         return data
 
@@ -43,3 +49,4 @@ def merge(ds1: Any, *dss: Any, replace: bool = False) -> Any:
     for ds2 in dss:
         res = _merge(res, ds2, replace=replace)
     return res
+
