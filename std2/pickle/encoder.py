@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping as ABC_Mapping
+from collections.abc import Set
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from operator import attrgetter
@@ -37,6 +38,8 @@ def encode(thing: Any, encoders: Encoders = ()) -> Any:
                 for k, v in thing.items()
             }
 
+        elif isinstance(thing, Set):
+            return {encode(item, encoders=encoders): True for item in thing}
         elif is_it(thing):
             return tuple(encode(item, encoders=encoders) for item in thing)
 
@@ -51,3 +54,4 @@ def encode(thing: Any, encoders: Encoders = ()) -> Any:
 
         else:
             return thing
+
