@@ -14,4 +14,4 @@ def human_readable_size(size: float, precision: int = 3) -> str:
             fmt = format_float(round(divided, precision))
             return f"{fmt}{unit}"
     else:
-        raise ValueError(f"unit over flow: {size}")
+        raise ValueError(f"unit overflow: {size}")

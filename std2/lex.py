@@ -7,18 +7,11 @@ class ParseError(Exception):
     ...
 
 
-def escape_with_prefix(stream: Iterable[T], escape: Mapping[T, T]) -> Iterable[T]:
+def escape(stream: Iterable[T], replace: bool, escape: Mapping[T, T]) -> Iterable[T]:
     for unit in stream:
         if unit in escape:
             yield escape[unit]
-        yield unit
-
-
-def escape_with_replacement(stream: Iterable[T], escape: Mapping[T, T]) -> Iterable[T]:
-    for unit in stream:
-        if unit in escape:
-            yield escape[unit]
-        else:
+        elif not replace:
             yield unit
 
 
@@ -75,3 +68,4 @@ def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
                 yield c
 
     return "".join(cont())
+
