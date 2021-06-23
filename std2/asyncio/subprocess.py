@@ -1,6 +1,7 @@
 from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
 from dataclasses import dataclass
 from os import environ, getcwd
+from subprocess import CalledProcessError
 from typing import Mapping, Optional, Sequence, cast
 
 from ..pathlib import AnyPath
@@ -20,7 +21,8 @@ async def call(
     *args: str,
     stdin: Optional[bytes] = None,
     cwd: Optional[AnyPath] = None,
-    env: Optional[Mapping[str, str]] = None
+    env: Optional[Mapping[str, str]] = None,
+    check_returncode: bool = False
 ) -> ProcReturn:
     p = str(prog)
     proc = await create_subprocess_exec(
@@ -35,5 +37,10 @@ async def call(
     stdout, stderr = await proc.communicate(stdin)
     code = cast(int, proc.returncode)
 
-    return ProcReturn(prog=p, args=args, code=code, out=stdout, err=stderr.decode())
+    if check_returncode and code:
+        raise CalledProcessError(
+            returncode=code, cmd=(p, *args), output=stdout, stderr=stderr.decode()
+        )
+    else:
+        return ProcReturn(prog=p, args=args, code=code, out=stdout, err=stderr.decode())
 
