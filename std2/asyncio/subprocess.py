@@ -16,14 +16,15 @@ class ProcReturn:
 
 
 async def call(
-    prog: str,
+    prog: AnyPath,
     *args: str,
     stdin: Optional[bytes] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None
 ) -> ProcReturn:
+    p = str(prog)
     proc = await create_subprocess_exec(
-        prog,
+        p,
         *args,
         stdin=PIPE if stdin is not None else DEVNULL,
         stdout=PIPE,
@@ -34,4 +35,5 @@ async def call(
     stdout, stderr = await proc.communicate(stdin)
     code = cast(int, proc.returncode)
 
-    return ProcReturn(prog=prog, args=args, code=code, out=stdout, err=stderr.decode())
+    return ProcReturn(prog=p, args=args, code=code, out=stdout, err=stderr.decode())
+
