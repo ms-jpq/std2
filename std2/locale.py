@@ -10,7 +10,7 @@ def si_prefixed(size: float, precision: int = 3) -> str:
     units = ("", "K", "M", "G", "T", "P", "E", "Z", "Y")
     steps = zip(map(partial(pow, 10), count(0, step=3)), units)
 
-    magnitude = abs(size)
+    magnitude = Decimal(abs(size))
     for factor, unit in steps:
         divided = magnitude / factor
         if divided < 1000:
