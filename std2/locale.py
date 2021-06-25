@@ -3,6 +3,7 @@ from functools import partial
 from itertools import count
 from locale import str as format_float
 from operator import pow
+from typing import Any, cast
 
 
 def _large(size: float, precision: int) -> str:
@@ -25,7 +26,7 @@ def _smol(size: float, precision: int) -> str:
 
     magnitude = Decimal(abs(size))
     if magnitude > 1:
-        raise ValueError(f"too big: {size}")
+        return format_float(round(cast(Any, magnitude), precision))
     else:
         for factor, unit in reversed(tuple(steps)):
             product = magnitude * factor
