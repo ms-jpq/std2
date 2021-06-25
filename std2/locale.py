@@ -6,7 +6,7 @@ from operator import pow
 from typing import Any, cast
 
 
-def si_prefixed(size: float, precision: int) -> str:
+def si_prefixed(size: float, precision: int = 3) -> str:
     units = ("", "K", "M", "G", "T", "P", "E", "Z", "Y")
     steps = zip(map(partial(pow, 10), count(0, step=3)), units)
 
@@ -20,7 +20,7 @@ def si_prefixed(size: float, precision: int) -> str:
         raise ValueError(f"unit overflow: {size}")
 
 
-def si_prefixed_smol(size: float, precision: int) -> str:
+def si_prefixed_smol(size: float, precision: int = 3) -> str:
     units = ("", "m", "u", "n", "p", "f", "a", "z", "y")
     steps = zip(map(partial(pow, 10), count(0, step=3)), units)
 
