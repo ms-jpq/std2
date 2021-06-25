@@ -6,7 +6,7 @@ from operator import pow
 from typing import Any, cast
 
 
-def _large(size: float, precision: int) -> str:
+def si_prefixed(size: float, precision: int) -> str:
     units = ("", "K", "M", "G", "T", "P", "E", "Z", "Y")
     steps = zip(map(partial(pow, 10), count(0, step=3)), units)
 
@@ -20,7 +20,7 @@ def _large(size: float, precision: int) -> str:
         raise ValueError(f"unit overflow: {size}")
 
 
-def _smol(size: float, precision: int) -> str:
+def si_prefixed_smol(size: float, precision: int) -> str:
     units = ("", "m", "u", "n", "p", "f", "a", "z", "y")
     steps = zip(map(partial(pow, 10), count(0, step=3)), units)
 
@@ -37,11 +37,4 @@ def _smol(size: float, precision: int) -> str:
                 return f"{fmt}{unit}"
         else:
             assert False
-
-
-def human_readable_size(size: float, precision: int = 3, small: bool = False) -> str:
-    if small:
-        return _smol(size, precision=precision)
-    else:
-        return _large(size, precision=precision)
 
