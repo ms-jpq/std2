@@ -29,11 +29,13 @@ def _smol(size: float, precision: int) -> str:
     else:
         for factor, unit in reversed(tuple(steps)):
             product = magnitude * factor
-            if product < 1000:
+            if product < 1:
+                raise ValueError(f"unit underflow: {size}")
+            elif product < 1000:
                 fmt = format_float(round(product, precision))
                 return f"{fmt}{unit}"
         else:
-            raise ValueError(f"unit overflow: {size}")
+            assert False
 
 
 def human_readable_size(size: float, precision: int = 3, small: bool = False) -> str:
