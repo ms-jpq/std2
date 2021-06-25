@@ -27,9 +27,9 @@ def _smol(size: float, precision: int) -> str:
     if magnitude > 1:
         raise ValueError(f"too big: {size}")
     else:
-        for factor, unit in steps:
+        for factor, unit in reversed(tuple(steps)):
             product = magnitude * factor
-            if product > 1:
+            if product < 1000:
                 fmt = format_float(round(product, precision))
                 return f"{fmt}{unit}"
         else:
