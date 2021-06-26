@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from ipaddress import IPv4Address, IPv4Interface
 from typing import (
     Any,
     ClassVar,
@@ -19,6 +20,8 @@ from uuid import UUID, uuid4
 
 from ..std2.pickle import DecodeError, decode, encode
 from ..std2.pickle.coders import (
+    BUILTIN_DECODERS,
+    BUILTIN_ENCODERS,
     datetime_float_decoder,
     datetime_float_encoder,
     datetime_str_decoder,
@@ -214,6 +217,24 @@ class Decode(TestCase):
         with self.assertRaises(DecodeError):
             decode(Sequence[E], ("name", "b"))
 
+    def test_29(self) -> None:
+        addr = IPv4Address("1.1.1.1")
+        inf = IPv4Interface("1.1.1.1/24")
+
+        d_addr = decode(IPv4Address, str(addr), decoders=BUILTIN_DECODERS)
+        d_inf = decode(IPv4Interface, str(inf), decoders=BUILTIN_DECODERS)
+        self.assertEqual(d_addr, addr)
+        self.assertEqual(d_inf, inf)
+
+    def test_30(self) -> None:
+        addr = IPv4Address("1.1.1.1")
+        inf = IPv4Interface("1.1.1.1/24")
+
+        a_addr = encode(addr, encoders=BUILTIN_ENCODERS)
+        inf_addr = encode(inf, encoders=BUILTIN_ENCODERS)
+        self.assertEqual(a_addr, str(addr))
+        self.assertEqual(inf_addr, str(inf))
+
 
 class RoundTrip(TestCase):
     def test_1(self) -> None:
@@ -233,3 +254,4 @@ class RoundTrip(TestCase):
         thing = encode(before, encoders=(datetime_float_encoder,))
         after: datetime = decode(datetime, thing, decoders=(datetime_float_decoder,))
         self.assertEqual(after, before)
+
