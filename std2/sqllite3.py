@@ -5,7 +5,7 @@ from sqlite3 import Cursor, register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
 from typing import AbstractSet, Iterable, Iterator, Mapping, Union
 from unicodedata import normalize
-from uuid import UUID
+from uuid import UUID, uuid4
 
 SQL_TYPES = Union[int, float, str, bytes, None]
 SQL_PARAM = Mapping[str, SQL_TYPES]
@@ -46,12 +46,17 @@ def _like_esc(like: str, esc: str) -> str:
     return f"{escaped}%"
 
 
+def _uuid() -> bytes:
+    return uuid4().bytes
+
+
 def add_functions(conn: Connection) -> None:
     conn.row_factory = Row
     conn.create_collation("X_COLLATION", strcoll)
     conn.create_function("X_NORMALIZE", narg=1, func=_normalize, deterministic=True)
     conn.create_function("X_LOWER", narg=1, func=_lower, deterministic=True)
     conn.create_function("X_LIKE_ESC", narg=2, func=_like_esc, deterministic=True)
+    conn.create_function("X_UUID", narg=0, func=_uuid, deterministic=True)
 
 
 def add_conversion() -> None:
