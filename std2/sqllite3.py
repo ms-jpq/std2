@@ -1,11 +1,11 @@
 from contextlib import contextmanager
+from enum import Enum
 from locale import strcoll
 from pathlib import Path, PurePath
 from sqlite3 import Cursor, register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
 from typing import AbstractSet, Iterable, Iterator, Mapping, Union
 from unicodedata import normalize
-from enum import Enum
 from uuid import UUID, uuid4
 
 SQL_TYPES = Union[int, float, str, bytes, None]
@@ -42,11 +42,6 @@ def _lower(text: str) -> str:
     return text.casefold()
 
 
-def _like_esc(like: str, esc: str) -> str:
-    escaped = escape(nono={"%", "_"}, escape=esc, param=like)
-    return f"{escaped}%"
-
-
 def _uuid() -> bytes:
     return uuid4().bytes
 
@@ -56,7 +51,6 @@ def add_functions(conn: Connection) -> None:
     conn.create_collation("X_COLLATION", strcoll)
     conn.create_function("X_NORMALIZE", narg=1, func=_normalize, deterministic=True)
     conn.create_function("X_LOWER", narg=1, func=_lower, deterministic=True)
-    conn.create_function("X_LIKE_ESC", narg=2, func=_like_esc, deterministic=True)
     conn.create_function("X_UUID", narg=0, func=_uuid, deterministic=True)
 
 
@@ -69,5 +63,4 @@ def add_conversion() -> None:
     register_adapter(PurePath, str)
     register_converter(PurePath.__qualname__, lambda b: PurePath(b.decode()))
     register_converter(Path.__qualname__, lambda b: Path(b.decode()))
-
 
