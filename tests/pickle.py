@@ -223,6 +223,7 @@ class Decode(TestCase):
 
         d_addr = decode(IPv4Address, str(addr), decoders=BUILTIN_DECODERS)
         d_inf = decode(IPv4Interface, str(inf), decoders=BUILTIN_DECODERS)
+        self.assertNotEqual(addr, inf)
         self.assertEqual(d_addr, addr)
         self.assertEqual(d_inf, inf)
 
@@ -232,6 +233,7 @@ class Decode(TestCase):
 
         a_addr = encode(addr, encoders=BUILTIN_ENCODERS)
         inf_addr = encode(inf, encoders=BUILTIN_ENCODERS)
+        self.assertNotEqual(addr, inf)
         self.assertEqual(a_addr, str(addr))
         self.assertEqual(inf_addr, str(inf))
 
