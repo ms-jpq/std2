@@ -5,7 +5,7 @@ from sqlite3 import Cursor, register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
 from typing import AbstractSet, Iterable, Iterator, Mapping, Union
 from unicodedata import normalize
-from uuid import UUID, uuid4
+from uuid import UUID
 
 SQL_TYPES = Union[int, float, str, bytes, None]
 SQL_PARAM = Mapping[str, SQL_TYPES]
