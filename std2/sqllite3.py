@@ -5,6 +5,7 @@ from sqlite3 import Cursor, register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
 from typing import AbstractSet, Iterable, Iterator, Mapping, Union
 from unicodedata import normalize
+from enum import Enum
 from uuid import UUID, uuid4
 
 SQL_TYPES = Union[int, float, str, bytes, None]
@@ -60,10 +61,13 @@ def add_functions(conn: Connection) -> None:
 
 
 def add_conversion() -> None:
+    register_adapter(Enum, lambda e: e.name)
+
+    register_adapter(UUID, lambda u: u.bytes)
+    register_converter(UUID.__qualname__, lambda b: UUID(bytes=b))
+
     register_adapter(PurePath, str)
     register_converter(PurePath.__qualname__, lambda b: PurePath(b.decode()))
     register_converter(Path.__qualname__, lambda b: Path(b.decode()))
 
-    register_adapter(UUID, lambda u: u.bytes)
-    register_converter(UUID.__qualname__, lambda b: UUID(bytes=b))
 
