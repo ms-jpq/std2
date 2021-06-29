@@ -4,7 +4,7 @@ from locale import strcoll
 from pathlib import Path, PurePath
 from sqlite3 import Cursor, register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
-from typing import AbstractSet, Iterable, Iterator, Mapping, Union
+from typing import AbstractSet, Iterable, Iterator, Mapping, Optional, Union
 from unicodedata import normalize
 from uuid import UUID, uuid4
 
@@ -34,12 +34,18 @@ def with_transaction(cursor: Cursor) -> Iterator[None]:
         cursor.execute("END TRANSACTION")
 
 
-def _normalize(text: str) -> str:
-    return normalize("NFC", text)
+def _normalize(text: Optional[str]) -> Optional[str]:
+    if text is None:
+        return None
+    else:
+        return normalize("NFC", text)
 
 
-def _lower(text: str) -> str:
-    return text.casefold()
+def _lower(text: Optional[str]) -> Optional[str]:
+    if text is None:
+        return None
+    else:
+        return text.casefold()
 
 
 def _uuid() -> bytes:
