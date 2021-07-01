@@ -18,7 +18,7 @@ from .types import DecodeError, Decoder, DParser, DStep, Encoder, EParser
 def _basic_encoder(
     tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]
 ) -> Optional[EParser]:
-    if isinstance(
+    if issubclass(
         tp, (UUID, PurePath, IPv6Network, IPv4Network, IPv6Address, IPv4Address)
     ):
         return lambda x: (True, str(x))
@@ -34,7 +34,7 @@ def _base_decoder(t: Type) -> Decoder:
         tp: Any, path: Sequence[Any], strict: bool, decoders: Sequence[Decoder]
     ) -> Optional[DParser]:
 
-        if isinstance(tp, t):
+        if issubclass(tp, t):
 
             def p(x: Any) -> DStep:
                 try:

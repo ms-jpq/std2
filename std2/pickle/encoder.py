@@ -1,4 +1,4 @@
-from dataclasses import fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
@@ -10,7 +10,6 @@ from typing import (
     MutableMapping,
     MutableSet,
     Sequence,
-    SupportsFloat,
     Union,
     get_args,
     get_origin,
