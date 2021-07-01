@@ -1,2 +1,3 @@
-from .decoder import DecodeError, Decoder, Decoders, decode
-from .encoder import Encoder, Encoders, encode
+from .decoder import new_decoder
+from .encoder import new_encoder
+from .types import DecodeError, EncodeError

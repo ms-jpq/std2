@@ -6,46 +6,33 @@ from collections.abc import MutableSequence as ABC_MutableSequence
 from collections.abc import MutableSet as ABC_MutableSet
 from collections.abc import Sequence as ABC_Sequence
 from collections.abc import Set as ABC_Set
-from dataclasses import MISSING, Field, fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
-from locale import strxfrm
-from os import linesep
-from pprint import pformat
 from typing import (
     AbstractSet,
     Any,
     Callable,
-    Collection,
     Dict,
     FrozenSet,
-    Iterator,
     List,
     Literal,
     Mapping,
     MutableMapping,
     MutableSequence,
     MutableSet,
-    NoReturn,
-    Protocol,
     Sequence,
     Set,
     SupportsFloat,
-    Tuple,
-    Type,
-    TypeVar,
     Union,
-    cast,
     get_args,
     get_origin,
     get_type_hints,
 )
 
 from ..types import is_it
-
-T_co = TypeVar("T_co", covariant=True)
-
+from .types import DecodeError, DParser, DStep
 
 _MAPS_M = {MutableMapping, ABC_MutableMapping, Dict, dict}
 _MAPS = {Mapping, ABC_Mapping} | _MAPS_M
@@ -57,266 +44,232 @@ _SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
 _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
-def _is_optional(field: Field) -> bool:
-    return field.default is MISSING and field.default_factory is MISSING  # type: ignore
+def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
+    origin, args = get_origin(tp), get_args(tp)
 
+    if tp is Any:
+        return lambda x: (True, x)
+    elif tp is None:
 
-def _pprn(thingy: Any) -> str:
-    if is_dataclass(thingy):
-        fs = sorted(fields(thingy), key=lambda f: strxfrm(f.name))
-        listed = ", ".join(map(_pprn, fs))
-        return f"key of: < {listed} >"
-    elif isinstance(thingy, Field):
-        return f"{thingy.name}: {thingy.type}"
-    elif isclass(thingy) and issubclass(thingy, Enum):
-        members = tuple(member.name for member in thingy)
-        listed = ", ".join(members)
-        return f"one of: {{ {listed} }}"
-    else:
-        return str(thingy)
-
-
-class DecodeError(Exception):
-    def __init__(
-        self,
-        *args: Any,
-        path: Sequence[Any],
-        actual: Any,
-        missing_keys: Collection[str] = (),
-        extra_keys: Collection[str] = (),
-    ) -> None:
-        super().__init__(*args)
-        self.path, self.actual = path, actual
-        self.missing_keys, self.extra_keys = missing_keys, extra_keys
-
-    def __str__(self) -> str:
-        path = f"{linesep}->{linesep}".join(map(_pprn, self.path))
-        missing = ", ".join(self.missing_keys)
-        extra = ", ".join(self.extra_keys)
-        args = ", ".join(map(str, self.args))
-        actual = pformat(self.actual, indent=2)
-        l1 = f"Path:{linesep}{path}"
-        l2 = f"Actual:{linesep}{actual}"
-        l3 = f"Missing Keys: {{{missing}}}"
-        l4 = f"Extra Keys:   {{{extra}}}"
-        l5 = f"Args:         ({args})"
-        return (linesep * 2).join((linesep, l1, l2, l3, l4, l5))
-
-
-class Decoder(Protocol[T_co]):
-    def __call__(
-        self,
-        tp: Any,
-        thing: Any,
-        strict: bool,
-        decoders: Decoders,
-        path: Sequence[Any],
-    ) -> T_co:
-        ...
-
-
-Decoders = Sequence[Decoder[Any]]
-
-
-def decode(
-    tp: Any,
-    thing: Any,
-    strict: bool = True,
-    decoders: Decoders = (),
-    path: Sequence[Any] = (),
-) -> Any:
-    new_path = (*path, tp)
-
-    def throw(
-        *args: Any, missing: Sequence[str] = (), extra: Sequence[str] = ()
-    ) -> NoReturn:
-        raise DecodeError(
-            *args, path=new_path, actual=thing, missing_keys=missing, extra_keys=extra
-        )
-
-    for decoder in decoders:
-        try:
-            return decoder(
-                tp,
-                thing,
-                strict=strict,
-                decoders=decoders,
-                path=new_path,
-            )
-        except DecodeError:
-            pass
-
-    else:
-        origin, args = get_origin(tp), get_args(tp)
-
-        if tp is Any:
-            return thing
-
-        elif tp is None:
-            if thing is not None:
-                throw()
+        def parser(x: Any) -> DStep:
+            if x is None:
+                return True, None
             else:
-                return thing
+                return False, DecodeError(path=(*path, tp), actual=x)
 
-        elif origin is Literal:
-            if thing not in args:
-                throw()
+        return parser
+    elif origin is Literal:
+        a = {*args}
+
+        def parser(x: Any) -> DStep:
+            if x in a:
+                return True, x
             else:
-                return thing
+                return False, DecodeError(path=(*path, tp), actual=x)
 
-        elif origin is Union:
-            errs: MutableSequence[Exception] = []
-            for member in args:
-                try:
-                    return decode(
-                        member,
-                        thing,
-                        strict=strict,
-                        decoders=decoders,
-                        path=new_path,
-                    )
-                except DecodeError as e:
-                    errs.append(e)
+        return parser
+
+    elif origin is Union:
+        ps = tuple(_new_parser(a, path=path, strict=strict) for a in args)
+
+        def parser(x: Any) -> DStep:
+            for succ, y in (p(x) for p in ps):
+                if succ:
+                    return True, y
             else:
-                throw(*errs)
+                return False, DecodeError(path=(*path, tp), actual=x)
 
-        elif origin in _MAPS:
-            if not isinstance(thing, Mapping):
-                throw()
+        return parser
+
+    elif origin in _MAPS:
+        kp, vp = (_new_parser(a, path=path, strict=strict) for a in args)
+
+        def parser(x: Any) -> DStep:
+            if not isinstance(x, Mapping):
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
-                lhs, rhs = args
-                mapping: Mapping[Any, Any] = {
-                    decode(
-                        lhs,
-                        k,
-                        strict=strict,
-                        decoders=decoders,
-                        path=new_path,
-                    ): decode(
-                        rhs,
-                        v,
-                        strict=strict,
-                        decoders=decoders,
-                        path=new_path,
-                    )
-                    for k, v in thing.items()
-                }
-                return mapping
+                acc = {}
+                for k, v in x.items():
+                    sl, l = kp(k)
+                    if not sl:
+                        return False, l
+                    sr, r = vp(v)
+                    if not sr:
+                        return False, r
 
-        elif origin in _SETS:
-            if not is_it(thing):
-                throw()
-            else:
-                t, *_ = args
-                it: Iterator[Any] = (
-                    decode(
-                        t,
-                        item,
-                        strict=strict,
-                        decoders=decoders,
-                        path=new_path,
-                    )
-                    for item in thing
-                )
-                return {*it} if origin in _SETS_M else frozenset(it)
-
-        elif origin in _SEQS:
-            if not is_it(thing):
-                throw()
-            else:
-                t, *_ = args
-                it = (
-                    decode(
-                        t,
-                        item,
-                        strict=strict,
-                        decoders=decoders,
-                        path=new_path,
-                    )
-                    for item in thing
-                )
-                return [*it] if origin in _SEQS_M else tuple(it)
-
-        elif origin is tuple:
-            if not is_it(thing):
-                throw()
-            else:
-                tps = (
-                    chain(args[:-1], repeat(args[-2]))
-                    if len(args) >= 2 and args[-1] is Ellipsis
-                    else args
-                )
-                return tuple(
-                    decode(
-                        t,
-                        item,
-                        strict=strict,
-                        decoders=decoders,
-                        path=new_path,
-                    )
-                    for t, item in zip(tps, thing)
-                )
-
-        elif origin and len(args):
-            throw()
-
-        elif isclass(tp) and issubclass(tp, Enum):
-            if not isinstance(thing, str):
-                throw()
-            else:
-                try:
-                    return tp[thing]
-                except KeyError as e:
-                    throw()
-
-        elif is_dataclass(tp):
-            if not isinstance(thing, Mapping):
-                throw()
-
-            else:
-                hints = get_type_hints(tp, globalns=None, localns=None)
-                dc_fields: MutableMapping[str, Tuple[Type, Field]] = {}
-                required: MutableSet[str] = set()
-                for field in fields(tp):
-                    if field.init:
-                        dc_fields[field.name] = hints[field.name], field
-                        if _is_optional(field):
-                            required.add(field.name)
-
-                missing_keys = required - thing.keys()
-                extra_keys = thing.keys() - dc_fields.keys()
-
-                if missing_keys or (strict and extra_keys):
-                    throw(
-                        missing=sorted(missing_keys, key=strxfrm),
-                        extra=sorted(extra_keys, key=strxfrm),
-                    )
-
+                    acc[l] = r
                 else:
-                    kwargs: Mapping[str, Any] = {
-                        f_name: decode(
-                            f_type,
-                            thing[f_name],
-                            strict=strict,
-                            decoders=decoders,
-                            path=tuple((*new_path, field)),
-                        )
-                        for f_name, (f_type, field) in dc_fields.items()
-                        if f_name in thing
-                    }
-                    return cast(Callable[..., Any], tp)(**kwargs)
+                    return True, acc
 
-        elif tp is float:
-            if not isinstance(thing, SupportsFloat):
-                throw()
+        return parser
+
+    elif origin in _SETS:
+        p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
+
+        def parser(x: Any) -> DStep:
+            if not is_it(x):
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
-                return thing
+                acc = set()
+                for succ, m in map(p, x):
+                    if succ:
+                        acc.add(m)
+                    else:
+                        return False, m
+                else:
+                    return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
+
+    elif origin in _SEQS:
+        p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
+
+        def parser(x: Any) -> DStep:
+            if not is_it(x):
+                return False, DecodeError(path=(*path, tp), actual=x)
+            else:
+                acc = []
+                for succ, m in map(p, x):
+                    if succ:
+                        acc.append(m)
+                    else:
+                        return False, m
+                else:
+                    return True, acc
+
+        return parser
+
+    elif origin is tuple:
+        if len(args) >= 2 and args[-1] is Ellipsis:
+            b_parsers = tuple(
+                _new_parser(a, path=path, strict=strict) for a in args[:-1]
+            )
+            e_parsers = repeat(_new_parser(args[-2], path=path, strict=strict))
+
+            def parser(x: Any) -> DStep:
+                if not is_it(x):
+                    return False, DecodeError(path=(*path, tp), actual=x)
+                else:
+                    acc = []
+                    for succ, y in (
+                        p(m) for p, m in zip(chain(b_parsers, e_parsers), x)
+                    ):
+                        if succ:
+                            acc.append(y)
+                        else:
+                            return False, y
+                    else:
+                        return True, acc
 
         else:
-            if isinstance(tp, TypeVar):
-                throw()
-            elif not isinstance(thing, tp):
-                throw()
+            ps = tuple(_new_parser(a, path=path, strict=strict) for a in args)
+
+            def parser(x: Any) -> DStep:
+                if not is_it(x):
+                    return False, DecodeError(path=(*path, tp), actual=x)
+                else:
+                    acc = []
+                    for succ, y in (p(m) for p, m in zip(ps, x)):
+                        if succ:
+                            acc.append(y)
+                        else:
+                            return False, y
+                    else:
+                        return True, acc
+
+        return parser
+
+    elif origin and args:
+        raise ValueError(f"Unexpected type -- {tp}")
+
+    elif isclass(tp) and issubclass(tp, Enum):
+
+        def parser(x: Any) -> DStep:
+            if not isinstance(x, str):
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
-                return thing
+                try:
+                    return True, tp[x]
+                except KeyError:
+                    return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
+
+    elif is_dataclass(tp):
+        hints = get_type_hints(tp, globalns=None, localns=None)
+        cls_fields: MutableMapping[str, DParser] = {}
+        rq_fields: MutableSet[str] = set()
+        for field in fields(tp):
+            if field.init:
+                p = _new_parser(hints[field.name], path=path, strict=strict)
+                req = field.default is MISSING and field.default_factory is MISSING  # type: ignore
+                cls_fields[field.name] = p
+                if req:
+                    rq_fields.add(field.name)
+
+        def parser(x: Any) -> DStep:
+            if not isinstance(x, Mapping):
+                return False, DecodeError(path=(*path, tp), actual=x)
+            else:
+                kwargs: MutableMapping[str, Any] = {}
+                for k, p in cls_fields.items():
+                    if k in x:
+                        succ, v = p(x[k])
+                        if succ:
+                            kwargs[k] = v
+                        else:
+                            return False, v
+                    elif req:
+                        return False, DecodeError(
+                            path=(*path, tp), actual=x, missing_keys=k
+                        )
+
+                ks = kwargs.keys()
+                mk = rq_fields - ks
+                if mk:
+                    return False, DecodeError(
+                        path=(*path, tp), actual=x, missing_keys=mk
+                    )
+
+                if strict:
+                    ek = x.keys() - ks
+                    if ek:
+                        return False, DecodeError(
+                            path=(*path, tp), actual=x, extra_keys=ek
+                        )
+
+                return True, tp(**kwargs)
+
+        return parser
+    elif tp is float:
+
+        def parser(x: Any) -> DStep:
+            if isinstance(x, SupportsFloat):
+                return True, x
+            else:
+                return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
+    else:
+
+        def parser(x: Any) -> DStep:
+            if isinstance(x, tp):
+                return True, x
+            else:
+                return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
+
+
+def new_decoder(tp: Any, strict: bool = True) -> Callable[[Any], Any]:
+    p = _new_parser(tp, path=(), strict=strict)
+
+    def parser(x: Any) -> Any:
+        ok, thing = p(x)
+        if ok:
+            return thing
+        else:
+            raise thing
+
+    return parser
 

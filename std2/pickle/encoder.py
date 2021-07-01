@@ -12,8 +12,6 @@ from ..types import is_it
 T_co = TypeVar("T_co", covariant=True)
 
 
-class EncodeError(Exception):
-    ...
 
 
 class Encoder(Protocol[T_co]):

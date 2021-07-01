@@ -18,7 +18,7 @@ from typing import (
 from unittest import TestCase
 from uuid import UUID, uuid4
 
-from ..std2.pickle import DecodeError, decode, encode
+from ..std2.pickle import DecodeError, new_encoder, new_decoder
 from ..std2.pickle.coders import (
     BUILTIN_DECODERS,
     BUILTIN_ENCODERS,
@@ -29,7 +29,6 @@ from ..std2.pickle.coders import (
     uuid_decoder,
     uuid_encoder,
 )
-from ..std2.pickle.decoder2 import new_parser
 
 T = TypeVar("T")
 
@@ -59,17 +58,17 @@ class Encode(TestCase):
 
 class Decode(TestCase):
     def test_1(self) -> None:
-        p = new_parser(None)
+        p = new_decoder(None)
         thing: None = p(None)
         self.assertEqual(thing, None)
 
     def test_2(self) -> None:
-        p = new_parser(None)
+        p = new_decoder(None)
         with self.assertRaises(DecodeError):
             p(())
 
     def test_3(self) -> None:
-        p = new_parser(int)
+        p = new_decoder(int)
         thing: int = p(2)
         self.assertEqual(thing, 2)
 
@@ -78,62 +77,62 @@ class Decode(TestCase):
             decode(int, "a")
 
     def test_5(self) -> None:
-        p = new_parser(str)
+        p = new_decoder(str)
         thing: str = p("a")
         self.assertEqual(thing, "a")
 
     def test_6(self) -> None:
-        p = new_parser(Optional[str])
+        p = new_decoder(Optional[str])
         thing: Optional[str] = p("a")
         self.assertEqual(thing, "a")
 
     def test_7(self) -> None:
-        p = new_parser(Optional[str])
+        p = new_decoder(Optional[str])
         thing: Optional[str] = p(None)
         self.assertEqual(thing, None)
 
     def test_8(self) -> None:
-        p = new_parser(Union[int, str])
+        p = new_decoder(Union[int, str])
         thing: int = p(2)
         self.assertEqual(thing, 2)
 
     def test_9(self) -> None:
-        p = new_parser(Union[int, str])
+        p = new_decoder(Union[int, str])
         thing: int = p("a")
         self.assertEqual(thing, "a")
 
     def test_10(self) -> None:
-        p = new_parser(Union[int, str])
+        p = new_decoder(Union[int, str])
         with self.assertRaises(DecodeError):
             p(b"a")
 
     def test_11(self) -> None:
-        p = new_parser(Tuple[int, str])
+        p = new_decoder(Tuple[int, str])
         thing: Tuple[int, str] = p((1, "a"))
         self.assertEqual(thing, [1, "a"])
 
     def test_12(self) -> None:
-        p = new_parser(Tuple[int, str])
+        p = new_decoder(Tuple[int, str])
         with self.assertRaises(DecodeError):
             p(("a",))
 
     def test_13(self) -> None:
-        p = new_parser(Tuple[int, str])
+        p = new_decoder(Tuple[int, str])
         with self.assertRaises(DecodeError):
             p(("a", 1))
 
     def test_14(self) -> None:
-        p = new_parser(Any)
+        p = new_decoder(Any)
         thing: None = p(None)
         self.assertEqual(thing, None)
 
     def test_15(self) -> None:
-        p = new_parser(Tuple[int, ...])
+        p = new_decoder(Tuple[int, ...])
         thing: Tuple[int, ...] = p([1, 2, 3])
         self.assertEqual(thing, [1, 2, 3])
 
     def test_16(self) -> None:
-        p = new_parser(Tuple[int, ...])
+        p = new_decoder(Tuple[int, ...])
         with self.assertRaises(DecodeError):
             p((1, "a"))
 
@@ -144,7 +143,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_parser(C)
+        p = new_decoder(C)
         thing: C = p({"a": 1, "b": []})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
@@ -156,7 +155,7 @@ class Decode(TestCase):
             c: bool = False
             z: ClassVar[bool] = True
 
-        p = new_parser(C, strict=False)
+        p = new_decoder(C, strict=False)
         thing: C = p({"a": 1, "b": []})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
@@ -167,7 +166,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_parser(C, strict=False)
+        p = new_decoder(C, strict=False)
         thing: C = p({"a": 1, "b": [], "d": "d"})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
@@ -178,7 +177,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_parser(C, strict=True)
+        p = new_decoder(C, strict=True)
         with self.assertRaises(DecodeError) as e:
             p({"a": 1, "b": [], "d": "d"})
         self.assertEqual(e.exception.extra_keys, {"d"})
@@ -190,7 +189,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_parser(C)
+        p = new_decoder(C)
         with self.assertRaises(DecodeError) as e:
             p({"a": 1})
         self.assertEqual(e.exception.missing_keys, {"b"})
