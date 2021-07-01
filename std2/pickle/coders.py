@@ -37,10 +37,13 @@ def _base_decoder(t: Type) -> Decoder:
         if issubclass(tp, t):
 
             def p(x: Any) -> DStep:
-                try:
-                    return True, t(x)
-                except ValueError as e:
-                    return False, DecodeError(e, path=(*path, tp), actual=x)
+                if isinstance(x, str):
+                    try:
+                        return True, t(x)
+                    except ValueError as e:
+                        return False, DecodeError(e, path=(*path, tp), actual=x)
+                else:
+                    return False, DecodeError(path=(*path, tp), actual=x)
 
             return p
         else:

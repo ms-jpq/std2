@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Interface
+from pathlib import PurePath
 from typing import (
     AbstractSet,
     Any,
@@ -267,4 +268,14 @@ class Decode(TestCase):
         p = new_decoder(AbstractSet[str])
         thing = p(["1", "2"])
         self.assertEqual(thing, {"1", "2"})
+
+    def test_31(self) -> None:
+        p = new_decoder(Optional[PurePath])
+        thing = p(None)
+        self.assertEqual(thing, None)
+
+    def test_32(self) -> None:
+        p = new_decoder(Optional[PurePath])
+        thing = p(".")
+        self.assertEqual(thing, PurePath())
 
