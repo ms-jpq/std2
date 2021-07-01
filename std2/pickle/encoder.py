@@ -2,7 +2,6 @@ from dataclasses import fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
-from operator import attrgetter
 from typing import (
     Any,
     Callable,
@@ -20,7 +19,7 @@ from typing import (
 
 from ..types import is_it
 from .coders import DEFAULT_ENCODERS
-from .types import Encoder, EncoderError, EParser, EStep, MAPS, SETS, SEQS
+from .types import MAPS, SEQS, SETS, Encoder, EncoderError, EParser, EStep
 
 
 def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EParser:
@@ -31,11 +30,24 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
     elif tp is None:
 
-        return lambda x: (True, x)
+        def p(x: Any) -> EStep:
+            if x is None:
+                return True, None
+            else:
+                return False, EncoderError(path=(*path, tp), actual=x)
+
+        return p
 
     elif origin is Literal:
+        a = {*args}
 
-        return lambda x: (True, x)
+        def p(x: Any) -> EStep:
+            if x in a:
+                return True, x
+            else:
+                return False, EncoderError(path=(*path, tp), actual=x)
+
+        return p
 
     elif origin is Union:
         ps = tuple(_new_parser(a, path=path, encoders=encoders) for a in args)
@@ -151,19 +163,16 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
     elif isclass(tp) and issubclass(tp, Enum):
 
         def p(x: Any) -> EStep:
-            if not isinstance(x, str):
+            if not isinstance(x, Enum):
                 return False, EncoderError(path=(*path, tp), actual=x)
             else:
-                try:
-                    return True, tp[x]
-                except KeyError:
-                    return False, EncoderError(path=(*path, tp), actual=x)
+                return True, x.name
 
         return p
 
     elif is_dataclass(tp):
         hints = get_type_hints(tp, globalns=None, localns=None)
-        cls_fields: MutableMapping[str, DParser] = {}
+        cls_fields: MutableMapping[str, EParser] = {}
         rq_fields: MutableSet[str] = set()
         for field in fields(tp):
             if field.init:
@@ -174,15 +183,15 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                     rq_fields.add(field.name)
 
         def p(x: Any) -> EStep:
-            if not isinstance(x, Mapping):
+            if not is_dataclass(x):
                 return False, EncoderError(path=(*path, tp), actual=x)
             else:
-                kwargs: MutableMapping[str, Any] = {}
+                acc: MutableMapping[str, Any] = {}
                 for k, p in cls_fields.items():
-                    if k in x:
-                        succ, v = p(x[k])
+                    if hasattr(x, k):
+                        succ, v = p(getattr(x, k))
                         if succ:
-                            kwargs[k] = v
+                            acc[k] = v
                         else:
                             return False, v
                     elif req:
@@ -190,31 +199,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                             path=(*path, tp), actual=x, missing_keys=k
                         )
 
-                ks = kwargs.keys()
-                mk = rq_fields - ks
-                if mk:
-                    return False, EncoderError(
-                        path=(*path, tp), actual=x, missing_keys=mk
-                    )
-
-                if strict:
-                    ek = x.keys() - ks
-                    if ek:
-                        return False, EncoderError(
-                            path=(*path, tp), actual=x, extra_keys=ek
-                        )
-
-                return True, tp(**kwargs)
-
-        return p
-
-    elif tp is float:
-
-        def p(x: Any) -> EStep:
-            if isinstance(x, SupportsFloat):
-                return True, x
-            else:
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return True, acc
 
         return p
 

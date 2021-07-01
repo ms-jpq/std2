@@ -144,9 +144,7 @@ def _new_parser(
                     return False, DecodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []
-                    for succ, y in (
-                        p(m) for p, m in zip(chain(bp, ep), x)
-                    ):
+                    for succ, y in (p(m) for p, m in zip(chain(bp, ep), x)):
                         if succ:
                             acc.append(y)
                         else:
@@ -217,10 +215,6 @@ def _new_parser(
                             kwargs[k] = v
                         else:
                             return False, v
-                    elif req:
-                        return False, DecodeError(
-                            path=(*path, tp), actual=x, missing_keys=k
-                        )
 
                 ks = kwargs.keys()
                 mk = rq_fields - ks
