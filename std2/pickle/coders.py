@@ -15,18 +15,37 @@ from uuid import UUID
 from .types import DecodeError, Decoder, DParser, DStep, Encoder, EParser
 
 
-def _basic_encoder(
-    tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]
-) -> Optional[EParser]:
-    if issubclass(
-        tp, (UUID, PurePath, IPv6Network, IPv4Network, IPv6Address, IPv4Address)
-    ):
-        return lambda x: (True, str(x))
-    else:
-        return None
+def _base_encoder(t: Type) -> Encoder:
+    def e(
+        tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]
+    ) -> Optional[EParser]:
+
+        if issubclass(tp, t):
+
+            def p(x: Any) -> DStep:
+                if isinstance(x, t):
+                    try:
+                        return True, str(x)
+                    except ValueError as e:
+                        return False, DecodeError(e, path=(*path, tp), actual=x)
+                else:
+                    return False, DecodeError(path=(*path, tp), actual=x)
+
+            return p
+        else:
+            return None
+
+    return e
 
 
-DEFAULT_ENCODERS: Sequence[Encoder] = (_basic_encoder,)
+DEFAULT_ENCODERS = (
+    _base_encoder(UUID),
+    _base_encoder(PurePath),
+    _base_encoder(IPv6Network),
+    _base_encoder(IPv4Network),
+    _base_encoder(IPv6Address),
+    _base_encoder(IPv4Address),
+)
 
 
 def _base_decoder(t: Type) -> Decoder:
