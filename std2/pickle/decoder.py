@@ -195,11 +195,14 @@ def _new_parser(
         rq_fields: MutableSet[str] = set()
         for field in fields(tp):
             if field.init:
-                p = _new_parser(
-                    hints[field.name], path=path, strict=strict, decoders=decoders
+                fp = _new_parser(
+                    hints[field.name],
+                    path=(*path, field),
+                    strict=strict,
+                    decoders=decoders,
                 )
                 req = field.default is MISSING and field.default_factory is MISSING  # type: ignore
-                cls_fields[field.name] = p
+                cls_fields[field.name] = fp
                 if req:
                     rq_fields.add(field.name)
 
@@ -246,9 +249,9 @@ def _new_parser(
 
     else:
         for d in decoders:
-            p = d(tp, path=path, strict=strict, decoders=decoders)
-            if p:
-                return p
+            dp = d(tp, path=path, strict=strict, decoders=decoders)
+            if dp:
+                return dp
         else:
 
             def p(x: Any) -> DStep:

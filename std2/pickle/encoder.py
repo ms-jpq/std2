@@ -176,9 +176,9 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
         rq_fields: MutableSet[str] = set()
         for field in fields(tp):
             if field.init:
-                p = _new_parser(hints[field.name], path=path, encoders=encoders)
+                fp = _new_parser(hints[field.name], path=path, encoders=encoders)
                 req = field.default is MISSING and field.default_factory is MISSING  # type: ignore
-                cls_fields[field.name] = p
+                cls_fields[field.name] = fp
                 if req:
                     rq_fields.add(field.name)
 
@@ -205,9 +205,9 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
     else:
         for e in encoders:
-            p = e(tp, path=path, encoders=encoders)
-            if p:
-                return p
+            epp = e(tp, path=path, encoders=encoders)
+            if epp:
+                return epp
         else:
 
             def p(x: Any) -> EStep:

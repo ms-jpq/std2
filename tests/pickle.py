@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from enum import Enum
-from ipaddress import IPv4Address, IPv4Interface, IPv6Address
+from ipaddress import IPv4Address, IPv4Interface
 from typing import (
     Any,
     ClassVar,
