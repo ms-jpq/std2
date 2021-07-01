@@ -1,10 +1,41 @@
+from collections.abc import Mapping as ABC_Mapping
+from collections.abc import MutableMapping as ABC_MutableMapping
+from collections.abc import MutableSequence as ABC_MutableSequence
+from collections.abc import MutableSet as ABC_MutableSet
+from collections.abc import Sequence as ABC_Sequence
+from collections.abc import Set as ABC_Set
 from dataclasses import Field, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from locale import strxfrm
 from os import linesep
 from pprint import pformat
-from typing import Any, Callable, Collection, Sequence, Union
+from typing import (
+    AbstractSet,
+    Any,
+    Callable,
+    Collection,
+    Dict,
+    FrozenSet,
+    List,
+    Literal,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    MutableSet,
+    Sequence,
+    Set,
+    Union,
+)
+
+_MAPS_M = {MutableMapping, ABC_MutableMapping, Dict, dict}
+MAPS = {Mapping, ABC_Mapping} | _MAPS_M
+
+_SETS_M = {MutableSet, ABC_MutableSet, Set, set}
+SETS = {AbstractSet, ABC_Set, FrozenSet, frozenset} | _SETS_M
+
+_SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
+SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
 def _pprn(thingy: Any) -> str:

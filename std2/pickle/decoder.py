@@ -1,29 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Mapping as ABC_Mapping
-from collections.abc import MutableMapping as ABC_MutableMapping
-from collections.abc import MutableSequence as ABC_MutableSequence
-from collections.abc import MutableSet as ABC_MutableSet
-from collections.abc import Sequence as ABC_Sequence
-from collections.abc import Set as ABC_Set
 from dataclasses import MISSING, fields, is_dataclass
 from enum import Enum
 from inspect import isclass
 from itertools import chain, repeat
 from typing import (
-    AbstractSet,
     Any,
     Callable,
-    Dict,
-    FrozenSet,
-    List,
     Literal,
     Mapping,
     MutableMapping,
-    MutableSequence,
     MutableSet,
     Sequence,
-    Set,
     SupportsFloat,
     Union,
     get_args,
@@ -32,16 +20,7 @@ from typing import (
 )
 
 from ..types import is_it
-from .types import DecodeError, DParser, DStep
-
-_MAPS_M = {MutableMapping, ABC_MutableMapping, Dict, dict}
-_MAPS = {Mapping, ABC_Mapping} | _MAPS_M
-
-_SETS_M = {MutableSet, ABC_MutableSet, Set, set}
-_SETS = {AbstractSet, ABC_Set, FrozenSet, frozenset} | _SETS_M
-
-_SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
-_SEQS = {Sequence, ABC_Sequence} | _SEQS_M
+from .types import MAPS, SEQS, SETS, DecodeError, DParser, DStep
 
 
 def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
@@ -81,7 +60,7 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
 
         return parser
 
-    elif origin in _MAPS:
+    elif origin in MAPS:
         kp, vp = (_new_parser(a, path=path, strict=strict) for a in args)
 
         def parser(x: Any) -> DStep:
@@ -103,7 +82,7 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
 
         return parser
 
-    elif origin in _SETS:
+    elif origin in SETS:
         p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
 
         def parser(x: Any) -> DStep:
@@ -121,7 +100,7 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
 
         return parser
 
-    elif origin in _SEQS:
+    elif origin in SEQS:
         p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
 
         def parser(x: Any) -> DStep:
