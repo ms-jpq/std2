@@ -20,7 +20,7 @@ from typing import (
 )
 
 from ..types import is_it
-from .coders2 import DEFAULT_DECODERS
+from .coders import DEFAULT_DECODERS
 from .types import MAPS, SEQS, SETS, DecodeError, Decoder, DParser, DStep
 
 

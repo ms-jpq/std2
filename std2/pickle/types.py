@@ -95,6 +95,17 @@ class DecodeError(_BaseError):
     ...
 
 
+EStep = Tuple[Literal[False, True], Union[EncodeError, Any]]
+EParser = Callable[[Any], EStep]
+
+
+class Encoder(Protocol):
+    def __call__(
+        self, tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]
+    ) -> Optional[EParser]:
+        ...
+
+
 DStep = Tuple[Literal[False, True], Union[DecodeError, Any]]
 DParser = Callable[[Any], DStep]
 
