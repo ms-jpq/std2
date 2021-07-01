@@ -20,6 +20,7 @@ from typing import (
 )
 
 from ..types import is_it
+from .coders2 import DEFAULT_DECODERS
 from .types import MAPS, SEQS, SETS, DecodeError, Decoder, DParser, DStep
 
 
@@ -268,7 +269,7 @@ def _new_parser(
 
 
 def new_decoder(
-    tp: Any, strict: bool = True, decoders: Sequence[Decoder] = ()
+    tp: Any, strict: bool = True, decoders: Sequence[Decoder] = DEFAULT_DECODERS
 ) -> Callable[[Any], Any]:
     p = _new_parser(tp, path=(), strict=strict, decoders=decoders)
 
