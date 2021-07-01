@@ -68,7 +68,7 @@ def _new_parser(
         return p
 
     elif origin in MAPS:
-        kp, vp = (
+        lp, rp = (
             _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
         )
 
@@ -78,10 +78,10 @@ def _new_parser(
             else:
                 acc = {}
                 for k, v in x.items():
-                    sl, l = kp(k)
+                    sl, l = lp(k)
                     if not sl:
                         return False, l
-                    sr, r = vp(v)
+                    sr, r = rp(v)
                     if not sr:
                         return False, r
 
@@ -92,16 +92,15 @@ def _new_parser(
         return p
 
     elif origin in SETS:
-        p, *_ = (
-            _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
-        )
+        a, *_ = args
+        pp = _new_parser(a, path=path, strict=strict, decoders=decoders)
 
         def p(x: Any) -> DStep:
             if not is_it(x):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 acc = set()
-                for succ, m in map(p, x):
+                for succ, m in map(pp, x):
                     if succ:
                         acc.add(m)
                     else:
@@ -112,9 +111,8 @@ def _new_parser(
         return p
 
     elif origin in SEQS:
-        p, *_ = (
-            _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
-        )
+        a, *_ = args
+        pp = _new_parser(a, path=path, strict=strict, decoders=decoders)
 
         def p(x: Any) -> DStep:
             if not is_it(x):
@@ -133,11 +131,11 @@ def _new_parser(
 
     elif origin is tuple:
         if len(args) >= 2 and args[-1] is Ellipsis:
-            b_parsers = tuple(
+            bp = tuple(
                 _new_parser(a, path=path, strict=strict, decoders=decoders)
                 for a in args[:-1]
             )
-            e_parsers = repeat(
+            ep = repeat(
                 _new_parser(args[-2], path=path, strict=strict, decoders=decoders)
             )
 
@@ -147,7 +145,7 @@ def _new_parser(
                 else:
                     acc = []
                     for succ, y in (
-                        p(m) for p, m in zip(chain(b_parsers, e_parsers), x)
+                        p(m) for p, m in zip(chain(bp, ep), x)
                     ):
                         if succ:
                             acc.append(y)
