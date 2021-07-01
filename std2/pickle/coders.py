@@ -12,7 +12,21 @@ from pathlib import Path, PurePath
 from typing import Any, Optional, Sequence, Type
 from uuid import UUID
 
-from .types import DecodeError, Decoder, DParser, DStep
+from .types import DecodeError, Decoder, DParser, DStep, Encoder, EParser
+
+
+def _basic_encoder(
+    tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]
+) -> Optional[EParser]:
+    if isinstance(
+        tp, (UUID, PurePath, IPv6Network, IPv4Network, IPv6Address, IPv4Address)
+    ):
+        return lambda x: (True, str(x))
+    else:
+        return None
+
+
+DEFAULT_ENCODERS: Sequence[Encoder] = (_basic_encoder,)
 
 
 def _base_decoder(t: Type) -> Decoder:
@@ -22,13 +36,13 @@ def _base_decoder(t: Type) -> Decoder:
 
         if isinstance(tp, t):
 
-            def parser(x: Any) -> DStep:
+            def p(x: Any) -> DStep:
                 try:
                     return True, t(x)
                 except ValueError as e:
                     return False, DecodeError(e, path=(*path, tp), actual=x)
 
-            return parser
+            return p
         else:
             return None
 
@@ -46,5 +60,4 @@ DEFAULT_DECODERS = (
     _base_decoder(IPv6Address),
     _base_decoder(IPv4Address),
 )
-
 
