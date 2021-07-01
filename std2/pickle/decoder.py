@@ -30,6 +30,7 @@ def _new_parser(
 
     if tp is Any:
         return lambda x: (True, x)
+
     elif tp is None:
 
         def parser(x: Any) -> DStep:
@@ -39,6 +40,7 @@ def _new_parser(
                 return False, DecodeError(path=(*path, tp), actual=x)
 
         return parser
+
     elif origin is Literal:
         a = {*args}
 
@@ -238,6 +240,7 @@ def _new_parser(
                 return True, tp(**kwargs)
 
         return parser
+
     elif tp is float:
 
         def parser(x: Any) -> DStep:
@@ -247,8 +250,8 @@ def _new_parser(
                 return False, DecodeError(path=(*path, tp), actual=x)
 
         return parser
-    else:
 
+    else:
         for d in decoders:
             p = d(tp, path=path, strict=strict, decoders=decoders)
             if p:
