@@ -34,45 +34,45 @@ def _new_parser(
 
     elif tp is None:
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if x is None:
                 return True, None
             else:
                 return False, DecodeError(path=(*path, tp), actual=x)
 
-        return parser
+        return p
 
     elif origin is Literal:
         a = {*args}
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if x in a:
                 return True, x
             else:
                 return False, DecodeError(path=(*path, tp), actual=x)
 
-        return parser
+        return p
 
     elif origin is Union:
         ps = tuple(
             _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
         )
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             for succ, y in (p(x) for p in ps):
                 if succ:
                     return True, y
             else:
                 return False, DecodeError(path=(*path, tp), actual=x)
 
-        return parser
+        return p
 
     elif origin in MAPS:
         kp, vp = (
             _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
         )
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if not isinstance(x, Mapping):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
@@ -89,14 +89,14 @@ def _new_parser(
                 else:
                     return True, acc
 
-        return parser
+        return p
 
     elif origin in SETS:
         p, *_ = (
             _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
         )
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if not is_it(x):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
@@ -109,14 +109,14 @@ def _new_parser(
                 else:
                     return False, DecodeError(path=(*path, tp), actual=x)
 
-        return parser
+        return p
 
     elif origin in SEQS:
         p, *_ = (
             _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
         )
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if not is_it(x):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
@@ -129,7 +129,7 @@ def _new_parser(
                 else:
                     return True, acc
 
-        return parser
+        return p
 
     elif origin is tuple:
         if len(args) >= 2 and args[-1] is Ellipsis:
@@ -141,7 +141,7 @@ def _new_parser(
                 _new_parser(args[-2], path=path, strict=strict, decoders=decoders)
             )
 
-            def parser(x: Any) -> DStep:
+            def p(x: Any) -> DStep:
                 if not is_it(x):
                     return False, DecodeError(path=(*path, tp), actual=x)
                 else:
@@ -162,7 +162,7 @@ def _new_parser(
                 for a in args
             )
 
-            def parser(x: Any) -> DStep:
+            def p(x: Any) -> DStep:
                 if not is_it(x):
                     return False, DecodeError(path=(*path, tp), actual=x)
                 else:
@@ -175,14 +175,14 @@ def _new_parser(
                     else:
                         return True, acc
 
-        return parser
+        return p
 
     elif origin and args:
         raise ValueError(f"Unexpected type -- {tp}")
 
     elif isclass(tp) and issubclass(tp, Enum):
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if not isinstance(x, str):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
@@ -191,7 +191,7 @@ def _new_parser(
                 except KeyError:
                     return False, DecodeError(path=(*path, tp), actual=x)
 
-        return parser
+        return p
 
     elif is_dataclass(tp):
         hints = get_type_hints(tp, globalns=None, localns=None)
@@ -207,7 +207,7 @@ def _new_parser(
                 if req:
                     rq_fields.add(field.name)
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if not isinstance(x, Mapping):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
@@ -240,17 +240,17 @@ def _new_parser(
 
                 return True, tp(**kwargs)
 
-        return parser
+        return p
 
     elif tp is float:
 
-        def parser(x: Any) -> DStep:
+        def p(x: Any) -> DStep:
             if isinstance(x, SupportsFloat):
                 return True, x
             else:
                 return False, DecodeError(path=(*path, tp), actual=x)
 
-        return parser
+        return p
 
     else:
         for d in decoders:
@@ -259,13 +259,13 @@ def _new_parser(
                 return p
         else:
 
-            def parser(x: Any) -> DStep:
+            def p(x: Any) -> DStep:
                 if isinstance(x, tp):
                     return True, x
                 else:
                     return False, DecodeError(path=(*path, tp), actual=x)
 
-            return parser
+            return p
 
 
 def new_decoder(
