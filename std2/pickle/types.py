@@ -87,7 +87,7 @@ class _BaseError(Exception):
         return (linesep * 2).join((l0, l1, l2, l3, l4, l5))
 
 
-class EncodeError(_BaseError):
+class EncoderError(_BaseError):
     ...
 
 
@@ -95,7 +95,7 @@ class DecodeError(_BaseError):
     ...
 
 
-EStep = Tuple[Literal[False, True], Union[EncodeError, Any]]
+EStep = Tuple[Literal[False, True], Union[EncoderError, Any]]
 EParser = Callable[[Any], EStep]
 
 
