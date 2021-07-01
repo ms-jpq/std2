@@ -18,7 +18,7 @@ from typing import (
 
 from ..types import is_it
 from .coders import DEFAULT_ENCODERS
-from .types import MAPS, SEQS, SETS, Encoder, EncoderError, EParser, EStep
+from .types import MAPS, SEQS, SETS, Encoder, EncodeError, EParser, EStep
 
 
 def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EParser:
@@ -33,7 +33,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
             if x is None:
                 return True, None
             else:
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
 
         return p
 
@@ -44,7 +44,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
             if x in a:
                 return True, x
             else:
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
 
         return p
 
@@ -56,7 +56,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                 if succ:
                     return True, y
             else:
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
 
         return p
 
@@ -65,7 +65,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
         def p(x: Any) -> EStep:
             if not isinstance(x, Mapping):
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
             else:
                 acc = {}
                 for k, v in x.items():
@@ -88,7 +88,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
         def p(x: Any) -> EStep:
             if not is_it(x):
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
             else:
                 acc = {}
                 for succ, m in map(pp, x):
@@ -97,7 +97,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                     else:
                         return False, m
                 else:
-                    return False, EncoderError(path=(*path, tp), actual=x)
+                    return True, acc
 
         return p
 
@@ -107,7 +107,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
         def p(x: Any) -> EStep:
             if not is_it(x):
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
             else:
                 acc = []
                 for succ, m in map(pp, x):
@@ -127,7 +127,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
             def p(x: Any) -> EStep:
                 if not is_it(x):
-                    return False, EncoderError(path=(*path, tp), actual=x)
+                    return False, EncodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []
                     for succ, y in (p(m) for p, m in zip(chain(bp, ep), x)):
@@ -143,7 +143,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
             def p(x: Any) -> EStep:
                 if not is_it(x):
-                    return False, EncoderError(path=(*path, tp), actual=x)
+                    return False, EncodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []
                     for succ, y in (p(m) for p, m in zip(ps, x)):
@@ -163,7 +163,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
         def p(x: Any) -> EStep:
             if not isinstance(x, Enum):
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
             else:
                 return True, x.name
 
@@ -183,7 +183,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
 
         def p(x: Any) -> EStep:
             if not is_dataclass(x):
-                return False, EncoderError(path=(*path, tp), actual=x)
+                return False, EncodeError(path=(*path, tp), actual=x)
             else:
                 acc: MutableMapping[str, Any] = {}
                 for k, p in cls_fields.items():
@@ -194,7 +194,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                         else:
                             return False, v
                     elif req:
-                        return False, EncoderError(
+                        return False, EncodeError(
                             path=(*path, tp), actual=x, missing_keys=k
                         )
 
@@ -213,7 +213,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                 if isinstance(x, tp):
                     return True, x
                 else:
-                    return False, EncoderError(path=(*path, tp), actual=x)
+                    return False, EncodeError(path=(*path, tp), actual=x)
 
             return p
 

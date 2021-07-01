@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Interface
 from typing import (
+    AbstractSet,
     Any,
     ClassVar,
     Generic,
@@ -261,4 +262,9 @@ class Decode(TestCase):
         self.assertNotEqual(addr, inf)
         self.assertEqual(d_addr, addr)
         self.assertEqual(d_inf, inf)
+
+    def test_30(self) -> None:
+        p = new_decoder(AbstractSet[str])
+        thing = p(["1", "2"])
+        self.assertEqual(thing, {"1", "2"})
 

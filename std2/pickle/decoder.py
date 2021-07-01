@@ -106,7 +106,7 @@ def _new_parser(
                     else:
                         return False, m
                 else:
-                    return False, DecodeError(path=(*path, tp), actual=x)
+                    return True, acc
 
         return p
 

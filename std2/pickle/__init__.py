@@ -1,3 +1,3 @@
 from .decoder import new_decoder
 from .encoder import new_encoder
-from .types import DecodeError, EncoderError
+from .types import DecodeError, EncodeError
