@@ -29,7 +29,6 @@ from typing import (
     Set,
     SupportsFloat,
     Tuple,
-    TypeVar,
     Union,
     get_args,
     get_origin,
@@ -38,10 +37,6 @@ from typing import (
 
 from ..types import is_it
 from .decoder import DecodeError
-
-T = TypeVar("T")
-T_co = TypeVar("T_co", covariant=True)
-
 
 _MAPS_M = {MutableMapping, ABC_MutableMapping, Dict, dict}
 _MAPS = {Mapping, ABC_Mapping} | _MAPS_M

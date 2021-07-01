@@ -167,7 +167,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_parser(C)
+        p = new_parser(C, strict=False)
         thing: C = p({"a": 1, "b": [], "d": "d"})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
