@@ -214,7 +214,7 @@ class Decode(TestCase):
 
         p = new_decoder(Sequence[E])
         thing = p(("a", "b"))
-        self.assertEqual(thing, (E.a, E.b))
+        self.assertEqual(thing, [E.a, E.b])
 
     def test_24(self) -> None:
         p = new_decoder(Tuple[Literal[5], Literal[2]])
