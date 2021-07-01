@@ -17,6 +17,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Collection,
     Dict,
     FrozenSet,
     Iterator,
@@ -64,7 +65,7 @@ def _pprn(thingy: Any) -> str:
     if is_dataclass(thingy):
         fs = sorted(fields(thingy), key=lambda f: strxfrm(f.name))
         listed = ", ".join(map(_pprn, fs))
-        return f"key of: [ {listed} ]"
+        return f"key of: < {listed} >"
     elif isinstance(thingy, Field):
         return f"{thingy.name}: {thingy.type}"
     elif isclass(thingy) and issubclass(thingy, Enum):
@@ -81,8 +82,8 @@ class DecodeError(Exception):
         *args: Any,
         path: Sequence[Any],
         actual: Any,
-        missing_keys: Sequence[str] = (),
-        extra_keys: Sequence[str] = (),
+        missing_keys: Collection[str] = (),
+        extra_keys: Collection[str] = (),
     ) -> None:
         super().__init__(*args)
         self.path, self.actual = path, actual

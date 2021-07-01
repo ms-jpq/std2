@@ -156,7 +156,7 @@ class Decode(TestCase):
             c: bool = False
             z: ClassVar[bool] = True
 
-        p = new_parser(C)
+        p = new_parser(C, strict=False)
         thing: C = p({"a": 1, "b": []})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
@@ -171,17 +171,17 @@ class Decode(TestCase):
         thing: C = p({"a": 1, "b": [], "d": "d"})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
-    # def test_20(self) -> None:
-    #     @dataclass(frozen=True)
-    #     class C:
-    #         a: int
-    #         b: List[str]
-    #         c: bool = False
+    def test_20(self) -> None:
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: List[str]
+            c: bool = False
 
-    #     p = new_parser(C)
-    #     with self.assertRaises(DecodeError) as e:
-    #         decode(C, {"a": 1, "b": [], "d": "d"}, strict=True)
-    #     self.assertEqual(e.exception.extra_keys, ["d"])
+        p = new_parser(C, strict=True)
+        with self.assertRaises(DecodeError) as e:
+            p({"a": 1, "b": [], "d": "d"})
+        self.assertEqual(e.exception.extra_keys, {"d"})
 
     def test_21(self) -> None:
         @dataclass(frozen=True)
@@ -193,7 +193,7 @@ class Decode(TestCase):
         p = new_parser(C)
         with self.assertRaises(DecodeError) as e:
             p({"a": 1})
-        # self.assertEqual(e.exception.missing_keys, ["b"])
+        self.assertEqual(e.exception.missing_keys, {"b"})
 
     def test_22(self) -> None:
         uuid = uuid4()

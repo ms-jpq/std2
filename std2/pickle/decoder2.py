@@ -53,83 +53,102 @@ _SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
 _SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
 
-Step = Tuple[bool, Any]
+Step = Tuple[Literal[False, True], Union[DecodeError, Any]]
 Parser = Callable[[Any], Step]
 
+Parsers = Mapping[Callable[[Any], bool], Parser]
 
-def _new_parser(tp: Any) -> Parser:
+
+def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> Parser:
     origin, args = get_origin(tp), get_args(tp)
 
     if tp is Any:
         return lambda x: (True, x)
     elif tp is None:
-        return lambda x: (x is None, None)
-    elif origin is Literal:
-        a = frozenset(args)
-        return lambda x: (x in a, x)
-    elif origin is Union:
-        parsers = tuple(map(_new_parser, args))
 
         def parser(x: Any) -> Step:
-            for p in parsers:
-                succ, y = p(x)
+            if x is None:
+                return True, None
+            else:
+                return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
+    elif origin is Literal:
+        a = {*args}
+
+        def parser(x: Any) -> Step:
+            if x in a:
+                return True, x
+            else:
+                return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
+
+    elif origin is Union:
+        ps = tuple(_new_parser(a, path=path, strict=strict) for a in args)
+
+        def parser(x: Any) -> Step:
+            for succ, y in (p(x) for p in ps):
                 if succ:
                     return True, y
             else:
-                return False, None
+                return False, DecodeError(path=(*path, tp), actual=x)
 
         return parser
 
     elif origin in _MAPS:
-        kp, vp = map(_new_parser, args)
+        kp, vp = (_new_parser(a, path=path, strict=strict) for a in args)
 
         def parser(x: Any) -> Step:
             if not isinstance(x, Mapping):
-                return False, None
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 acc = {}
                 for k, v in x.items():
-                    (sl, l), (sr, r) = kp(k), vp(v)
-                    if sl and sr:
-                        acc[l] = r
-                    else:
-                        return False, None
+                    sl, l = kp(k)
+                    if not sl:
+                        return False, l
+                    sr, r = vp(v)
+                    if not sr:
+                        return False, r
+
+                    acc[l] = r
                 else:
                     return True, acc
 
         return parser
 
     elif origin in _SETS:
-        mp, *_ = map(_new_parser, args)
+        p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
 
         def parser(x: Any) -> Step:
             if not is_it(x):
-                return False, None
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 acc = set()
-                for succ, m in map(mp, x):
+                for succ, m in map(p, x):
                     if succ:
                         acc.add(m)
                     else:
-                        return False, None
+                        return False, m
                 else:
-                    return True, acc
+                    return False, DecodeError(path=(*path, tp), actual=x)
 
         return parser
 
     elif origin in _SEQS:
-        mp, *_ = map(_new_parser, args)
+        p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
 
         def parser(x: Any) -> Step:
             if not is_it(x):
-                return False, None
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 acc = []
-                for succ, m in map(mp, x):
+                for succ, m in map(p, x):
                     if succ:
                         acc.append(m)
                     else:
-                        return False, None
+                        return False, m
                 else:
                     return True, acc
 
@@ -137,12 +156,14 @@ def _new_parser(tp: Any) -> Parser:
 
     elif origin is tuple:
         if len(args) >= 2 and args[-1] is Ellipsis:
-            b_parsers = tuple(map(_new_parser, args[:-1]))
-            e_parsers = repeat(_new_parser(args[-1]))
+            b_parsers = tuple(
+                _new_parser(a, path=path, strict=strict) for a in args[:-1]
+            )
+            e_parsers = repeat(_new_parser(args[-2], path=path, strict=strict))
 
             def parser(x: Any) -> Step:
                 if not is_it(x):
-                    return False, None
+                    return False, DecodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []
                     for succ, y in (
@@ -151,23 +172,23 @@ def _new_parser(tp: Any) -> Parser:
                         if succ:
                             acc.append(y)
                         else:
-                            return False, None
+                            return False, y
                     else:
                         return True, acc
 
         else:
-            parsers = tuple(map(_new_parser, args))
+            ps = tuple(_new_parser(a, path=path, strict=strict) for a in args)
 
             def parser(x: Any) -> Step:
                 if not is_it(x):
-                    return False, None
+                    return False, DecodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []
-                    for succ, y in (p(m) for p, m in zip(parsers, x)):
+                    for succ, y in (p(m) for p, m in zip(ps, x)):
                         if succ:
                             acc.append(y)
                         else:
-                            return False, None
+                            return False, y
                     else:
                         return True, acc
 
@@ -180,57 +201,90 @@ def _new_parser(tp: Any) -> Parser:
 
         def parser(x: Any) -> Step:
             if not isinstance(x, str):
-                return False, None
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 try:
                     return True, tp[x]
                 except KeyError:
-                    return False, None
+                    return False, DecodeError(path=(*path, tp), actual=x)
 
         return parser
 
     elif is_dataclass(tp):
         hints = get_type_hints(tp, globalns=None, localns=None)
-        cls_fields: MutableMapping[str, Tuple[bool, Parser]] = {}
+        cls_fields: MutableMapping[str, Parser] = {}
+        rq_fields: MutableSet[str] = set()
         for field in fields(tp):
             if field.init:
+                p = _new_parser(hints[field.name], path=path, strict=strict)
                 req = field.default is MISSING and field.default_factory is MISSING  # type: ignore
-                cls_fields[field.name] = req, _new_parser(hints[field.name])
+                cls_fields[field.name] = p
+                if req:
+                    rq_fields.add(field.name)
 
         def parser(x: Any) -> Step:
             if not isinstance(x, Mapping):
-                return False, None
+                return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 kwargs: MutableMapping[str, Any] = {}
-                for k, (req, p) in cls_fields.items():
+                for k, p in cls_fields.items():
                     if k in x:
                         succ, v = p(x[k])
                         if succ:
                             kwargs[k] = v
                         else:
-                            return False, None
+                            return False, v
                     elif req:
-                        return False, None
+                        return False, DecodeError(
+                            path=(*path, tp), actual=x, missing_keys=k
+                        )
+
+                ks = kwargs.keys()
+                mk = rq_fields - ks
+                if mk:
+                    return False, DecodeError(
+                        path=(*path, tp), actual=x, missing_keys=mk
+                    )
+
+                if strict:
+                    ek = x.keys() - ks
+                    if ek:
+                        return False, DecodeError(
+                            path=(*path, tp), actual=x, extra_keys=ek
+                        )
 
                 return True, tp(**kwargs)
 
         return parser
     elif tp is float:
-        return lambda x: (True, x) if isinstance(x, SupportsFloat) else (False, None)
 
+        def parser(x: Any) -> Step:
+            if isinstance(x, SupportsFloat):
+                return True, x
+            else:
+                return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
     else:
-        return lambda x: (True, x) if isinstance(x, tp) else (False, None)
+
+        def parser(x: Any) -> Step:
+            if isinstance(x, tp):
+                return True, x
+            else:
+                return False, DecodeError(path=(*path, tp), actual=x)
+
+        return parser
 
 
-def new_parser(tp: Any) -> Callable[[Any], Any]:
-    p = _new_parser(tp)
+def new_parser(tp: Any, strict: bool = True) -> Callable[[Any], Any]:
+    p = _new_parser(tp, path=(), strict=strict)
 
     def parser(x: Any) -> Any:
         ok, thing = p(x)
         if ok:
             return thing
         else:
-            raise DecodeError(path="", actual="")
+            raise thing
 
     return parser
 
