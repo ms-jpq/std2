@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping as ABC_Mapping
 from collections.abc import MutableMapping as ABC_MutableMapping
 from collections.abc import MutableSequence as ABC_MutableSequence
@@ -23,8 +25,11 @@ from typing import (
     MutableMapping,
     MutableSequence,
     MutableSet,
+    Optional,
+    Protocol,
     Sequence,
     Set,
+    Tuple,
     Union,
 )
 
@@ -92,5 +97,11 @@ class DecodeError(_BaseError):
 
 DStep = Tuple[Literal[False, True], Union[DecodeError, Any]]
 DParser = Callable[[Any], DStep]
-DParsers = Mapping[Callable[[Any], bool], DParser]
+
+
+class Decoder(Protocol):
+    def __call__(
+        self, tp: Any, path: Sequence[Any], strict: bool, decoders: Sequence[Decoder]
+    ) -> Optional[DParser]:
+        ...
 

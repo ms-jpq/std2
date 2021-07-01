@@ -20,10 +20,12 @@ from typing import (
 )
 
 from ..types import is_it
-from .types import MAPS, SEQS, SETS, DecodeError, DParser, DStep
+from .types import MAPS, SEQS, SETS, DecodeError, Decoder, DParser, DStep
 
 
-def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
+def _new_parser(
+    tp: Any, path: Sequence[Any], strict: bool, decoders: Sequence[Decoder]
+) -> DParser:
     origin, args = get_origin(tp), get_args(tp)
 
     if tp is Any:
@@ -49,7 +51,9 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
         return parser
 
     elif origin is Union:
-        ps = tuple(_new_parser(a, path=path, strict=strict) for a in args)
+        ps = tuple(
+            _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
+        )
 
         def parser(x: Any) -> DStep:
             for succ, y in (p(x) for p in ps):
@@ -61,7 +65,9 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
         return parser
 
     elif origin in MAPS:
-        kp, vp = (_new_parser(a, path=path, strict=strict) for a in args)
+        kp, vp = (
+            _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
+        )
 
         def parser(x: Any) -> DStep:
             if not isinstance(x, Mapping):
@@ -83,7 +89,9 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
         return parser
 
     elif origin in SETS:
-        p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
+        p, *_ = (
+            _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
+        )
 
         def parser(x: Any) -> DStep:
             if not is_it(x):
@@ -101,7 +109,9 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
         return parser
 
     elif origin in SEQS:
-        p, *_ = (_new_parser(a, path=path, strict=strict) for a in args)
+        p, *_ = (
+            _new_parser(a, path=path, strict=strict, decoders=decoders) for a in args
+        )
 
         def parser(x: Any) -> DStep:
             if not is_it(x):
@@ -121,9 +131,12 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
     elif origin is tuple:
         if len(args) >= 2 and args[-1] is Ellipsis:
             b_parsers = tuple(
-                _new_parser(a, path=path, strict=strict) for a in args[:-1]
+                _new_parser(a, path=path, strict=strict, decoders=decoders)
+                for a in args[:-1]
             )
-            e_parsers = repeat(_new_parser(args[-2], path=path, strict=strict))
+            e_parsers = repeat(
+                _new_parser(args[-2], path=path, strict=strict, decoders=decoders)
+            )
 
             def parser(x: Any) -> DStep:
                 if not is_it(x):
@@ -141,7 +154,10 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
                         return True, acc
 
         else:
-            ps = tuple(_new_parser(a, path=path, strict=strict) for a in args)
+            ps = tuple(
+                _new_parser(a, path=path, strict=strict, decoders=decoders)
+                for a in args
+            )
 
             def parser(x: Any) -> DStep:
                 if not is_it(x):
@@ -180,7 +196,9 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
         rq_fields: MutableSet[str] = set()
         for field in fields(tp):
             if field.init:
-                p = _new_parser(hints[field.name], path=path, strict=strict)
+                p = _new_parser(
+                    hints[field.name], path=path, strict=strict, decoders=decoders
+                )
                 req = field.default is MISSING and field.default_factory is MISSING  # type: ignore
                 cls_fields[field.name] = p
                 if req:
@@ -231,17 +249,25 @@ def _new_parser(tp: Any, path: Sequence[Any], strict: bool) -> DParser:
         return parser
     else:
 
-        def parser(x: Any) -> DStep:
-            if isinstance(x, tp):
-                return True, x
-            else:
-                return False, DecodeError(path=(*path, tp), actual=x)
+        for d in decoders:
+            p = d(tp, path=path, strict=strict, decoders=decoders)
+            if p:
+                return p
+        else:
 
-        return parser
+            def parser(x: Any) -> DStep:
+                if isinstance(x, tp):
+                    return True, x
+                else:
+                    return False, DecodeError(path=(*path, tp), actual=x)
+
+            return parser
 
 
-def new_decoder(tp: Any, strict: bool = True) -> Callable[[Any], Any]:
-    p = _new_parser(tp, path=(), strict=strict)
+def new_decoder(
+    tp: Any, strict: bool = True, decoders: Sequence[Decoder] = ()
+) -> Callable[[Any], Any]:
+    p = _new_parser(tp, path=(), strict=strict, decoders=decoders)
 
     def parser(x: Any) -> Any:
         ok, thing = p(x)
