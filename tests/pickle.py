@@ -37,7 +37,7 @@ class Encode(TestCase):
 
         p = new_encoder(C)
         thing = p(C(a=1, b=["a", "b"], c={"a": 2}))
-        self.assertEqual(thing, {"a": 1, "b": ("a", "b"), "c": {"a": 2}})
+        self.assertEqual(thing, {"a": 1, "b": ["a", "b"], "c": {"a": 2}})
 
     def test_3(self) -> None:
         class C(Enum):
@@ -231,9 +231,8 @@ class Decode(TestCase):
         class C(Generic[T]):
             t: T
 
-        p = new_decoder(C[int])
-        with self.assertRaises(DecodeError):
-            p({"t": True})
+        with self.assertRaises(ValueError):
+            new_decoder(C[int])
 
     def test_27(self) -> None:
         p = new_decoder(float)

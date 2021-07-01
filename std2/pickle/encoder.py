@@ -110,7 +110,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                 return False, EncoderError(path=(*path, tp), actual=x)
             else:
                 acc = []
-                for succ, m in map(p, x):
+                for succ, m in map(pp, x):
                     if succ:
                         acc.append(m)
                     else:
