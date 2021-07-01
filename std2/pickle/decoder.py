@@ -119,7 +119,7 @@ def _new_parser(
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 acc = []
-                for succ, m in map(p, x):
+                for succ, m in map(pp, x):
                     if succ:
                         acc.append(m)
                     else:
