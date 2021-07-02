@@ -42,6 +42,8 @@ SETS = {AbstractSet, ABC_Set, FrozenSet, frozenset} | _SETS_M
 _SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
 SEQS = {Sequence, ABC_Sequence} | _SEQS_M
 
+PRIMITIVES = {bool, int, float, bytes, bytearray, str, type(None)}
+
 
 def _pprn(thingy: Any) -> str:
     if is_dataclass(thingy):

@@ -21,7 +21,7 @@ from typing import (
 
 from ..types import is_it
 from .coders import DEFAULT_DECODERS
-from .types import MAPS, SEQS, SETS, DecodeError, Decoder, DParser, DStep
+from .types import MAPS, PRIMITIVES, SEQS, SETS, DecodeError, Decoder, DParser, DStep
 
 
 def _new_parser(
@@ -46,7 +46,7 @@ def _new_parser(
         a = {*args}
 
         def p(x: Any) -> DStep:
-            if x in a:
+            if type(x) in PRIMITIVES and x in a:
                 return True, x
             else:
                 return False, DecodeError(path=(*path, tp), actual=x)

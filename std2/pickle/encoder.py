@@ -18,7 +18,7 @@ from typing import (
 
 from ..types import is_it
 from .coders import DEFAULT_ENCODERS
-from .types import MAPS, SEQS, SETS, Encoder, EncodeError, EParser, EStep
+from .types import MAPS, PRIMITIVES, SEQS, SETS, EncodeError, Encoder, EParser, EStep
 
 
 def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EParser:
@@ -41,7 +41,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
         a = {*args}
 
         def p(x: Any) -> EStep:
-            if x in a:
+            if type(x) in PRIMITIVES and x in a:
                 return True, x
             else:
                 return False, EncodeError(path=(*path, tp), actual=x)
