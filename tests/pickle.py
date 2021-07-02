@@ -63,6 +63,30 @@ class Encode(TestCase):
         self.assertEqual(a_addr, str(addr))
         self.assertEqual(inf_addr, str(inf))
 
+    def test_5(self) -> None:
+        @dataclass(frozen=True)
+        class C:
+            a: int
+            b: Sequence[str]
+            c: Mapping[str, int]
+
+        p = new_encoder(Sequence[C])
+        thing = p((C(a=1, b=["a", "b"], c={"a": 2}),) * 2)
+        self.assertEqual(thing, [{"a": 1, "b": ["a", "b"], "c": {"a": 2}}] * 2)
+
+    def test_6(self) -> None:
+        @dataclass(frozen=True)
+        class A:
+            c: int
+
+        @dataclass(frozen=True)
+        class C:
+            a: A
+
+        p = new_encoder(C)
+        thing = p(C(a=A(c=2)))
+        self.assertEqual(thing, {"a": {"c": 2}})
+
 
 class Decode(TestCase):
     def test_1(self) -> None:
