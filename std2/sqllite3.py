@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from enum import Enum
-from locale import strcoll
+from locale import strcoll, strxfrm
 from pathlib import Path, PurePath
 from sqlite3 import Cursor, register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
@@ -55,6 +55,7 @@ def _uuid() -> bytes:
 def add_functions(conn: Connection) -> None:
     conn.row_factory = Row
     conn.create_collation("X_COLLATION", strcoll)
+    conn.create_function("X_STRXFRM", narg=1, func=strxfrm, deterministic=True)
     conn.create_function("X_NORMALIZE", narg=1, func=_normalize, deterministic=True)
     conn.create_function("X_LOWER", narg=1, func=_lower, deterministic=True)
     conn.create_function("X_UUID", narg=0, func=_uuid, deterministic=True)
