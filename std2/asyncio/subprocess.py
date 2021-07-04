@@ -1,10 +1,10 @@
 from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
+from contextlib import suppress
 from dataclasses import dataclass
 from os import environ, getcwd
 from subprocess import CalledProcessError
 from typing import Mapping, Optional, Sequence, cast
 
-from contextlib import suppress
 from ..pathlib import AnyPath
 
 
