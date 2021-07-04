@@ -4,6 +4,7 @@ from os import environ, getcwd
 from subprocess import CalledProcessError
 from typing import Mapping, Optional, Sequence, cast
 
+from contextlib import suppress
 from ..pathlib import AnyPath
 
 
@@ -25,17 +26,16 @@ async def call(
     check_returncode: bool = False
 ) -> ProcReturn:
     p = str(prog)
-    proc = None
+    proc = await create_subprocess_exec(
+        p,
+        *args,
+        stdin=PIPE if stdin is not None else DEVNULL,
+        stdout=PIPE,
+        stderr=PIPE,
+        cwd=getcwd() if cwd is None else cwd,
+        env=environ if env is None else {**environ, **env},
+    )
     try:
-        proc = await create_subprocess_exec(
-            p,
-            *args,
-            stdin=PIPE if stdin is not None else DEVNULL,
-            stdout=PIPE,
-            stderr=PIPE,
-            cwd=getcwd() if cwd is None else cwd,
-            env=environ if env is None else {**environ, **env},
-        )
         stdout, stderr = await proc.communicate(stdin)
         code = cast(int, proc.returncode)
 
@@ -48,7 +48,7 @@ async def call(
                 prog=p, args=args, code=code, out=stdout, err=stderr.decode()
             )
     finally:
-        if proc and proc.returncode is not None:
+        with suppress(ProcessLookupError):
             proc.kill()
             await proc.wait()
 
