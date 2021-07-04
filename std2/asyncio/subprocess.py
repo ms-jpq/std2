@@ -25,22 +25,30 @@ async def call(
     check_returncode: bool = False
 ) -> ProcReturn:
     p = str(prog)
-    proc = await create_subprocess_exec(
-        p,
-        *args,
-        stdin=PIPE if stdin is not None else DEVNULL,
-        stdout=PIPE,
-        stderr=PIPE,
-        cwd=getcwd() if cwd is None else cwd,
-        env=environ if env is None else {**environ, **env},
-    )
-    stdout, stderr = await proc.communicate(stdin)
-    code = cast(int, proc.returncode)
-
-    if check_returncode and code:
-        raise CalledProcessError(
-            returncode=code, cmd=(p, *args), output=stdout, stderr=stderr.decode()
+    proc = None
+    try:
+        proc = await create_subprocess_exec(
+            p,
+            *args,
+            stdin=PIPE if stdin is not None else DEVNULL,
+            stdout=PIPE,
+            stderr=PIPE,
+            cwd=getcwd() if cwd is None else cwd,
+            env=environ if env is None else {**environ, **env},
         )
-    else:
-        return ProcReturn(prog=p, args=args, code=code, out=stdout, err=stderr.decode())
+        stdout, stderr = await proc.communicate(stdin)
+        code = cast(int, proc.returncode)
+
+        if check_returncode and code:
+            raise CalledProcessError(
+                returncode=code, cmd=(p, *args), output=stdout, stderr=stderr.decode()
+            )
+        else:
+            return ProcReturn(
+                prog=p, args=args, code=code, out=stdout, err=stderr.decode()
+            )
+    finally:
+        if proc and proc.returncode is not None:
+            proc.kill()
+            await proc.wait()
 
