@@ -253,14 +253,20 @@ def _new_parser(
             if dp:
                 return dp
         else:
+            try:
+                isinstance(None, tp)
+            except TypeError:
+                # Typed Dict
+                return lambda x: (True, x)
+            else:
 
-            def p(x: Any) -> DStep:
-                if isinstance(x, tp):
-                    return True, x
-                else:
-                    return False, DecodeError(path=(*path, tp), actual=x)
+                def p(x: Any) -> DStep:
+                    if isinstance(x, tp):
+                        return True, x
+                    else:
+                        return False, DecodeError(path=(*path, tp), actual=x)
 
-            return p
+                return p
 
 
 def new_decoder(
