@@ -208,14 +208,20 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
             if epp:
                 return epp
         else:
+            try:
+                isinstance(None, tp)
+            except TypeError:
+                # Typed Dict
+                return lambda x: (True, x)
+            else:
 
-            def p(x: Any) -> EStep:
-                if isinstance(x, tp):
-                    return True, x
-                else:
-                    return False, EncodeError(path=(*path, tp), actual=x)
+                def p(x: Any) -> EStep:
+                    if isinstance(x, tp):
+                        return True, x
+                    else:
+                        return False, EncodeError(path=(*path, tp), actual=x)
 
-            return p
+                return p
 
 
 def new_encoder(
