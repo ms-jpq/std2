@@ -53,11 +53,3 @@ def log_exc(log: Logger) -> Iterator[None]:
     except Exception as e:
         log.exception("%s", e)
 
-
-@asynccontextmanager
-async def log_aexc(log: Logger) -> AsyncIterator[None]:
-    try:
-        yield None
-    except Exception as e:
-        log.exception("%s", e)
-
