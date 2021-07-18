@@ -25,7 +25,7 @@ def si_prefixed_smol(size: float, precision: int = 3) -> str:
     steps = zip(map(partial(pow, 10), count(0, step=3)), units)
 
     magnitude = Decimal(abs(size))
-    if magnitude > 1:
+    if magnitude == 0 or magnitude > 1:
         return format_float(round(cast(Any, magnitude), precision))
     else:
         for factor, unit in reversed(tuple(steps)):
