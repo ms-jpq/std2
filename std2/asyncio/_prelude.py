@@ -10,10 +10,6 @@ _T2 = TypeVar("_T2", bound=Future)
 
 
 async def cancel(f: Future) -> None:
-    """
-    Cancel task AND wait for task to terminate
-    """
-
     f.cancel()
     while not f.done():
         await sleep(0)
