@@ -1,7 +1,17 @@
 from itertools import islice
-from typing import Iterable, Iterator, MutableSequence, Sequence, TypeVar
+from typing import (
+    Callable,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+    TypeVar,
+)
 
 T = TypeVar("T")
+K = TypeVar("K")
 
 
 def take(it: Iterable[T], n: int) -> Sequence[T]:
@@ -10,6 +20,16 @@ def take(it: Iterable[T], n: int) -> Sequence[T]:
 
 def chunk(it: Iterable[T], n: int) -> Iterator[Sequence[T]]:
     return iter(lambda: take(it, n), ())
+
+
+def group_by(it: Iterable[T], key: Callable[[T], K]) -> Mapping[K, Sequence[T]]:
+    coll: MutableMapping[K, MutableSequence[T]] = {}
+
+    for item in it:
+        acc = coll.setdefault(key(item), [])
+        acc.append(item)
+
+    return coll
 
 
 class deiter(Iterator[T]):
@@ -28,3 +48,4 @@ class deiter(Iterator[T]):
 
     def push_back(self, *item: T) -> None:
         self._s.extend(reversed(item))
+
