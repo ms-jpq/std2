@@ -1,5 +1,6 @@
 from itertools import islice
 from typing import (
+    Any,
     Callable,
     Iterable,
     Iterator,
@@ -7,6 +8,7 @@ from typing import (
     MutableMapping,
     MutableSequence,
     Sequence,
+    Tuple,
     TypeVar,
 )
 
@@ -21,6 +23,14 @@ def take(it: Iterable[T], n: int) -> Sequence[T]:
 
 def chunk(it: Iterable[T], n: int) -> Iterator[Sequence[T]]:
     return iter(lambda: take(it, n), ())
+
+
+def fst(t: Tuple[T, Any]) -> T:
+    return t[0]
+
+
+def snd(t: Tuple[Any, T]) -> T:
+    return t[1]
 
 
 def group_by(
