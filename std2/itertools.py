@@ -12,6 +12,7 @@ from typing import (
 
 T = TypeVar("T")
 K = TypeVar("K")
+V = TypeVar("V")
 
 
 def take(it: Iterable[T], n: int) -> Sequence[T]:
@@ -22,12 +23,14 @@ def chunk(it: Iterable[T], n: int) -> Iterator[Sequence[T]]:
     return iter(lambda: take(it, n), ())
 
 
-def group_by(it: Iterable[T], key: Callable[[T], K]) -> Mapping[K, Sequence[T]]:
-    coll: MutableMapping[K, MutableSequence[T]] = {}
+def group_by(
+    it: Iterable[T], key: Callable[[T], K], val: Callable[[T], V]
+) -> Mapping[K, Sequence[V]]:
+    coll: MutableMapping[K, MutableSequence[V]] = {}
 
     for item in it:
         acc = coll.setdefault(key(item), [])
-        acc.append(item)
+        acc.append(val(item))
 
     return coll
 
