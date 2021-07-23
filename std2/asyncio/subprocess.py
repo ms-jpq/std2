@@ -3,7 +3,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 from os import environ, getcwd
 from subprocess import CalledProcessError
-from typing import Mapping, Optional, Sequence, cast
+from typing import AbstractSet, Mapping, Optional, Sequence, cast
 
 from ..pathlib import AnyPath
 
@@ -23,7 +23,7 @@ async def call(
     stdin: Optional[bytes] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
-    check_returncode: bool = False
+    check_returncode: AbstractSet[int] = frozenset((0,))
 ) -> ProcReturn:
     p = str(prog)
     proc = await create_subprocess_exec(
@@ -39,7 +39,7 @@ async def call(
         stdout, stderr = await proc.communicate(stdin)
         code = cast(int, proc.returncode)
 
-        if check_returncode and code:
+        if check_returncode and code not in check_returncode:
             raise CalledProcessError(
                 returncode=code, cmd=(p, *args), output=stdout, stderr=stderr.decode()
             )
