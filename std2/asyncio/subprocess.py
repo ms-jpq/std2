@@ -50,5 +50,5 @@ async def call(
     finally:
         with suppress(ProcessLookupError):
             proc.kill()
-            await proc.wait()
+        await proc.wait()
 
