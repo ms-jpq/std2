@@ -1,4 +1,6 @@
 from itertools import islice
+from math import ceil
+from multiprocessing import cpu_count
 from typing import (
     Any,
     Callable,
@@ -12,6 +14,8 @@ from typing import (
     TypeVar,
 )
 
+_CPUS = cpu_count()
+
 T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
@@ -23,6 +27,11 @@ def take(it: Iterable[T], n: int) -> Sequence[T]:
 
 def chunk(it: Iterable[T], n: int) -> Iterator[Sequence[T]]:
     return iter(lambda: take(it, n), ())
+
+
+def chunk_into(seq: Sequence[T], chunks: int = _CPUS) -> Iterator[Sequence[T]]:
+    n = ceil(len(seq) / chunks)
+    yield from chunk(seq, n=n)
 
 
 def fst(t: Tuple[T, Any]) -> T:
