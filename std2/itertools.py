@@ -26,7 +26,8 @@ def take(it: Iterable[T], n: int) -> Sequence[T]:
 
 
 def chunk(it: Iterable[T], n: int) -> Iterator[Sequence[T]]:
-    return iter(lambda: take(it, n), ())
+    i = iter(it)
+    return iter(lambda: take(i, n), ())
 
 
 def chunk_into(seq: Sequence[T], chunks: int = _CPUS) -> Iterator[Sequence[T]]:

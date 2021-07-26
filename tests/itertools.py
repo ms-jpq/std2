@@ -1,7 +1,13 @@
-from ..std2.itertools import deiter
-
-
 from unittest import TestCase
+
+from ..std2.itertools import chunk_into, deiter
+
+
+class ChunkInto(TestCase):
+    def test_1(self) -> None:
+        t1 = (1, 2, 3, 4, 5)
+        t2 = tuple(chunk_into(t1, chunks=2))
+        self.assertEqual(t2, ((1, 2, 3), (4, 5)))
 
 
 class DoubleEndedIterator(TestCase):
@@ -24,3 +30,4 @@ class DoubleEndedIterator(TestCase):
         d1.push_back(1, 2)
         t2 = tuple(d1)
         self.assertEqual(t1, t2)
+
