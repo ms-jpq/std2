@@ -21,16 +21,12 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
-def take(it: Iterable[T], n: int) -> Sequence[T]:
-    return tuple(islice(it, n))
-
-
-def chunk(it: Iterable[T], n: int) -> Iterator[Sequence[T]]:
+def chunk(it: Iterable[T], n: int) -> Iterator[Iterator[T]]:
     i = iter(it)
-    return iter(lambda: take(i, n), ())
+    return iter(lambda: islice(i, n), ())
 
 
-def chunk_into(seq: Sequence[T], chunks: int = _CPUS) -> Iterator[Sequence[T]]:
+def chunk_into(seq: Sequence[T], chunks: int = _CPUS) -> Iterator[Iterator[T]]:
     n = ceil(len(seq) / chunks)
     yield from chunk(seq, n=n)
 
