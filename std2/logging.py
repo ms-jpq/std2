@@ -1,12 +1,4 @@
-from logging import (
-    CRITICAL,
-    DEBUG,
-    ERROR,
-    INFO,
-    NOTSET,
-    WARNING,
-    getLevelName,
-)
+from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING, getLevelName
 from typing import Iterator, Mapping, Tuple
 
 _LEVELS = (CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING)
@@ -23,3 +15,4 @@ def _gen_lvls() -> Mapping[str, int]:
 
 
 LOG_LEVELS = _gen_lvls()
+
