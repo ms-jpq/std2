@@ -9,6 +9,10 @@ T = TypeVar("T")
 _T2 = TypeVar("_T2", bound=Future)
 
 
+async def pure(x: T) -> T:
+    return x
+
+
 async def cancel(f: Future) -> None:
     f.cancel()
     while not f.done():
