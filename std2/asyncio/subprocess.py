@@ -19,7 +19,7 @@ class ProcReturn:
 
 async def call(
     prog: AnyPath,
-    *args: str,
+    *args: AnyPath,
     stdin: Optional[bytes] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
