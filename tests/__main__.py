@@ -32,5 +32,6 @@ def main() -> None:
     runner.run(suite)
 
 
-main()
+if __name__ == "__main__":
+    main()
 
