@@ -1,7 +1,6 @@
-from asyncio import CancelledError, get_running_loop, sleep
+from asyncio import get_running_loop, sleep
 from asyncio.futures import Future
 from asyncio.tasks import FIRST_EXCEPTION, wait
-from contextlib import suppress
 from functools import partial
 from typing import AbstractSet, Any, Callable, MutableSet, Tuple, TypeVar, cast
 
@@ -17,8 +16,6 @@ async def cancel(f: Future) -> None:
     f.cancel()
     while not f.done():
         await sleep(0)
-    with suppress(CancelledError):
-        await f
 
 
 async def race(aw: _T2, *aws: _T2) -> Tuple[_T2, AbstractSet[_T2], AbstractSet[_T2]]:
