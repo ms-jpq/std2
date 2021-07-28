@@ -237,4 +237,3 @@ def new_encoder(
             raise thing
 
     return parser
-

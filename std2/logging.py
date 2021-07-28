@@ -15,4 +15,3 @@ def _gen_lvls() -> Mapping[str, int]:
 
 
 LOG_LEVELS = _gen_lvls()
-

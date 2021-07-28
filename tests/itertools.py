@@ -30,4 +30,3 @@ class DoubleEndedIterator(TestCase):
         d1.push_back(1, 2)
         t2 = tuple(d1)
         self.assertEqual(t1, t2)
-

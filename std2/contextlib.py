@@ -52,4 +52,3 @@ def log_exc(log: Logger) -> Iterator[None]:
         yield None
     except Exception as e:
         log.exception("%s", e)
-

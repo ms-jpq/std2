@@ -68,4 +68,3 @@ def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
                 yield c
 
     return "".join(cont())
-

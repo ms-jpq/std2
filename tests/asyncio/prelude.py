@@ -12,4 +12,4 @@ class Race(IsolatedAsyncioTestCase):
             sleeps = islice(iter(lambda: sleep(0, i), None), i)
             ready, done, pending = await race(*sleeps)
             self.assertEqual(ready.result(), i)
-            self.assertEqual(len(done) + len(pending) , i - 1)
+            self.assertEqual(len(done) + len(pending), i - 1)

@@ -70,4 +70,3 @@ def add_conversion() -> None:
     register_adapter(PurePath, str)
     register_converter(PurePath.__qualname__, lambda b: PurePath(b.decode()))
     register_converter(Path.__qualname__, lambda b: Path(b.decode()))
-

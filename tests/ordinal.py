@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-
 from ..std2.ordinal import clamp
 
 

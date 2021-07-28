@@ -282,4 +282,3 @@ def new_decoder(
             raise thing
 
     return parser
-

@@ -49,4 +49,3 @@ def merge(ds1: Any, *dss: Any, replace: bool = False) -> Any:
     for ds2 in dss:
         res = _merge(res, ds2, replace=replace)
     return res
-

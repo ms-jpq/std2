@@ -37,4 +37,3 @@ def si_prefixed_smol(size: float, precision: int = 3) -> str:
                 return f"{fmt}{unit}"
         else:
             assert False
-

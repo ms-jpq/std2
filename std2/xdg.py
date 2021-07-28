@@ -20,4 +20,3 @@ def config_home() -> Path:
 
 def data_home() -> Path:
     return _xdg_path("XDG_DATA_HOME", ".local", "share")
-

@@ -82,4 +82,3 @@ DEFAULT_DECODERS = (
     _base_decoder(IPv6Address),
     _base_decoder(IPv4Address),
 )
-

@@ -8,4 +8,3 @@ _OPENER = build_opener()
 def urlopen(req: Union[Request, str], timeout: Optional[float] = None) -> HTTPResponse:
     resp = _OPENER.open(req, timeout=timeout)
     return cast(HTTPResponse, resp)
-

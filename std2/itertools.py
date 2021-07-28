@@ -67,4 +67,3 @@ class deiter(Iterator[T]):
 
     def push_back(self, *item: T) -> None:
         self._s.extend(reversed(item))
-

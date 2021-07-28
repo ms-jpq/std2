@@ -117,4 +117,3 @@ class Decoder(Protocol):
         self, tp: Any, path: Sequence[Any], strict: bool, decoders: Sequence[Decoder]
     ) -> Optional[DParser]:
         ...
-

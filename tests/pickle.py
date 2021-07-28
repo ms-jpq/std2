@@ -302,4 +302,3 @@ class Decode(TestCase):
         p = new_decoder(Optional[PurePath])
         thing = p(".")
         self.assertEqual(thing, PurePath())
-
