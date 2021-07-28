@@ -10,8 +10,8 @@ from ..pathlib import AnyPath
 
 @dataclass(frozen=True)
 class ProcReturn:
-    prog: str
-    args: Sequence[str]
+    prog: AnyPath
+    args: Sequence[AnyPath]
     code: int
     out: bytes
     err: str
@@ -25,9 +25,8 @@ async def call(
     env: Optional[Mapping[str, str]] = None,
     check_returncode: AbstractSet[int] = frozenset((0,))
 ) -> ProcReturn:
-    p = str(prog)
     proc = await create_subprocess_exec(
-        p,
+        prog,
         *args,
         stdin=PIPE if stdin is not None else DEVNULL,
         stdout=PIPE,
@@ -41,13 +40,17 @@ async def call(
 
         if check_returncode and code not in check_returncode:
             raise CalledProcessError(
-                returncode=code, cmd=(p, *args), output=stdout, stderr=stderr.decode()
+                returncode=code,
+                cmd=(prog, *args),
+                output=stdout,
+                stderr=stderr.decode(),
             )
         else:
             return ProcReturn(
-                prog=p, args=args, code=code, out=stdout, err=stderr.decode()
+                prog=prog, args=args, code=code, out=stdout, err=stderr.decode()
             )
     finally:
         with suppress(ProcessLookupError):
             proc.kill()
         await proc.wait()
+
