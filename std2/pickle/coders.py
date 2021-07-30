@@ -116,7 +116,7 @@ def unix_date_decoder(
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 try:
-                    return True, datetime.fromtimestamp(x, tz=timezone.utc)
+                    return True, datetime.fromtimestamp(float(x), tz=timezone.utc)
                 except ValueError as e:
                     return False, DecodeError(e, path=(*path, tp), actual=x)
 
