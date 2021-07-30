@@ -1,4 +1,5 @@
-from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING, getLevelName
+from contextlib import contextmanager
+from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING, Logger, getLevelName
 from os import linesep
 from shutil import get_terminal_size
 from typing import Any, Iterator, Mapping, Tuple
@@ -17,6 +18,22 @@ def _gen_lvls() -> Mapping[str, int]:
 
 
 LOG_LEVELS = _gen_lvls()
+
+
+@contextmanager
+def with_tracking(log: Logger, suppress: bool = False) -> Iterator[None]:
+    """
+    Log and throw
+
+    Because python sometimes have silent exceptions
+    """
+
+    try:
+        yield None
+    except Exception as e:
+        log.exception("%s", e)
+        if not suppress:
+            raise
 
 
 def big_print(thing: Any, sep: str = "-") -> str:
