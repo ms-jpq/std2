@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Interface
 from pathlib import PurePath
@@ -20,6 +21,14 @@ from unittest import TestCase
 from uuid import UUID, uuid4
 
 from ..std2.pickle import DecodeError, new_decoder, new_encoder
+from ..std2.pickle.coders import (
+    internet_date_decoder,
+    internet_date_encoder,
+    iso_date_decoder,
+    iso_date_encoder,
+    unix_date_decoder,
+    unix_date_encoder,
+)
 
 T = TypeVar("T")
 
@@ -274,7 +283,9 @@ class Decode(TestCase):
         with self.assertRaises(DecodeError):
             p(("name", "b"))
 
-    def test_29(self) -> None:
+
+class Coders(TestCase):
+    def test_1(self) -> None:
         addr = IPv4Address("1.1.1.1")
         inf = IPv4Interface("1.1.1.1/24")
 
@@ -288,17 +299,46 @@ class Decode(TestCase):
         self.assertEqual(d_addr, addr)
         self.assertEqual(d_inf, inf)
 
-    def test_30(self) -> None:
+    def test_2(self) -> None:
         p = new_decoder(AbstractSet[str])
         thing = p(["1", "2"])
         self.assertEqual(thing, {"1", "2"})
 
-    def test_31(self) -> None:
+    def test_3(self) -> None:
         p = new_decoder(Optional[PurePath])
         thing = p(None)
         self.assertEqual(thing, None)
 
-    def test_32(self) -> None:
+    def test_4(self) -> None:
         p = new_decoder(Optional[PurePath])
         thing = p(".")
         self.assertEqual(thing, PurePath())
+
+    def test_5(self) -> None:
+        p = new_decoder(datetime, decoders=(unix_date_decoder,))
+        thing = p(0)
+        self.assertEqual(thing, datetime.fromtimestamp(0, tz=timezone.utc))
+
+    def test_6(self) -> None:
+        p1 = new_encoder(datetime, encoders=(unix_date_encoder,))
+        p2 = new_decoder(datetime, decoders=(unix_date_decoder,))
+        t0 = datetime.fromtimestamp(0)
+        t1 = p1(t0)
+        t2 = p2(t1)
+        self.assertEqual(t2, t0.replace(tzinfo=timezone.utc))
+
+    def test_7(self) -> None:
+        p1 = new_encoder(datetime, encoders=(iso_date_encoder,))
+        p2 = new_decoder(datetime, decoders=(iso_date_decoder,))
+        t0 = datetime.fromtimestamp(0)
+        t1 = p1(t0)
+        t2 = p2(t1)
+        self.assertEqual(t2, t0.replace(tzinfo=timezone.utc))
+
+    def test_8(self) -> None:
+        p1 = new_encoder(datetime, encoders=(internet_date_encoder,))
+        p2 = new_decoder(datetime, decoders=(internet_date_decoder,))
+        t0 = datetime.fromtimestamp(0)
+        t1 = p1(t0)
+        t2 = p2(t1)
+        self.assertEqual(t2, t0.replace(tzinfo=timezone.utc))
