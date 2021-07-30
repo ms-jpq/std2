@@ -11,7 +11,7 @@ def _gen_lvls() -> Mapping[str, int]:
         for lv in _LEVELS:
             name: str = getLevelName(lv)
             yield name, lv
-            yield name.lower(), lv
+            yield name.casefold(), lv
 
     return {k: v for k, v in cont()}
 
