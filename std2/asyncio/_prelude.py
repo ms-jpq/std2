@@ -1,8 +1,20 @@
-from asyncio import get_running_loop, sleep
+from asyncio import create_task, get_running_loop, sleep
 from asyncio.futures import Future
 from asyncio.tasks import FIRST_COMPLETED, wait
 from functools import partial
-from typing import AbstractSet, Any, Callable, MutableSet, Tuple, TypeVar, cast
+from logging import Logger
+from typing import (
+    AbstractSet,
+    Any,
+    Awaitable,
+    Callable,
+    MutableSet,
+    Tuple,
+    TypeVar,
+    cast,
+)
+
+from ..logging import with_tracking
 
 T = TypeVar("T")
 _T2 = TypeVar("_T2", bound=Future)
@@ -10,6 +22,14 @@ _T2 = TypeVar("_T2", bound=Future)
 
 async def pure(x: T) -> T:
     return x
+
+
+async def go(log: Logger, aw: Awaitable[T], suppress: bool = False) -> Awaitable[T]:
+    async def wrapped() -> T:
+        with with_tracking(log, suppress=suppress):
+            return await aw
+
+    return create_task(wrapped())
 
 
 async def cancel(f: Future) -> None:
