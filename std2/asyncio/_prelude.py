@@ -24,7 +24,7 @@ async def pure(x: T) -> T:
     return x
 
 
-async def go(log: Logger, aw: Awaitable[T], suppress: bool = False) -> Awaitable[T]:
+def go(log: Logger, aw: Awaitable[T], suppress: bool = False) -> Awaitable[T]:
     async def wrapped() -> T:
         with with_tracking(log, suppress=suppress):
             return await aw
