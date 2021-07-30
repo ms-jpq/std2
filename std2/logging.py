@@ -22,12 +22,6 @@ LOG_LEVELS = _gen_lvls()
 
 @contextmanager
 def with_tracking(log: Logger, suppress: bool = False) -> Iterator[None]:
-    """
-    Log and throw
-
-    Because python sometimes have silent exceptions
-    """
-
     try:
         yield None
     except Exception as e:
