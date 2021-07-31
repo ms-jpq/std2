@@ -1,7 +1,7 @@
 from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
 from contextlib import suppress
 from dataclasses import dataclass
-from os import environ, getcwd
+from os import environ
 from subprocess import CalledProcessError
 from typing import AbstractSet, Mapping, Optional, Sequence, cast
 
@@ -33,8 +33,8 @@ async def call(
         stdin=PIPE if stdin is not None else DEVNULL,
         stdout=PIPE if capture_stdout else None,
         stderr=PIPE if capture_stderr else None,
-        cwd=getcwd() if cwd is None else cwd,
-        env=environ if env is None else {**environ, **env},
+        cwd=None if cwd is None else cwd,
+        env=None if env is None else {**environ, **env},
     )
     try:
         stdout, stderr = await proc.communicate(stdin)
