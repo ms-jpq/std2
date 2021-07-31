@@ -20,6 +20,8 @@ class ProcReturn:
 async def call(
     prog: AnyPath,
     *args: AnyPath,
+    capture_stdout: bool = True,
+    capture_stderr: bool = True,
     stdin: Optional[bytes] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
@@ -29,8 +31,8 @@ async def call(
         prog,
         *args,
         stdin=PIPE if stdin is not None else DEVNULL,
-        stdout=PIPE,
-        stderr=PIPE,
+        stdout=PIPE if capture_stdout else None,
+        stderr=PIPE if capture_stderr else None,
         cwd=getcwd() if cwd is None else cwd,
         env=environ if env is None else {**environ, **env},
     )
@@ -42,15 +44,18 @@ async def call(
             raise CalledProcessError(
                 returncode=code,
                 cmd=(prog, *args),
-                output=stdout,
-                stderr=stderr.decode(),
+                output=stdout if capture_stdout else None,
+                stderr=stderr.decode() if capture_stderr else None,
             )
         else:
             return ProcReturn(
-                prog=prog, args=args, code=code, out=stdout, err=stderr.decode()
+                prog=prog,
+                args=args,
+                code=code,
+                out=stdout if capture_stdout else b"",
+                err=stderr.decode() if capture_stderr else "",
             )
     finally:
         with suppress(ProcessLookupError):
             proc.kill()
         await proc.wait()
-
