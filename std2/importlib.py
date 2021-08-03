@@ -12,7 +12,7 @@ def _gen_mod_name(top_levels: AbstractSet[AnyPath], path: AnyPath) -> str:
     pp = PurePath(path)
     stem = pp.parent / pp.stem
 
-    for top_level in map(PurePath, top_levels):
+    for top_level in top_levels:
         if pp == top_level:
             raise ValueError()
         else:
