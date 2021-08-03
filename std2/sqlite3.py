@@ -35,20 +35,14 @@ def with_transaction(cursor: Cursor) -> Iterator[None]:
 
 
 def _normalize(text: Optional[str]) -> Optional[str]:
-    if text is None:
-        return None
-    else:
-        return normalize("NFC", text)
+    return None if text is None else normalize("NFC", text)
 
 
 def _lower(text: Optional[str]) -> Optional[str]:
-    if text is None:
-        return None
-    else:
-        return text.casefold()
+    return None if text is None else text.casefold()
 
 
-def _uuid() -> bytes:
+def _uuid_bytes() -> bytes:
     return uuid4().bytes
 
 
@@ -58,7 +52,7 @@ def add_functions(conn: Connection) -> None:
     conn.create_function("X_STRXFRM", narg=1, func=strxfrm, deterministic=True)
     conn.create_function("X_NORMALIZE", narg=1, func=_normalize, deterministic=True)
     conn.create_function("X_LOWER", narg=1, func=_lower, deterministic=True)
-    conn.create_function("X_UUID", narg=0, func=_uuid, deterministic=True)
+    conn.create_function("X_UUID_B", narg=0, func=_uuid_bytes, deterministic=False)
 
 
 def add_conversion() -> None:

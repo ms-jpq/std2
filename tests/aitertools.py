@@ -1,7 +1,8 @@
 from typing import AsyncIterator
 from unittest import IsolatedAsyncioTestCase
 
-from ..std2.aitertools import aenumerate, anext, atake, to_async
+from ..std2 import anext
+from ..std2.aitertools import aenumerate, atake, to_async
 from ._consts import MODICUM_REP_FACTOR, SMOL_REP_FACTOR
 
 

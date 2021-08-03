@@ -7,17 +7,17 @@ class ParseError(Exception):
     ...
 
 
-def escape(stream: Iterable[T], replace: bool, escape: Mapping[T, T]) -> Iterable[T]:
-    for unit in stream:
+def escape(tokens: Iterable[T], replace: bool, escape: Mapping[T, T]) -> Iterable[T]:
+    for unit in tokens:
         if unit in escape:
             yield escape[unit]
         elif not replace:
             yield unit
 
 
-def split(text: str, sep: str = ",", esc: str = "\\") -> Iterator[str]:
+def split(tokens: Iterable[str], sep: str, esc: str) -> Iterator[str]:
     acc: MutableSequence[str] = []
-    it = iter(text)
+    it = iter(tokens)
 
     for c in it:
         if c == esc:
@@ -37,9 +37,9 @@ def split(text: str, sep: str = ",", esc: str = "\\") -> Iterator[str]:
         yield "".join(acc)
 
 
-def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
+def envsubst(tokens: Iterable[str], env: Mapping[str, str]) -> str:
     def cont() -> Iterator[str]:
-        it = iter(text)
+        it = iter(tokens)
         for c in it:
             if c == "$":
                 nc = next(it, "")
@@ -60,10 +60,10 @@ def envsubst(text: Iterable[str], env: Mapping[str, str]) -> str:
                             chars.append(c)
                     else:
                         msg = "Unexpected EOF after ${"
-                        raise ParseError(msg, text)
+                        raise ParseError(msg, tokens)
                 else:
                     msg = f"Unexpected char: {c} after $, expected $, {{"
-                    raise ParseError(msg, text)
+                    raise ParseError(msg, tokens)
             else:
                 yield c
 

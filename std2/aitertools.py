@@ -1,34 +1,9 @@
 from itertools import count
-from typing import (
-    AsyncIterable,
-    AsyncIterator,
-    Awaitable,
-    Iterable,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import AsyncIterable, AsyncIterator, Awaitable, Iterable, Tuple, TypeVar
 
-from .types import Void, VoidType
+from ._prelude import aiter
 
 T = TypeVar("T")
-U = TypeVar("U")
-
-
-def aiter(ait: AsyncIterable[T]) -> AsyncIterator[T]:
-    return ait.__aiter__()
-
-
-async def anext(
-    ait: AsyncIterator[T], default: Union[U, VoidType] = Void
-) -> Union[T, U]:
-    if isinstance(default, VoidType):
-        return await ait.__anext__()
-    else:
-        try:
-            return await ait.__anext__()
-        except StopAsyncIteration:
-            return default
 
 
 async def to_async(it: Iterable[T]) -> AsyncIterator[T]:

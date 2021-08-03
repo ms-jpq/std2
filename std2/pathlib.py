@@ -24,7 +24,12 @@ def is_relative_to(origin: AnyPath, *other: AnyPath) -> bool:
 
 
 def longest_common_path(p1: AnyPath, p2: AnyPath) -> Optional[PurePath]:
-    parts = tuple(
-        lhs for lhs, rhs in zip(PurePath(p1).parts, PurePath(p2).parts) if lhs == rhs
-    )
+    def cont() -> Iterator[str]:
+        for lhs, rhs in zip(PurePath(p1).parts, PurePath(p2).parts):
+            if lhs == rhs:
+                yield lhs
+            else:
+                break
+
+    parts = tuple(cont())
     return PurePath(*parts) if parts else None

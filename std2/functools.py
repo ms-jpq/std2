@@ -23,13 +23,13 @@ def once(f: F) -> F:
 
 
 def constantly(thing: T) -> AnyFun[T]:
-    def f(*args: Any, **kwargs: Any) -> T:
+    def f(*_: Any, **__: Any) -> T:
         return thing
 
     return f
 
 
-def identity(thing: T, *args: Any, **kwargs: Any) -> T:
+def identity(thing: T, *_: Any, **__: Any) -> T:
     return thing
 
 

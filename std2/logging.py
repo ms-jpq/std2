@@ -21,7 +21,7 @@ LOG_LEVELS = _gen_lvls()
 
 
 @contextmanager
-def with_tracking(log: Logger, suppress: bool = False) -> Iterator[None]:
+def log_exc(log: Logger, suppress: bool = False) -> Iterator[None]:
     try:
         yield None
     except Exception as e:

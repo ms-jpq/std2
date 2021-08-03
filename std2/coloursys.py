@@ -1,8 +1,7 @@
 from typing import Tuple
 
-_RGB_MIN = 0
 _RGB_MAX = 255
-_RGB_RANGE = range(_RGB_MIN, _RGB_MAX + 1)
+_RGB_RANGE = range(0, _RGB_MAX + 1)
 
 
 def rgb_to_hex(r: int, g: int, b: int) -> str:
