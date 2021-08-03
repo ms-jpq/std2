@@ -1,6 +1,6 @@
 from abc import abstractmethod
-from collections.abc import ByteString, Container
-from typing import Any, Callable, Final, NoReturn, Protocol, TypeVar, Union
+from collections.abc import ByteString
+from typing import Any, Callable, Final, Iterable, NoReturn, Protocol, TypeVar, Union
 
 _T = TypeVar("_T")
 _T_co = TypeVar("_T_co", covariant=True)
@@ -30,7 +30,7 @@ def is_iterable(val: Any) -> bool:
     Excludes str, bytes, bytearray
     """
 
-    return isinstance(val, Container) and not isinstance(val, (str, ByteString))
+    return isinstance(val, Iterable) and not isinstance(val, (str, ByteString))
 
 
 class VoidType:
