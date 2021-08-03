@@ -3,7 +3,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 from os import environ
 from subprocess import CalledProcessError
-from typing import AbstractSet, Mapping, Optional, Sequence, cast
+from typing import AbstractSet, Mapping, Optional, Sequence
 
 from ..pathlib import AnyPath
 
@@ -38,7 +38,7 @@ async def call(
     )
     try:
         stdout, stderr = await proc.communicate(stdin)
-        code = cast(int, proc.returncode)
+        code = await proc.wait()
 
         if check_returncode and code not in check_returncode:
             raise CalledProcessError(
