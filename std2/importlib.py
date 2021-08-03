@@ -5,7 +5,7 @@ from os.path import normcase
 from pathlib import PurePath
 from sys import modules
 from types import ModuleType
-from typing import AbstractSet, cast
+from typing import AbstractSet
 
 
 def _gen_mod_name(
@@ -48,5 +48,6 @@ def module_from_path(
         else:
             mod = module_from_spec(spec)
             modules[mod.__name__] = mod
-            cast(Loader, spec.loader).exec_module(mod)
+            assert isinstance(spec.loader, Loader)
+            spec.loader.exec_module(mod)
             return mod
