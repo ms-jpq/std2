@@ -16,7 +16,7 @@ from typing import (
     get_type_hints,
 )
 
-from ..types import is_it
+from ..types import is_iterable
 from .coders import DEFAULT_ENCODERS
 from .types import MAPS, PRIMITIVES, SEQS, SETS, EncodeError, Encoder, EParser, EStep
 
@@ -87,7 +87,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
         pp = _new_parser(a, path=path, encoders=encoders)
 
         def p(x: Any) -> EStep:
-            if not is_it(x):
+            if not is_iterable(x):
                 return False, EncodeError(path=(*path, tp), actual=x)
             else:
                 acc = {}
@@ -106,7 +106,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
         pp = _new_parser(a, path=path, encoders=encoders)
 
         def p(x: Any) -> EStep:
-            if not is_it(x):
+            if not is_iterable(x):
                 return False, EncodeError(path=(*path, tp), actual=x)
             else:
                 acc = []
@@ -126,7 +126,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
             ep = repeat(_new_parser(args[-2], path=path, encoders=encoders))
 
             def p(x: Any) -> EStep:
-                if not is_it(x):
+                if not is_iterable(x):
                     return False, EncodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []
@@ -142,7 +142,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
             ps = tuple(_new_parser(a, path=path, encoders=encoders) for a in args)
 
             def p(x: Any) -> EStep:
-                if not is_it(x):
+                if not is_iterable(x):
                     return False, EncodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []

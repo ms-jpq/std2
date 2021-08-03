@@ -3,7 +3,7 @@ from itertools import chain
 from locale import strxfrm
 from typing import AbstractSet, Any, Callable, Mapping, Optional
 
-from .types import is_it
+from .types import is_iterable
 
 
 def _order(key: Any) -> Any:
@@ -23,7 +23,7 @@ def recur_sort(
             k: recur_sort(data[k], key=order, reverse=reverse)
             for k in sorted(data, key=order, reverse=reverse)
         }
-    elif is_it(data):
+    elif is_iterable(data):
         return tuple(recur_sort(el, key=order, reverse=reverse) for el in data)
     else:
         return data
@@ -35,7 +35,7 @@ def _merge(ds1: Any, ds2: Any, replace: bool) -> Any:
         return {**ds1, **append}
     elif isinstance(ds1, AbstractSet) and isinstance(ds2, AbstractSet):
         return frozenset(chain(ds1, ds2))
-    elif is_it(ds1) and is_it(ds2):
+    elif is_iterable(ds1) and is_iterable(ds2):
         if replace:
             return ds2
         else:
