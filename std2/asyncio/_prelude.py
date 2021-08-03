@@ -7,16 +7,16 @@ from typing import AbstractSet, Any, Awaitable, Callable, Tuple, TypeVar
 
 from ..logging import log_exc
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 _T2 = TypeVar("_T2", bound=Future)
 
 
-async def pure(x: T) -> T:
+async def pure(x: _T) -> _T:
     return x
 
 
-def go(log: Logger, aw: Awaitable[T], suppress: bool = False) -> Awaitable[T]:
-    async def wrapped() -> T:
+def go(log: Logger, aw: Awaitable[_T], suppress: bool = False) -> Awaitable[_T]:
+    async def wrapped() -> _T:
         with log_exc(log, suppress=suppress):
             return await aw
 
@@ -35,7 +35,7 @@ async def race(aw: _T2, *aws: _T2) -> Tuple[_T2, AbstractSet[_T2], AbstractSet[_
     return ret, done, pending
 
 
-async def run_in_executor(f: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+async def run_in_executor(f: Callable[..., _T], *args: Any, **kwargs: Any) -> _T:
     loop = get_running_loop()
     cont = partial(f, *args, **kwargs)
     return await loop.run_in_executor(None, cont)

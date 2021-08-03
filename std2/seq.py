@@ -1,7 +1,7 @@
 from typing import Sequence, TypeVar
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
-def maybe_indexed(seq: Sequence[T], at: int, default: T) -> T:
+def maybe_indexed(seq: Sequence[_T], at: int, default: _T) -> _T:
     return seq[at] if at < len(seq) else default

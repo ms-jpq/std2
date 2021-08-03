@@ -1,13 +1,15 @@
 from typing import Iterable, Iterator, Mapping, MutableSequence, TypeVar
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 class ParseError(Exception):
     ...
 
 
-def escape(tokens: Iterable[T], replace: bool, escape: Mapping[T, T]) -> Iterable[T]:
+def escape(
+    tokens: Iterable[_T], replace: bool, escape: Mapping[_T, _T]
+) -> Iterable[_T]:
     for unit in tokens:
         if unit in escape:
             yield escape[unit]

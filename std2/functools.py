@@ -2,12 +2,12 @@ from typing import Any, Callable, TypeVar, cast
 
 from .types import AnyFun
 
-T = TypeVar("T")
-U = TypeVar("U")
-F = TypeVar("F", bound=Callable)
+_T = TypeVar("_T")
+_U = TypeVar("_U")
+_F = TypeVar("_F", bound=Callable)
 
 
-def once(f: F) -> F:
+def once(f: _F) -> _F:
     done, ret = False, None
 
     def wrapped(*args: Any, **kwargs: Any) -> Any:
@@ -19,19 +19,19 @@ def once(f: F) -> F:
             done = True
             return ret
 
-    return cast(F, wrapped)
+    return cast(_F, wrapped)
 
 
-def constantly(thing: T) -> AnyFun[T]:
-    def f(*_: Any, **__: Any) -> T:
+def constantly(thing: _T) -> AnyFun[_T]:
+    def f(*_: Any, **__: Any) -> _T:
         return thing
 
     return f
 
 
-def identity(thing: T, *_: Any, **__: Any) -> T:
+def identity(thing: _T, *_: Any, **__: Any) -> _T:
     return thing
 
 
-async def apure(item: T, apply: Callable[[T], U]) -> U:
+async def apure(item: _T, apply: Callable[[_T], _U]) -> _U:
     return apply(item)

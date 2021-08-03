@@ -2,14 +2,14 @@ from typing import AsyncIterable, AsyncIterator, TypeVar, Union
 
 from .types import Void, VoidType
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
-def aiter(ait: AsyncIterable[T]) -> AsyncIterator[T]:
+def aiter(ait: AsyncIterable[_T]) -> AsyncIterator[_T]:
     return ait.__aiter__()
 
 
-async def anext(ait: AsyncIterator[T], default: Union[T, VoidType] = Void) -> T:
+async def anext(ait: AsyncIterator[_T], default: Union[_T, VoidType] = Void) -> _T:
     if isinstance(default, VoidType):
         return await ait.__anext__()
     else:

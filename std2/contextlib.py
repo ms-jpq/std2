@@ -2,7 +2,7 @@ from abc import abstractmethod
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Protocol, TypeVar
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 class Closable(Protocol):
@@ -29,5 +29,5 @@ async def aclosing(thing: _T2) -> AsyncIterator[_T2]:
 
 
 @asynccontextmanager
-async def nullacontext(enter_result: T) -> AsyncIterator[T]:
+async def nullacontext(enter_result: _T) -> AsyncIterator[_T]:
     yield enter_result

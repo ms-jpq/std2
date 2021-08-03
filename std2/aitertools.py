@@ -3,28 +3,28 @@ from typing import AsyncIterable, AsyncIterator, Awaitable, Iterable, Tuple, Typ
 
 from ._prelude import aiter
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
-async def to_async(it: Iterable[T]) -> AsyncIterator[T]:
+async def to_async(it: Iterable[_T]) -> AsyncIterator[_T]:
     for item in it:
         yield item
 
 
-async def aiterify(aws: Iterable[Awaitable[T]]) -> AsyncIterator[T]:
+async def aiterify(aws: Iterable[Awaitable[_T]]) -> AsyncIterator[_T]:
     for aw in aws:
         yield await aw
 
 
 async def aenumerate(
-    ait: AsyncIterable[T], start: int = 0
-) -> AsyncIterator[Tuple[int, T]]:
+    ait: AsyncIterable[_T], start: int = 0
+) -> AsyncIterator[Tuple[int, _T]]:
     it = count(start)
     async for item in ait:
         yield next(it), item
 
 
-async def atake(ait: AsyncIterable[T], n: int) -> AsyncIterator[T]:
+async def atake(ait: AsyncIterable[_T], n: int) -> AsyncIterator[_T]:
     ch = aiter(ait)
     for _ in range(n):
         try:
@@ -33,7 +33,7 @@ async def atake(ait: AsyncIterable[T], n: int) -> AsyncIterator[T]:
             break
 
 
-async def achain(*aits: AsyncIterable[T]) -> AsyncIterator[T]:
+async def achain(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
     for ait in aits:
         async for item in ait:
             yield item
