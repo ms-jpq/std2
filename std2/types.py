@@ -1,34 +1,10 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from collections.abc import ByteString, Container
-from ipaddress import (
-    IPv4Address,
-    IPv4Interface,
-    IPv4Network,
-    IPv6Address,
-    IPv6Interface,
-    IPv6Network,
-)
 from typing import Any, Callable, Final, NoReturn, Protocol, TypeVar, Union
 
 _T = TypeVar("_T")
 _T_co = TypeVar("_T_co", covariant=True)
 
-Real = TypeVar("Real", int, float)
-
-IPAddress = Union[IPv4Address, IPv6Address]
-IPNetwork = Union[IPv4Network, IPv6Network]
-IPInterface = Union[IPv4Interface, IPv6Interface]
-
-
-class _SupportsLT(Protocol):
-    @abstractmethod
-    def __lt__(self, other: _SupportsLT) -> bool:
-        ...
-
-
-SupportsLT = TypeVar("SupportsLT", bound=_SupportsLT)
 
 CallableT = TypeVar("CallableT", bound=Callable)
 

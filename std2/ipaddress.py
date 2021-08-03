@@ -1,4 +1,16 @@
-from ipaddress import IPv4Network, IPv6Network
+from ipaddress import (
+    IPv4Address,
+    IPv4Interface,
+    IPv4Network,
+    IPv6Address,
+    IPv6Interface,
+    IPv6Network,
+)
+from typing import Union
+
+IPAddress = Union[IPv4Address, IPv6Address]
+IPNetwork = Union[IPv4Network, IPv6Network]
+IPInterface = Union[IPv4Interface, IPv6Interface]
 
 LOOPBACK_V4 = IPv4Network("127.0.0.0/8")
 LOOPBACK_V6 = IPv6Network("::1/128")
