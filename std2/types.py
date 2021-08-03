@@ -6,6 +6,21 @@ _T = TypeVar("_T")
 _T_co = TypeVar("_T_co", covariant=True)
 
 
+class VoidType:
+    def __bool__(self) -> bool:
+        return False
+
+    def __str__(self) -> str:
+        return type(self).__name__
+
+
+Void: Final[VoidType] = VoidType()
+
+
+def or_else(thing: Union[_T, VoidType], default: _T) -> _T:
+    return default if isinstance(thing, VoidType) else thing
+
+
 CallableT = TypeVar("CallableT", bound=Callable)
 
 
@@ -31,18 +46,3 @@ def is_iterable(val: Any) -> bool:
     """
 
     return isinstance(val, Iterable) and not isinstance(val, (str, ByteString))
-
-
-class VoidType:
-    def __bool__(self) -> bool:
-        return False
-
-    def __str__(self) -> str:
-        return type(self).__name__
-
-
-Void: Final[VoidType] = VoidType()
-
-
-def or_else(thing: Union[_T, VoidType], default: _T) -> _T:
-    return default if isinstance(thing, VoidType) else thing
