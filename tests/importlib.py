@@ -22,6 +22,10 @@ class ModFromPath(TestCase):
 
     def test_3(self) -> None:
         mod = _ROOT / "a" / "b"
-
         with self.assertRaises(ValueError):
             _gen_mod_name(TOP_LEVEL, python_path=set(), path=mod)
+
+    def test_4(self) -> None:
+        mod = _ROOT / "a" / "b"
+        name = _gen_mod_name(TOP_LEVEL, python_path={_ROOT}, path=mod)
+        self.assertEqual(name, "a.b")
