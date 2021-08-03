@@ -36,16 +36,18 @@ def module_from_path(
     try:
         name = _gen_mod_name(top_level, python_path=python_path, path=path)
     except ValueError:
+        name = ""
+
+    if not name:
+        raise ImportError()
+    elif name in modules:
         raise ImportError()
     else:
-        if name in modules:
+        spec = spec_from_file_location(name, path, submodule_search_locations=[])
+        if not spec:
             raise ImportError()
         else:
-            spec = spec_from_file_location(name, path, submodule_search_locations=[])
-            if not spec:
-                raise ImportError()
-            else:
-                mod = module_from_spec(spec)
-                modules[mod.__name__] = mod
-                cast(Loader, spec.loader).exec_module(mod)
-                return mod
+            mod = module_from_spec(spec)
+            modules[mod.__name__] = mod
+            cast(Loader, spec.loader).exec_module(mod)
+            return mod
