@@ -6,6 +6,7 @@ from typing import (
     AsyncIterable,
     AsyncIterator,
     Callable,
+    Optional,
     Protocol,
     TypeVar,
     Union,
@@ -38,9 +39,9 @@ class _SupportsLT(Protocol):
 
 
 def clamp(
-    lo: _T,
-    n: _T,
-    hi: _T,
-    key: Callable[[_T], _SupportsLT] = cast(Callable[[_T], _SupportsLT], lambda x: x),
+    lo: _T, n: _T, hi: _T, key: Optional[Callable[[_T], _SupportsLT]] = None
 ) -> _T:
-    return max(lo, min(hi, n, key=key), key=key)
+    if key:
+        return max(lo, min(hi, n, key=key), key=key)
+    else:
+        return max(lo, min(hi, n))  # type: ignore
