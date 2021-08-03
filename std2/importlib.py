@@ -3,28 +3,31 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import PurePath
 from sys import modules
 from types import ModuleType
-from typing import cast
+from typing import AbstractSet, cast
 
 from .pathlib import AnyPath
 
 
-def _gen_mod_name(top_level: AnyPath, path: AnyPath) -> str:
-    pp, tl = PurePath(path), PurePath(top_level)
-    if pp == tl:
-        raise ValueError()
-    else:
-        stem = pp.parent / pp.stem
+def _gen_mod_name(top_levels: AbstractSet[AnyPath], path: AnyPath) -> str:
+    pp = PurePath(path)
+    stem = pp.parent / pp.stem
 
-        try:
-            rel = stem.relative_to(tl)
-        except ValueError:
-            return ".".join(stem.parts)
+    for top_level in map(PurePath, top_levels):
+        if pp == top_level:
+            raise ValueError()
         else:
-            return "." + ".".join(rel.parts)
+            try:
+                rel = stem.relative_to(top_level)
+            except ValueError:
+                pass
+            else:
+                return "." + ".".join(rel.parts)
+    else:
+        return ".".join(stem.parts)
 
 
-def module_from_path(top_level: AnyPath, path: AnyPath) -> ModuleType:
-    name = _gen_mod_name(top_level, path=path)
+def module_from_path(top_levels: AbstractSet[AnyPath], path: AnyPath) -> ModuleType:
+    name = _gen_mod_name(top_levels, path=path)
     if name in modules:
         raise ImportError()
     else:
