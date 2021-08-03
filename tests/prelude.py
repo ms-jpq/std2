@@ -1,9 +1,9 @@
 from unittest import TestCase
 
-from ..std2.ordinal import clamp
+from ..std2 import clamp
 
 
-class Indexing(TestCase):
+class Clamp(TestCase):
     def test_1(self) -> None:
         a = clamp(1, 12, 2)
         self.assertEqual(a, 2)
