@@ -1,6 +1,7 @@
 from contextlib import suppress
 from importlib.abc import Loader
 from importlib.util import module_from_spec, spec_from_file_location
+from os.path import normcase
 from pathlib import PurePath
 from sys import modules
 from types import ModuleType
@@ -12,7 +13,7 @@ from .pathlib import AnyPath
 def _gen_mod_name(
     top_level: AnyPath, python_path: AbstractSet[AnyPath], path: AnyPath
 ) -> str:
-    pp = PurePath(path)
+    pp = PurePath(normcase(path))
     stem = pp.parent / pp.stem
 
     if pp in {top_level} | python_path:
