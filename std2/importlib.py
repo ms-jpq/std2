@@ -7,11 +7,9 @@ from sys import modules
 from types import ModuleType
 from typing import AbstractSet, cast
 
-from .pathlib import AnyPath
-
 
 def _gen_mod_name(
-    top_level: AnyPath, python_path: AbstractSet[AnyPath], path: AnyPath
+    top_level: PurePath, python_path: AbstractSet[PurePath], path: PurePath
 ) -> str:
     pp = PurePath(normcase(path))
     stem = pp.parent / pp.stem
@@ -32,7 +30,7 @@ def _gen_mod_name(
 
 
 def module_from_path(
-    top_level: AnyPath, python_path: AbstractSet[AnyPath], path: AnyPath
+    top_level: PurePath, python_path: AbstractSet[PurePath], path: PurePath
 ) -> ModuleType:
     try:
         name = _gen_mod_name(top_level, python_path=python_path, path=path)
