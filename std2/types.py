@@ -8,7 +8,7 @@ from ipaddress import (
     IPv6Interface,
     IPv6Network,
 )
-from typing import Any, Callable, Final, NoReturn, Protocol, TypeVar, Union, cast
+from typing import Any, Callable, Final, NoReturn, Protocol, TypeVar, Union
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
@@ -67,4 +67,4 @@ Void: Final[VoidType] = VoidType()
 
 
 def or_else(thing: Union[T, VoidType], default: T) -> T:
-    return default if thing is Void else cast(T, thing)
+    return default if isinstance(thing, VoidType) else thing

@@ -7,7 +7,6 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast,
 )
 
 from .types import Void, VoidType
@@ -23,13 +22,13 @@ def aiter(ait: AsyncIterable[T]) -> AsyncIterator[T]:
 async def anext(
     ait: AsyncIterator[T], default: Union[U, VoidType] = Void
 ) -> Union[T, U]:
-    if default is Void:
+    if isinstance(default, VoidType):
         return await ait.__anext__()
     else:
         try:
             return await ait.__anext__()
         except StopAsyncIteration:
-            return cast(U, default)
+            return default
 
 
 async def to_async(it: Iterable[T]) -> AsyncIterator[T]:

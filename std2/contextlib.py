@@ -1,16 +1,7 @@
 from abc import abstractmethod
 from contextlib import asynccontextmanager, contextmanager
 from logging import Logger
-from typing import (
-    Any,
-    AsyncContextManager,
-    AsyncIterator,
-    Iterator,
-    Optional,
-    Protocol,
-    TypeVar,
-    cast,
-)
+from typing import Any, AsyncContextManager, AsyncIterator, Iterator, Protocol, TypeVar
 
 T = TypeVar("T")
 
@@ -42,8 +33,8 @@ class aclosing(AsyncContextManager[_T2]):
 
 
 @asynccontextmanager
-async def nullacontext(enter_result: Optional[T] = None) -> AsyncIterator[T]:
-    yield cast(T, enter_result)
+async def nullacontext(enter_result: T) -> AsyncIterator[T]:
+    yield enter_result
 
 
 @contextmanager
