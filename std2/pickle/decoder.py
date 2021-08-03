@@ -19,7 +19,7 @@ from typing import (
     get_type_hints,
 )
 
-from ..types import is_iterable
+from ..types import is_iterable_not_str
 from .coders import DEFAULT_DECODERS
 from .types import MAPS, PRIMITIVES, SEQS, SETS, DecodeError, Decoder, DParser, DStep
 
@@ -96,7 +96,7 @@ def _new_parser(
         pp = _new_parser(a, path=path, strict=strict, decoders=decoders)
 
         def p(x: Any) -> DStep:
-            if not is_iterable(x):
+            if not is_iterable_not_str(x):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 acc = set()
@@ -115,7 +115,7 @@ def _new_parser(
         pp = _new_parser(a, path=path, strict=strict, decoders=decoders)
 
         def p(x: Any) -> DStep:
-            if not is_iterable(x):
+            if not is_iterable_not_str(x):
                 return False, DecodeError(path=(*path, tp), actual=x)
             else:
                 acc = []
@@ -140,7 +140,7 @@ def _new_parser(
             )
 
             def p(x: Any) -> DStep:
-                if not is_iterable(x):
+                if not is_iterable_not_str(x):
                     return False, DecodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []
@@ -159,7 +159,7 @@ def _new_parser(
             )
 
             def p(x: Any) -> DStep:
-                if not is_iterable(x):
+                if not is_iterable_not_str(x):
                     return False, DecodeError(path=(*path, tp), actual=x)
                 else:
                     acc = []

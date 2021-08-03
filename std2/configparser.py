@@ -8,7 +8,7 @@ from typing import (
     Tuple,
 )
 
-from .types import is_iterable
+from .types import is_iterable_not_str
 
 _Index = Tuple[Sequence[str], Any]
 
@@ -56,7 +56,7 @@ def hydrate(thing: Any) -> Any:
             _create_element_at(thing2, val=hydrated, paths=ps)
 
         return thing2
-    elif is_iterable(thing):
+    elif is_iterable_not_str(thing):
         return tuple(map(hydrate, thing))
     else:
         return thing

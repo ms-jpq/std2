@@ -40,9 +40,5 @@ def never(val: NoReturn) -> NoReturn:
     assert False, type(val).__name__
 
 
-def is_iterable(val: Any) -> bool:
-    """
-    Excludes str, bytes, bytearray
-    """
-
+def is_iterable_not_str(val: Any) -> bool:
     return isinstance(val, Iterable) and not isinstance(val, (str, ByteString))
