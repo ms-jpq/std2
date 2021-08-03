@@ -26,7 +26,7 @@ class ModFromPath(TestCase):
         top_level = PurePath(common, "d")
 
         name = _gen_mod_name(top_level, path=mod)
-        self.assertEqual(name, "..c")
+        self.assertEqual(name, "a.b.c")
 
     def test_4(self) -> None:
         common = PurePath(*"abc")
@@ -34,7 +34,7 @@ class ModFromPath(TestCase):
         top_level = PurePath(common, *"de")
 
         name = _gen_mod_name(top_level, path=mod)
-        self.assertEqual(name, "...c")
+        self.assertEqual(name, "a.b.c")
 
     def test_5(self) -> None:
         common = PurePath(*"abc")
@@ -42,7 +42,7 @@ class ModFromPath(TestCase):
         top_level = PurePath(common, *"ef")
 
         name = _gen_mod_name(top_level, path=mod)
-        self.assertEqual(name, "...d")
+        self.assertEqual(name, "a.b.c.d")
 
     def test_6(self) -> None:
         common = PurePath(*"abc")
@@ -50,7 +50,7 @@ class ModFromPath(TestCase):
         top_level = PurePath(common, "d")
 
         name = _gen_mod_name(top_level, path=mod)
-        self.assertEqual(name, "..e.f")
+        self.assertEqual(name, "a.b.c.e.f")
 
     def test_7(self) -> None:
         common = ""
@@ -58,4 +58,4 @@ class ModFromPath(TestCase):
         top_level = PurePath(common, *"de")
 
         name = _gen_mod_name(top_level, path=mod)
-        self.assertEqual(name, "...a")
+        self.assertEqual(name, "a")

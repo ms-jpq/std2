@@ -1,11 +1,9 @@
 from importlib.abc import Loader
 from importlib.util import module_from_spec, spec_from_file_location
-from os import sep
-from os.path import relpath
 from pathlib import PurePath
 from sys import modules
 from types import ModuleType
-from typing import Iterator, cast
+from typing import cast
 
 from .pathlib import AnyPath
 
@@ -15,20 +13,14 @@ def _gen_mod_name(top_level: AnyPath, path: AnyPath) -> str:
     if pp == tl:
         raise ValueError()
     else:
+        stem = pp.parent / pp.stem
 
-        def cont() -> Iterator[str]:
-            stem = pp.parent / pp.stem
-            rel = relpath(stem, start=tl)
-            print(rel, [path, top_level])
-            for part in rel.split(sep):
-                if part == ".":
-                    yield ""
-                elif part == "..":
-                    yield "."
-                else:
-                    yield part
-
-    return ".".join(cont())
+        try:
+            rel = stem.relative_to(tl)
+        except ValueError:
+            return ".".join(stem.parts)
+        else:
+            return "." + ".".join(rel.parts)
 
 
 def module_from_path(top_level: AnyPath, path: AnyPath) -> ModuleType:
