@@ -22,9 +22,9 @@ class Aio:
 
 async def stdio() -> Aio:
     with open(devnull) as fd:
-        nsd = fstat(fd.fileno())
+        dnull_stat = fstat(fd.fileno())
         for f in (stdin, stdout, stderr):
-            if samestat(fstat(f.fileno()), nsd):
+            if samestat(fstat(f.fileno()), dnull_stat):
                 raise RuntimeError(f"{f.name} <-> {devnull}")
 
     loop = get_running_loop()
