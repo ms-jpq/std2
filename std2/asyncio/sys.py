@@ -23,22 +23,23 @@ class Aio:
 async def stdio() -> Aio:
     with open(devnull) as fd:
         nsd = fstat(fd.fileno())
-        if samestat(fstat(stdin.fileno()), nsd):
-            raise RuntimeError()
-        elif samestat(fstat(stdout.fileno()), nsd):
-            raise RuntimeError()
-        elif samestat(fstat(stderr.fileno()), nsd):
-            raise RuntimeError()
+        for f in (stdin, stdout, stderr):
+            if samestat(fstat(f.fileno()), nsd):
+                raise RuntimeError(f"{f.name} <-> {devnull}")
 
     loop = get_running_loop()
 
     async def c1() -> StreamReader:
         sin = StreamReader(loop=loop)
-        await loop.connect_read_pipe(lambda: StreamReaderProtocol(sin), pipe=stdin)
+        await loop.connect_read_pipe(
+            lambda: StreamReaderProtocol(sin, loop=loop), pipe=stdin
+        )
         return sin
 
     async def c2(stream: IO) -> StreamWriter:
-        trans, proto = await loop.connect_write_pipe(FlowControlMixin, pipe=stream)
+        trans, proto = await loop.connect_write_pipe(
+            lambda: FlowControlMixin(loop=loop), pipe=stream
+        )
         w = StreamWriter(transport=trans, protocol=proto, reader=None, loop=loop)
         return w
 
