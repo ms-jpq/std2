@@ -7,7 +7,7 @@ from asyncio import (
 )
 from asyncio.streams import FlowControlMixin
 from dataclasses import dataclass
-from os import devnull, fstat
+from os import devnull, fstat, stat
 from os.path import samestat
 from sys import stderr, stdin, stdout
 from typing import IO
@@ -21,8 +21,7 @@ class Aio:
 
 
 async def stdio() -> Aio:
-    with open(devnull) as fd:
-        dnull_stat = fstat(fd.fileno())
+    dnull_stat = stat(devnull)
     for f in (stdin, stdout, stderr):
         if samestat(fstat(f.fileno()), dnull_stat):
             raise RuntimeError(f"{f.name} <-> {devnull}")
