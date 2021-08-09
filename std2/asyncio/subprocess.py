@@ -7,6 +7,21 @@ from typing import AbstractSet, Mapping, Optional, Sequence
 
 from ..pathlib import AnyPath
 
+try:
+    from os import getpgid, killpg
+    from signal import SIGKILL
+
+    def _kill(pid: int) -> None:
+        killpg(getpgid(pid), SIGKILL)
+
+
+except ImportError:
+    from os import kill
+    from signal import SIGTERM
+
+    def _kill(pid: int) -> None:
+        kill(pid, SIGTERM)
+
 
 @dataclass(frozen=True)
 class ProcReturn:
@@ -30,6 +45,7 @@ async def call(
     proc = await create_subprocess_exec(
         prog,
         *args,
+        start_new_session=True,
         stdin=PIPE if stdin is not None else DEVNULL,
         stdout=PIPE if capture_stdout else None,
         stderr=PIPE if capture_stderr else None,
@@ -57,5 +73,5 @@ async def call(
             )
     finally:
         with suppress(ProcessLookupError):
-            proc.kill()
+            _kill(proc.pid)
         await proc.wait()
