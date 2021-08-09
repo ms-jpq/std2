@@ -1,4 +1,4 @@
-from os import PathLike
+from os import PathLike, scandir
 from pathlib import Path, PurePath
 from typing import Iterator, Optional, Union
 
@@ -6,8 +6,9 @@ AnyPath = Union[PathLike, str]
 
 
 def walk(path: Path, dirs: bool = False) -> Iterator[Path]:
-    for p in path.iterdir():
-        if p.is_dir():
+    for s in scandir(path):
+        p = Path(s.path)
+        if s.is_dir():
             if dirs:
                 yield p
             yield from walk(p, dirs=dirs)
