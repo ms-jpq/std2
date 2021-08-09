@@ -13,7 +13,7 @@ class ProcReturn:
     args: Sequence[AnyPath]
     code: int
     out: bytes
-    err: str
+    err: bytes
 
 
 try:
@@ -68,7 +68,7 @@ def call(
                     args=args,
                     code=code,
                     out=stdout if capture_stdout else b"",
-                    err=stderr.decode() if capture_stderr else "",
+                    err=stderr if capture_stderr else b"",
                 )
         finally:
             with suppress(ProcessLookupError):
