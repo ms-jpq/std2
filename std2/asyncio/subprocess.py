@@ -1,35 +1,11 @@
 from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
 from contextlib import suppress
-from dataclasses import dataclass
 from os import environ
 from subprocess import CalledProcessError
-from typing import AbstractSet, Mapping, Optional, Sequence
+from typing import AbstractSet, Mapping, Optional
 
 from ..pathlib import AnyPath
-
-try:
-    from os import getpgid, killpg
-    from signal import SIGKILL
-
-    def _kill(pid: int) -> None:
-        killpg(getpgid(pid), SIGKILL)
-
-
-except ImportError:
-    from os import kill
-    from signal import SIGTERM
-
-    def _kill(pid: int) -> None:
-        kill(pid, SIGTERM)
-
-
-@dataclass(frozen=True)
-class ProcReturn:
-    prog: AnyPath
-    args: Sequence[AnyPath]
-    code: int
-    out: bytes
-    err: str
+from ..subprocess import ProcReturn, kill_children
 
 
 async def call(
@@ -73,5 +49,5 @@ async def call(
             )
     finally:
         with suppress(ProcessLookupError):
-            _kill(proc.pid)
+            kill_children(proc.pid)
         await proc.wait()
