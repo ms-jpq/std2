@@ -1,16 +1,18 @@
 from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
 from contextlib import suppress
 from os import environ
+from signal import Signals
 from subprocess import CalledProcessError
 from typing import AbstractSet, Mapping, Optional
 
 from ..pathlib import AnyPath
-from ..subprocess import ProcReturn, kill_children
+from ..subprocess import SIGDED, ProcReturn, kill_children
 
 
 async def call(
     prog: AnyPath,
     *args: AnyPath,
+    kill_signal: Signals = SIGDED,
     capture_stdout: bool = True,
     capture_stderr: bool = True,
     stdin: Optional[bytes] = None,
@@ -49,5 +51,5 @@ async def call(
             )
     finally:
         with suppress(ProcessLookupError):
-            kill_children(proc.pid)
+            kill_children(proc.pid, sig=kill_signal)
         await proc.wait()

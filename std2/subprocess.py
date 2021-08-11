@@ -1,10 +1,20 @@
 from contextlib import suppress
 from dataclasses import dataclass
 from os import environ
+from signal import Signals
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen
 from typing import AbstractSet, Mapping, Optional, Sequence
 
 from .pathlib import AnyPath
+
+try:
+    from signal import SIGKILL
+
+    SIGDED = SIGKILL
+except:
+    from signal import SIGTERM
+
+    SIGDED = SIGTERM
 
 
 @dataclass(frozen=True)
@@ -18,23 +28,22 @@ class ProcReturn:
 
 try:
     from os import getpgid, killpg
-    from signal import SIGKILL
 
-    def kill_children(pid: int) -> None:
-        killpg(getpgid(pid), SIGKILL)
+    def kill_children(pid: int, sig: Signals) -> None:
+        killpg(getpgid(pid), sig)
 
 
 except ImportError:
     from os import kill
-    from signal import SIGTERM
 
-    def kill_children(pid: int) -> None:
-        kill(pid, SIGTERM)
+    def kill_children(pid: int, sig: Signals) -> None:
+        kill(pid, sig)
 
 
 def call(
     prog: AnyPath,
     *args: AnyPath,
+    kill_signal: Signals = SIGDED,
     capture_stdout: bool = True,
     capture_stderr: bool = True,
     stdin: Optional[bytes] = None,
@@ -72,4 +81,4 @@ def call(
                 )
         finally:
             with suppress(ProcessLookupError):
-                kill_children(proc.pid)
+                kill_children(proc.pid, sig=kill_signal)
