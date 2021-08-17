@@ -51,5 +51,8 @@ async def call(
             )
     finally:
         with suppress(ProcessLookupError):
-            kill_children(proc.pid, sig=kill_signal)
+            try:
+                kill_children(proc.pid, sig=kill_signal)
+            except PermissionError:
+                proc.kill()
         await proc.wait()
