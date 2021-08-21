@@ -18,7 +18,7 @@ def _os() -> OS:
         return OS.macos
     elif sys == "windows":
         return OS.windows
-    elif sys == "freebsd":
+    elif sys in {"freebsd", "openbsd"}:
         return OS.bsd
     elif sys == "java":
         return OS.java
