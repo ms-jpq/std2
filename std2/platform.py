@@ -1,22 +1,29 @@
 from enum import Enum, auto
-from sys import platform
+from platform import system
 
 
 class OS(Enum):
+    bsd = auto()
+    java = auto()
     linux = auto()
     macos = auto()
     windows = auto()
 
 
 def _os() -> OS:
-    if platform.startswith("linux"):
+    sys = system().casefold()
+    if sys == "linux":
         return OS.linux
-    elif platform.startswith("darwin"):
+    elif sys == "darwin":
         return OS.macos
-    elif platform.startswith("win"):
+    elif sys == "windows":
         return OS.windows
+    elif sys == "freebsd":
+        return OS.bsd
+    elif sys == "java":
+        return OS.java
     else:
-        assert False, platform
+        assert False, sys
 
 
 os = _os()
