@@ -10,7 +10,6 @@ from typing import (
     Protocol,
     TypeVar,
     Union,
-    cast,
 )
 
 from .types import Void, VoidType
