@@ -31,6 +31,13 @@ def chunk_into(seq: Sequence[_T], chunks: int = _CPUS) -> Iterator[Sequence[_T]]
     yield from chunk(seq, n=n)
 
 
+def interleave(val: _T, it: Iterable[_T]) -> Iterator[_T]:
+    for idx, v in enumerate(it):
+        if idx:
+            yield val
+        yield v
+
+
 def fst(t: Tuple[_T, Any]) -> _T:
     return t[0]
 
