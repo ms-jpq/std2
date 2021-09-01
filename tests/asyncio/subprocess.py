@@ -9,4 +9,4 @@ class Call(IsolatedAsyncioTestCase):
         proc = await call("tee", stdin=stdin)
         self.assertEqual(proc.code, 0)
         self.assertEqual(proc.out, stdin)
-        self.assertEqual(proc.err, "")
+        self.assertEqual(proc.err, b"")
