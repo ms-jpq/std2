@@ -2,8 +2,14 @@ from decimal import Decimal
 from functools import partial
 from itertools import count
 from locale import str as format_float
+from locale import strxfrm
 from operator import pow
-from typing import Any, cast
+from pathlib import PurePath
+from typing import Any, Sequence, cast
+
+
+def path_sort_key(path: PurePath) -> Sequence[str]:
+    return tuple(map(strxfrm, path.parts))
 
 
 def si_prefixed(size: float, precision: int = 3) -> str:
