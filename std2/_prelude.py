@@ -31,14 +31,14 @@ async def anext(ait: AsyncIterator[_T], default: Union[_T, VoidType] = Void) -> 
             return default
 
 
-class _SupportsLT(Protocol):
+class SupportsLT(Protocol):
     @abstractmethod
     def __lt__(self, other: Any) -> bool:
         ...
 
 
 def clamp(
-    lo: _T, n: _T, hi: _T, key: Optional[Callable[[_T], _SupportsLT]] = None
+    lo: _T, n: _T, hi: _T, key: Optional[Callable[[_T], SupportsLT]] = None
 ) -> _T:
     if key:
         return max(lo, min(hi, n, key=key), key=key)

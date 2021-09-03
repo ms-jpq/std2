@@ -5,10 +5,12 @@ from locale import str as format_float
 from locale import strxfrm
 from operator import pow
 from pathlib import PurePath
-from typing import Any, Sequence, cast
+from typing import Any, cast
+
+from ._prelude import SupportsLT
 
 
-def pathsort_key(path: PurePath) -> Sequence[str]:
+def pathsort_key(path: PurePath) -> SupportsLT:
     return tuple(map(strxfrm, path.parts))
 
 
