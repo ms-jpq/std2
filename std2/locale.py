@@ -8,7 +8,7 @@ from pathlib import PurePath
 from typing import Any, Sequence, cast
 
 
-def path_sort_key(path: PurePath) -> Sequence[str]:
+def pathsort_key(path: PurePath) -> Sequence[str]:
     return tuple(map(strxfrm, path.parts))
 
 
