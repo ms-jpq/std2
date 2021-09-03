@@ -4,6 +4,7 @@ from itertools import count
 from locale import str as format_float
 from locale import strxfrm
 from operator import pow
+from os.path import normcase
 from pathlib import PurePath
 from typing import Any, cast
 
@@ -11,7 +12,7 @@ from ._prelude import SupportsLT
 
 
 def pathsort_key(path: PurePath) -> SupportsLT:
-    return tuple(map(strxfrm, path.parts))
+    return tuple(strxfrm(normcase(part)) for part in path.parts)
 
 
 def si_prefixed(size: float, precision: int = 3) -> str:
