@@ -1,7 +1,7 @@
 from typing import Mapping
 from unittest import TestCase
 
-from ..std2.tree import merge, recur_sort
+from ..std2.graphlib import merge, recur_sort
 
 
 class Sort(TestCase):

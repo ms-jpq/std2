@@ -1,4 +1,5 @@
-from contextlib import contextmanager
+from contextlib import closing as _closing
+from contextlib import contextmanager, nullcontext
 from enum import Enum
 from locale import strcoll, strxfrm
 from pathlib import Path, PurePath
@@ -26,12 +27,13 @@ def escape(nono: AbstractSet[str], escape: str, param: str) -> str:
 
 
 @contextmanager
-def with_transaction(cursor: Cursor) -> Iterator[None]:
-    cursor.execute("BEGIN TRANSACTION")
-    try:
-        yield None
-    finally:
-        cursor.execute("END TRANSACTION")
+def with_transaction(cursor: Cursor, closing: bool = True) -> Iterator[Cursor]:
+    with _closing(cursor) if closing else nullcontext():
+        cursor.execute("BEGIN TRANSACTION")
+        try:
+            yield cursor
+        finally:
+            cursor.execute("END TRANSACTION")
 
 
 def _normalize(text: Optional[str]) -> Optional[str]:
