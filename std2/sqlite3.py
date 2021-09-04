@@ -28,7 +28,7 @@ def escape(nono: AbstractSet[str], escape: str, param: str) -> str:
 
 @contextmanager
 def with_transaction(cursor: Cursor, closing: bool = True) -> Iterator[Cursor]:
-    with _closing(cursor) if closing else nullcontext():
+    with _closing(cursor) if closing else nullcontext(cursor):
         cursor.execute("BEGIN TRANSACTION")
         try:
             yield cursor
