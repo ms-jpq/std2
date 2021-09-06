@@ -23,6 +23,8 @@ def recur_sort(
             k: recur_sort(data[k], key=order, reverse=reverse)
             for k in sorted(data, key=order, reverse=reverse)
         }
+    elif isinstance(data, AbstractSet):
+        return tuple(sorted(data, key=key, reverse=reverse))
     elif is_iterable_not_str(data):
         return tuple(recur_sort(el, key=order, reverse=reverse) for el in data)
     else:
