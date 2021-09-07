@@ -197,7 +197,7 @@ def _new_parser(
             if field.init:
                 fp = _new_parser(
                     hints[field.name],
-                    path=(*path, field),
+                    path=(*path, tp, field),
                     strict=strict,
                     decoders=decoders,
                 )
