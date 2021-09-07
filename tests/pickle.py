@@ -35,7 +35,7 @@ T = TypeVar("T")
 
 class Encode(TestCase):
     def test_1(self) -> None:
-        p = new_encoder(Sequence[int])
+        p = new_encoder[Sequence[int]](Sequence[int])
         thing = p([1, 2, 3])
         self.assertEqual(thing, [1, 2, 3])
 
@@ -46,7 +46,7 @@ class Encode(TestCase):
             b: Sequence[str]
             c: Mapping[str, int]
 
-        p = new_encoder(C)
+        p = new_encoder[C](C)
         thing = p(C(a=1, b=["a", "b"], c={"a": 2}))
         self.assertEqual(thing, {"a": 1, "b": ["a", "b"], "c": {"a": 2}})
 
@@ -54,7 +54,7 @@ class Encode(TestCase):
         class C(Enum):
             a = b"a"
 
-        p = new_encoder(C)
+        p = new_encoder[C](C)
         thing = p(C.a)
         self.assertEqual(thing, C.a.name)
 
@@ -62,8 +62,8 @@ class Encode(TestCase):
         addr = IPv4Address("1.1.1.1")
         inf = IPv4Interface("1.1.1.1/24")
 
-        pa = new_encoder(IPv4Address)
-        pi = new_encoder(IPv4Interface)
+        pa = new_encoder[IPv4Address](IPv4Address)
+        pi = new_encoder[IPv4Interface](IPv4Interface)
 
         a_addr = pa(addr)
         inf_addr = pi(inf)
@@ -79,7 +79,7 @@ class Encode(TestCase):
             b: Sequence[str]
             c: Mapping[str, int]
 
-        p = new_encoder(Sequence[C])
+        p = new_encoder[Sequence[C]](Sequence[C])
         thing = p((C(a=1, b=["a", "b"], c={"a": 2}),) * 2)
         self.assertEqual(thing, [{"a": 1, "b": ["a", "b"], "c": {"a": 2}}] * 2)
 
@@ -92,7 +92,7 @@ class Encode(TestCase):
         class C:
             a: A
 
-        p = new_encoder(C)
+        p = new_encoder[C](C)
         thing = p(C(a=A(c=2)))
         self.assertEqual(thing, {"a": {"c": 2}})
 
@@ -320,7 +320,7 @@ class Coders(TestCase):
         self.assertEqual(thing, datetime.fromtimestamp(0, tz=timezone.utc))
 
     def test_6(self) -> None:
-        p1 = new_encoder(datetime, encoders=(unix_date_encoder,))
+        p1 = new_encoder[datetime](datetime, encoders=(unix_date_encoder,))
         p2 = new_decoder[datetime](datetime, decoders=(unix_date_decoder,))
         t0 = datetime.fromtimestamp(0)
         t1 = p1(t0)
@@ -328,7 +328,7 @@ class Coders(TestCase):
         self.assertEqual(t2, t0.replace(tzinfo=timezone.utc))
 
     def test_7(self) -> None:
-        p1 = new_encoder(datetime, encoders=(iso_date_encoder,))
+        p1 = new_encoder[datetime](datetime, encoders=(iso_date_encoder,))
         p2 = new_decoder[datetime](datetime, decoders=(iso_date_decoder,))
         t0 = datetime.fromtimestamp(0)
         t1 = p1(t0)
@@ -336,7 +336,7 @@ class Coders(TestCase):
         self.assertEqual(t2, t0.replace(tzinfo=timezone.utc))
 
     def test_8(self) -> None:
-        p1 = new_encoder(datetime, encoders=(internet_date_encoder,))
+        p1 = new_encoder[datetime](datetime, encoders=(internet_date_encoder,))
         p2 = new_decoder[datetime](datetime, decoders=(internet_date_decoder,))
         t0 = datetime.fromtimestamp(0)
         t1 = p1(t0)
