@@ -99,82 +99,82 @@ class Encode(TestCase):
 
 class Decode(TestCase):
     def test_1(self) -> None:
-        p = new_decoder(None)
+        p = new_decoder[None](None)
         thing = p(None)
         self.assertEqual(thing, None)
 
     def test_2(self) -> None:
-        p = new_decoder(None)
+        p = new_decoder[None](None)
         with self.assertRaises(DecodeError):
             p(())
 
     def test_3(self) -> None:
-        p = new_decoder(int)
+        p = new_decoder[int](int)
         thing = p(2)
         self.assertEqual(thing, 2)
 
     def test_4(self) -> None:
-        p = new_decoder(int)
+        p = new_decoder[int](int)
         with self.assertRaises(DecodeError):
             p("a")
 
     def test_5(self) -> None:
-        p = new_decoder(str)
+        p = new_decoder[str](str)
         thing = p("a")
         self.assertEqual(thing, "a")
 
     def test_6(self) -> None:
-        p = new_decoder(Optional[str])
+        p = new_decoder[Optional[str]](Optional[str])
         thing = p("a")
         self.assertEqual(thing, "a")
 
     def test_7(self) -> None:
-        p = new_decoder(Optional[str])
+        p = new_decoder[Optional[str]](Optional[str])
         thing = p(None)
         self.assertEqual(thing, None)
 
     def test_8(self) -> None:
-        p = new_decoder(Union[int, str])
+        p = new_decoder[Union[int, str]](Union[int, str])
         thing = p(2)
         self.assertEqual(thing, 2)
 
     def test_9(self) -> None:
-        p = new_decoder(Union[int, str])
+        p = new_decoder[Union[int, str]](Union[int, str])
         thing = p("a")
         self.assertEqual(thing, "a")
 
     def test_10(self) -> None:
-        p = new_decoder(Union[int, str])
+        p = new_decoder[Union[int, str]](Union[int, str])
         with self.assertRaises(DecodeError):
             p(b"a")
 
     def test_11(self) -> None:
-        p = new_decoder(Tuple[int, str])
+        p = new_decoder[Tuple[int, str]](Tuple[int, str])
         thing = p((1, "a"))
         self.assertEqual(thing, [1, "a"])
 
     def test_12(self) -> None:
-        p = new_decoder(Tuple[int, str])
+        p = new_decoder[Tuple[int, str]](Tuple[int, str])
         with self.assertRaises(DecodeError):
             p(("a",))
 
     def test_13(self) -> None:
-        p = new_decoder(Tuple[int, str])
+        p = new_decoder[Tuple[int, str]](Tuple[int, str])
         with self.assertRaises(DecodeError):
             p(("a", 1))
 
     def test_14(self) -> None:
-        p = new_decoder(Any)
+        p = new_decoder[Any](Any)
         thing = p(None)
         self.assertEqual(thing, None)
 
     def test_15(self) -> None:
-        p = new_decoder(Tuple[int, ...])
+        p = new_decoder[Tuple[int, ...]](Tuple[int, ...])
         thing = p([1, 2, 3])
         self.assertEqual(thing, [1, 2, 3])
 
     def test_16(self) -> None:
-        p = new_decoder(Tuple[int, ...])
+        p = new_decoder[Tuple[int, ...]](Tuple[int, ...])
         with self.assertRaises(DecodeError):
             p((1, "a"))
 
@@ -185,7 +185,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_decoder(C)
+        p = new_decoder[C](C)
         thing = p({"a": 1, "b": []})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
@@ -197,7 +197,7 @@ class Decode(TestCase):
             c: bool = False
             z: ClassVar[bool] = True
 
-        p = new_decoder(C, strict=False)
+        p = new_decoder[C](C, strict=False)
         thing = p({"a": 1, "b": []})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
@@ -208,7 +208,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_decoder(C, strict=False)
+        p = new_decoder[C](C, strict=False)
         thing = p({"a": 1, "b": [], "d": "d"})
         self.assertEqual(thing, C(a=1, b=[], c=False))
 
@@ -219,7 +219,7 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_decoder(C, strict=True)
+        p = new_decoder[C](C, strict=True)
         with self.assertRaises(DecodeError) as e:
             p({"a": 1, "b": [], "d": "d"})
         self.assertEqual(e.exception.extra_keys, {"d"})
@@ -231,13 +231,13 @@ class Decode(TestCase):
             b: List[str]
             c: bool = False
 
-        p = new_decoder(C)
+        p = new_decoder[C](C)
         with self.assertRaises(DecodeError) as e:
             p({"a": 1})
         self.assertEqual(e.exception.missing_keys, {"b"})
 
     def test_22(self) -> None:
-        p = new_decoder(UUID)
+        p = new_decoder[UUID](UUID)
         uuid = uuid4()
         thing = p(str(uuid))
         self.assertEqual(uuid, thing)
@@ -247,17 +247,17 @@ class Decode(TestCase):
             a = "b"
             b = "a"
 
-        p = new_decoder(Sequence[E])
+        p = new_decoder[Sequence[E]](Sequence[E])
         thing = p(("a", "b"))
         self.assertEqual(thing, [E.a, E.b])
 
     def test_24(self) -> None:
-        p = new_decoder(Tuple[Literal[5], Literal[2]])
+        p = new_decoder[Tuple[Literal[5], Literal[2]]](Tuple[Literal[5], Literal[2]])
         thing = p([5, 2])
         self.assertEqual(thing, [5, 2])
 
     def test_25(self) -> None:
-        p = new_decoder(Literal[b"a"])
+        p = new_decoder[Literal[b"a"]](Literal[b"a"])
         with self.assertRaises(DecodeError):
             p("a")
 
@@ -267,10 +267,10 @@ class Decode(TestCase):
             t: T
 
         with self.assertRaises(ValueError):
-            new_decoder(C[int])
+            new_decoder[C[int]](C[int])
 
     def test_27(self) -> None:
-        p = new_decoder(float)
+        p = new_decoder[float](float)
         a = p(0)
         self.assertEqual(a, 0.0)
 
@@ -279,7 +279,7 @@ class Decode(TestCase):
             a = "b"
             b = "a"
 
-        p = new_decoder(Sequence[E])
+        p = new_decoder[Sequence[E]](Sequence[E])
         with self.assertRaises(DecodeError):
             p(("name", "b"))
 
@@ -289,8 +289,8 @@ class Coders(TestCase):
         addr = IPv4Address("1.1.1.1")
         inf = IPv4Interface("1.1.1.1/24")
 
-        pa = new_decoder(IPv4Address)
-        pi = new_decoder(IPv4Interface)
+        pa = new_decoder[IPv4Address](IPv4Address)
+        pi = new_decoder[IPv4Interface](IPv4Interface)
 
         d_addr = pa(str(addr))
         d_inf = pi(str(inf))
@@ -300,28 +300,28 @@ class Coders(TestCase):
         self.assertEqual(d_inf, inf)
 
     def test_2(self) -> None:
-        p = new_decoder(AbstractSet[str])
+        p = new_decoder[AbstractSet[str]](AbstractSet[str])
         thing = p(["1", "2"])
         self.assertEqual(thing, {"1", "2"})
 
     def test_3(self) -> None:
-        p = new_decoder(Optional[PurePath])
+        p = new_decoder[Optional[PurePath]](Optional[PurePath])
         thing = p(None)
         self.assertEqual(thing, None)
 
     def test_4(self) -> None:
-        p = new_decoder(Optional[PurePath])
+        p = new_decoder[Optional[PurePath]](Optional[PurePath])
         thing = p(".")
         self.assertEqual(thing, PurePath())
 
     def test_5(self) -> None:
-        p = new_decoder(datetime, decoders=(unix_date_decoder,))
+        p = new_decoder[datetime](datetime, decoders=(unix_date_decoder,))
         thing = p(0)
         self.assertEqual(thing, datetime.fromtimestamp(0, tz=timezone.utc))
 
     def test_6(self) -> None:
         p1 = new_encoder(datetime, encoders=(unix_date_encoder,))
-        p2 = new_decoder(datetime, decoders=(unix_date_decoder,))
+        p2 = new_decoder[datetime](datetime, decoders=(unix_date_decoder,))
         t0 = datetime.fromtimestamp(0)
         t1 = p1(t0)
         t2 = p2(t1)
@@ -329,7 +329,7 @@ class Coders(TestCase):
 
     def test_7(self) -> None:
         p1 = new_encoder(datetime, encoders=(iso_date_encoder,))
-        p2 = new_decoder(datetime, decoders=(iso_date_decoder,))
+        p2 = new_decoder[datetime](datetime, decoders=(iso_date_decoder,))
         t0 = datetime.fromtimestamp(0)
         t1 = p1(t0)
         t2 = p2(t1)
@@ -337,7 +337,7 @@ class Coders(TestCase):
 
     def test_8(self) -> None:
         p1 = new_encoder(datetime, encoders=(internet_date_encoder,))
-        p2 = new_decoder(datetime, decoders=(internet_date_decoder,))
+        p2 = new_decoder[datetime](datetime, decoders=(internet_date_decoder,))
         t0 = datetime.fromtimestamp(0)
         t1 = p1(t0)
         t2 = p2(t1)

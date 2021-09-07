@@ -6,14 +6,16 @@ from inspect import isclass
 from itertools import chain, repeat
 from typing import (
     Any,
-    Callable,
+    Generic,
     Literal,
     Mapping,
     MutableMapping,
     MutableSet,
     Sequence,
     SupportsFloat,
+    TypeVar,
     Union,
+    cast,
     get_args,
     get_origin,
     get_type_hints,
@@ -22,6 +24,8 @@ from typing import (
 from ..types import is_iterable_not_str
 from .coders import DEFAULT_DECODERS
 from .types import MAPS, PRIMITIVES, SEQS, SETS, DecodeError, Decoder, DParser, DStep
+
+_T = TypeVar("_T")
 
 
 def _new_parser(
@@ -269,16 +273,18 @@ def _new_parser(
                 return p
 
 
-def new_decoder(
-    tp: Any, strict: bool = True, decoders: Sequence[Decoder] = DEFAULT_DECODERS
-) -> Callable[[Any], Any]:
-    p = _new_parser(tp, path=(), strict=strict, decoders=decoders)
+class new_decoder(Generic[_T]):
+    def __init__(
+        self,
+        tp: Any,
+        strict: bool = True,
+        decoders: Sequence[Decoder] = DEFAULT_DECODERS,
+    ) -> None:
+        self._p = _new_parser(tp, path=(), strict=strict, decoders=decoders)
 
-    def parser(x: Any) -> Any:
-        ok, thing = p(x)
+    def __call__(self, x: Any) -> _T:
+        ok, thing = self._p(x)
         if ok:
-            return thing
+            return cast(_T, thing)
         else:
             raise thing
-
-    return parser
