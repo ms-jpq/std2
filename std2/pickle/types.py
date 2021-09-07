@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from collections.abc import Mapping as ABC_Mapping
 from collections.abc import MutableMapping as ABC_MutableMapping
 from collections.abc import MutableSequence as ABC_MutableSequence
@@ -40,7 +41,7 @@ _SETS_M = {MutableSet, ABC_MutableSet, Set, set}
 SETS = {AbstractSet, ABC_Set, FrozenSet, frozenset} | _SETS_M
 
 _SEQS_M = {MutableSequence, ABC_MutableSequence, List, list}
-SEQS = {Sequence, ABC_Sequence} | _SEQS_M
+SEQS = {Iterable, Sequence, ABC_Sequence} | _SEQS_M
 
 PRIMITIVES = {bool, int, float, bytes, bytearray, str, type(None)}
 
