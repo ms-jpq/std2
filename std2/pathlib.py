@@ -5,7 +5,7 @@ from typing import Iterator, Optional, Union
 AnyPath = Union[PathLike, str]
 
 
-def walk(path: Path, dirs: bool = False) -> Iterator[Path]:
+def walk(path: AnyPath, dirs: bool = False) -> Iterator[Path]:
     for s in scandir(path):
         p = Path(s)
         if s.is_dir():
