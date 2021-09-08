@@ -7,7 +7,7 @@ AnyPath = Union[PathLike, str]
 
 def walk(path: Path, dirs: bool = False) -> Iterator[Path]:
     for s in scandir(path):
-        p = Path(s.path)
+        p = Path(s)
         if s.is_dir():
             if dirs:
                 yield p
