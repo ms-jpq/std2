@@ -42,6 +42,6 @@ def clamp(
 ) -> _T:
     l, h = min(lo, hi), max(lo, hi)  # type: ignore
     if key:
-        return max(l, min(h, n, key=key), key=key)
+        return max(l, min(h, n, key=key), key=key)  # type: ignore
     else:
         return max(l, min(h, n))  # type: ignore
