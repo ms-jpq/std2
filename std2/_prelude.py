@@ -40,7 +40,7 @@ class SupportsLT(Protocol):
 def clamp(
     lo: _T, n: _T, hi: _T, key: Optional[Callable[[_T], SupportsLT]] = None
 ) -> _T:
-    l, h = min(lo, hi, key=key), max(lo, hi, key=key) if key else min(lo, hi), max(lo, hi)  # type: ignore
+    l, h = (min(lo, hi, key=key), max(lo, hi, key=key)) if key else (min(lo, hi), max(lo, hi))  # type: ignore
     if key:
         return max(l, min(h, n, key=key), key=key)  # type: ignore
     else:
