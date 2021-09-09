@@ -19,3 +19,11 @@ class Clamp(TestCase):
     def test_4(self) -> None:
         a = clamp(1.0, -5, 2.0)
         self.assertEqual(a, 1.0)
+
+    def test_5(self) -> None:
+        a = clamp(2, 1, 0)
+        self.assertEqual(a, 1)
+
+    def test_6(self) -> None:
+        a = clamp(2, -1, 0)
+        self.assertEqual(a, 0)
