@@ -10,6 +10,7 @@ from typing import (
     MutableMapping,
     MutableSet,
     Sequence,
+    SupportsFloat,
     TypeVar,
     Union,
     cast,
@@ -211,6 +212,16 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                             )
 
                     return True, acc
+
+            return p
+
+        elif tp is float:
+
+            def p(x: Any) -> EStep:
+                if isinstance(x, SupportsFloat):
+                    return True, x
+                else:
+                    return False, EncodeError(path=(*path, tp), actual=x)
 
             return p
 
