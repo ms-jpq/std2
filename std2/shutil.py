@@ -17,7 +17,7 @@ def display_width(tabsize: int, string: str) -> int:
                 yield tabsize
             else:
                 code = east_asian_width(char)
-                return _UNICODE_WIDTH_LOOKUP.get(code, 1)
+                yield _UNICODE_WIDTH_LOOKUP.get(code, 1)
 
     return sum(cont())
 
