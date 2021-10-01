@@ -44,7 +44,7 @@ def hr(sep: str = "-", tabsize: int = 4, cols: int = _cols()) -> str:
     return line
 
 
-def hr_print(thing: Any, sep: str = "-", tabsize: int = 4) -> str:
+def hr_print(thing: Any, sep: str = "-", end: str = "", tabsize: int = 4) -> str:
     line = hr(sep=sep, tabsize=tabsize)
-    msg = f"{line}{linesep}{thing}{linesep}{line}"
+    msg = f"{line}{linesep}{thing}{linesep}{line}{end}"
     return msg
