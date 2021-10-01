@@ -1,3 +1,4 @@
+from functools import lru_cache
 from itertools import cycle
 from os import linesep
 from shutil import get_terminal_size
@@ -22,9 +23,13 @@ def display_width(tabsize: int, string: str) -> int:
     return sum(cont())
 
 
-def big_print(thing: Any, sep: str = "-", tabsize: int = 4) -> str:
+def _cols() -> int:
     cols, _ = get_terminal_size()
+    return cols
 
+
+@lru_cache
+def hr(sep: str = "-", tabsize: int = 4, cols: int = _cols()) -> str:
     def cont() -> Iterator[str]:
         source = cycle(zip(sep, (display_width(tabsize, string=char) for char in sep)))
         seen = 0
@@ -36,5 +41,10 @@ def big_print(thing: Any, sep: str = "-", tabsize: int = 4) -> str:
                 break
 
     line = "".join(cont())
+    return line
+
+
+def hr_print(thing: Any, sep: str = "-", tabsize: int = 4) -> str:
+    line = hr(sep=sep, tabsize=tabsize)
     msg = f"{line}{linesep}{thing}{linesep}{line}"
     return msg
