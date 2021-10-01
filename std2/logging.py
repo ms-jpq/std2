@@ -1,10 +1,15 @@
 from contextlib import contextmanager
 from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING, Logger, getLevelName
-from os import linesep
-from shutil import get_terminal_size
-from typing import Any, Iterator, Mapping, Tuple
+from typing import Iterator, Mapping, Tuple
 
-_LEVELS = (CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING)
+_LEVELS = (
+    CRITICAL,
+    DEBUG,
+    ERROR,
+    INFO,
+    NOTSET,
+    WARNING,
+)
 
 
 def _gen_lvls() -> Mapping[str, int]:
@@ -28,10 +33,3 @@ def log_exc(log: Logger, suppress: bool = False) -> Iterator[None]:
         log.exception("%s", e)
         if not suppress:
             raise
-
-
-def big_print(thing: Any, sep: str = "-") -> str:
-    col, _ = get_terminal_size()
-    line = sep * col
-    msg = f"{line}{linesep}{thing}{linesep}{line}"
-    return msg
