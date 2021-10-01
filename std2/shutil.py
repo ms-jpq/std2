@@ -32,6 +32,8 @@ def big_print(thing: Any, sep: str = "-", tabsize: int = 4) -> str:
             seen += length
             if seen < cols:
                 yield char
+            else:
+                break
 
     line = "".join(cont())
     msg = f"{line}{linesep}{thing}{linesep}{line}"
