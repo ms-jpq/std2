@@ -20,6 +20,7 @@ class AClosable(Protocol):
 _T2 = TypeVar("_T2", bound=AClosable)
 
 
+# TODO -- 3.10 has this in the stdlib
 @asynccontextmanager
 async def aclosing(thing: _T2) -> AsyncIterator[_T2]:
     try:
@@ -28,6 +29,7 @@ async def aclosing(thing: _T2) -> AsyncIterator[_T2]:
         await thing.aclose()
 
 
+# TODO -- 3.10 has this on nullcontext
 @asynccontextmanager
 async def nullacontext(enter_result: _T) -> AsyncIterator[_T]:
     yield enter_result
