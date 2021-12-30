@@ -189,7 +189,7 @@ def _new_parser(tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]) -> EP
                     fp = _new_parser(
                         hints[field.name], path=(*path, tp, field), encoders=encoders
                     )
-                    req = field.default is MISSING and field.default_factory is MISSING  # type: ignore
+                    req = field.default is MISSING and field.default_factory is MISSING
                     cls_fields[field.name] = fp
                     if req:
                         rq_fields.add(field.name)

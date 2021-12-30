@@ -212,7 +212,7 @@ def _new_parser(
                         strict=strict,
                         decoders=decoders,
                     )
-                    req = field.default is MISSING and field.default_factory is MISSING  # type: ignore
+                    req = field.default is MISSING and field.default_factory is MISSING
                     cls_fields[field.name] = fp
                     if req:
                         rq_fields.add(field.name)
