@@ -1,8 +1,9 @@
+from asyncio import sleep
 from typing import AsyncIterator
 from unittest import IsolatedAsyncioTestCase
 
 from ..std2 import anext
-from ..std2.aitertools import aenumerate, atake, to_async
+from ..std2.aitertools import aenumerate, atake, merge, to_async
 from ._consts import MODICUM_REP_FACTOR, SMOL_REP_FACTOR
 
 
@@ -55,3 +56,69 @@ class ATake(IsolatedAsyncioTestCase):
         ait = to_async(range(1))
         l2 = [i async for i in atake(ait, 3)]
         self.assertEqual(len(l2), 1)
+
+
+class Merge(IsolatedAsyncioTestCase):
+    async def test_1(self) -> None:
+        l2 = [i async for i in merge(*(to_async(range(10)) for _ in range(4)))]
+        self.assertEqual(len(l2), 40)
+
+    async def test_2(self) -> None:
+        cut_off = 5
+
+        async def cont() -> AsyncIterator[int]:
+
+            for i in range(100):
+                if i > cut_off + 1:
+                    self.fail()
+
+                yield i
+
+        async for n in merge(*(cont() for _ in range(20))):
+            if n == cut_off:
+                break
+        else:
+            self.fail()
+
+        for _ in range(1000):
+            await sleep(0)
+
+    async def test_3(self) -> None:
+        async def cont() -> AsyncIterator[int]:
+            for i in range(100):
+                if 1 == 1:
+                    self.fail()
+                else:
+                    yield i
+
+        _ = merge(*(cont() for _ in range(20)))
+        for _ in range(1000):
+            await sleep(0)
+
+    async def test_4(self) -> None:
+        async def cont() -> AsyncIterator[int]:
+            for i in range(100):
+                yield i
+
+        with self.assertRaises(RuntimeError):
+            async for n in merge(*(cont() for _ in range(20))):
+                if n > 2:
+                    raise RuntimeError()
+
+        for _ in range(1000):
+            await sleep(0)
+
+    async def test_5(self) -> None:
+        async def cont() -> AsyncIterator[int]:
+            for i in range(100):
+                if i < 5:
+                    yield i
+                else:
+                    raise RuntimeError()
+
+        with self.assertRaises(RuntimeError):
+            async for _ in merge(*(cont() for _ in range(20))):
+                pass
+
+        for _ in range(1000):
+            await sleep(0)
