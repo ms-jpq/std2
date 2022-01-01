@@ -96,11 +96,7 @@ async def merge(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
             done, _ = await wait((g, fut), return_when=FIRST_COMPLETED)
             if fut in done:
                 item = await fut
-
-                try:
-                    yield item
-                except GeneratorExit:
-                    break
+                yield item
 
             if g in done:
                 break
