@@ -12,6 +12,9 @@ IPAddress = Union[IPv4Address, IPv6Address]
 IPNetwork = Union[IPv4Network, IPv6Network]
 IPInterface = Union[IPv4Interface, IPv6Interface]
 
+LOOPBACK_V4_DEFAULT = IPv4Address("127.0.0.1")
+LOOPBACK_V6_DEFAULT = IPv6Address("::1")
+
 LOOPBACK_V4 = IPv4Network("127.0.0.0/8")
 LOOPBACK_V6 = IPv6Network("::1/128")
 
