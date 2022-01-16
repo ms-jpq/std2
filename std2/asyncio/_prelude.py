@@ -27,7 +27,7 @@ async def cancel(f: Future) -> None:
         await sleep(0)
 
 
-async def run_in_executor(f: Callable[..., _T], *args: Any, **kwargs: Any) -> _T:
+async def to_thread(f: Callable[..., _T], *args: Any, **kwargs: Any) -> _T:
     loop = get_running_loop()
     cont = partial(f, *args, **kwargs)
     return await loop.run_in_executor(None, cont)
