@@ -2,7 +2,7 @@ from functools import lru_cache
 from itertools import cycle
 from os import linesep
 from shutil import get_terminal_size
-from typing import Any, Iterator, Optional
+from typing import Iterator, Optional
 from unicodedata import east_asian_width
 
 _COLS, _ = get_terminal_size()
@@ -26,7 +26,7 @@ def display_width(tabsize: int, string: str) -> int:
 
 @lru_cache
 def hr(
-    thing: Optional[Any] = None,
+    thing: Optional[str] = None,
     *,
     sep: str = "-",
     end: str = linesep,
