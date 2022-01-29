@@ -26,7 +26,7 @@ def display_width(tabsize: int, string: str) -> int:
 
 @lru_cache
 def hr(
-    thing: Optional[Any],
+    thing: Optional[Any] = None,
     *,
     sep: str = "-",
     end: str = linesep,
