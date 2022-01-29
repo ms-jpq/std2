@@ -5,6 +5,7 @@ from shutil import get_terminal_size
 from typing import Any, Iterator
 from unicodedata import east_asian_width
 
+_COLS, _ = get_terminal_size()
 _UNICODE_WIDTH_LOOKUP = {
     "W": 2,  # CJK
     "N": 0,  # Non printable
@@ -23,13 +24,8 @@ def display_width(tabsize: int, string: str) -> int:
     return sum(cont())
 
 
-def _cols() -> int:
-    cols, _ = get_terminal_size()
-    return cols
-
-
 @lru_cache
-def hr(sep: str = "-", tabsize: int = 4, cols: int = _cols()) -> str:
+def hr(sep: str = "-", tabsize: int = 4, cols: int = _COLS) -> str:
     def cont() -> Iterator[str]:
         source = cycle(zip(sep, (display_width(tabsize, string=char) for char in sep)))
         seen = 0
@@ -44,7 +40,9 @@ def hr(sep: str = "-", tabsize: int = 4, cols: int = _cols()) -> str:
     return line
 
 
-def hr_print(thing: Any, sep: str = "-", end: str = "", tabsize: int = 4) -> str:
-    line = hr(sep=sep, tabsize=tabsize)
+def hr_print(
+    thing: Any, sep: str = "-", end: str = "", tabsize: int = 4, cols: int = _COLS
+) -> str:
+    line = hr(sep=sep, tabsize=tabsize, cols=cols)
     msg = f"{line}{linesep}{thing}{linesep}{line}{end}"
     return msg
