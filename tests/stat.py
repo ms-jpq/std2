@@ -4,7 +4,7 @@ from unittest import TestCase
 from ..std2.stat import RW_R__R__, RWXR_XR_X
 
 
-class HR(TestCase):
+class RWX(TestCase):
     def test_1(self) -> None:
         mode = filemode(RWXR_XR_X)
         self.assertEquals(mode, "?rwxr-xr-x")
