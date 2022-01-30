@@ -40,10 +40,14 @@ def create_server(
             if dualstack_ipv6:
                 self.socket.setsockopt(IPPROTO_IPV6, IPV6_V6ONLY, 0)
             TCPServer.server_bind(self)
+
             if isinstance(binding, PurePath):
                 self.server_name = self.socket.getsockname()
             elif isinstance(binding, tuple):
                 self.server_name = getfqdn().encode("idna").decode()
+                if isinstance(self, HTTPServer):
+                    _, actual_port, *_ = self.socket.getsockname()
+                    self.server_port = actual_port
             else:
                 never(binding)
 
