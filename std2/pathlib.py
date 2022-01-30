@@ -1,8 +1,11 @@
-from os import PathLike, scandir
-from pathlib import Path, PurePath
+from os import PathLike, altsep, scandir, sep
+from pathlib import Path, PurePath, PurePosixPath
 from typing import Iterator, Optional, Union
 
 AnyPath = Union[PathLike, str]
+
+POSIX_ROOT = PurePosixPath(altsep or sep)
+ROOT = PurePath(sep)
 
 
 def walk(path: Union[PurePath, str], dirs: bool = False) -> Iterator[Path]:
