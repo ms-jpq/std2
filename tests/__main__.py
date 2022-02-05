@@ -22,7 +22,7 @@ def _parse_args() -> Namespace:
 def main() -> int:
     args = _parse_args()
     suite = defaultTestLoader.discover(
-        normcase(_TESTS), top_level_dir=str(_TOP_LV.parent), pattern=args.pattern
+        normcase(_TESTS), top_level_dir=normcase(_TOP_LV.parent), pattern=args.pattern
     )
     runner = TextTestRunner(
         verbosity=args.verbosity,
