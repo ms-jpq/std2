@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+from os.path import normcase
 from pathlib import Path
 from sys import exit
 from unittest import defaultTestLoader
@@ -21,7 +22,7 @@ def _parse_args() -> Namespace:
 def main() -> int:
     args = _parse_args()
     suite = defaultTestLoader.discover(
-        str(_TESTS), top_level_dir=str(_TOP_LV.parent), pattern=args.pattern
+        normcase(_TESTS), top_level_dir=str(_TOP_LV.parent), pattern=args.pattern
     )
     runner = TextTestRunner(
         verbosity=args.verbosity,
@@ -36,4 +37,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     exit(main())
-
