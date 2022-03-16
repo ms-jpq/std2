@@ -32,7 +32,7 @@ def create_server(
             ipv = ip_address(ip)
             if isinstance(ipv, IPv4Address):
                 addr_fam = AddressFamily.AF_INET
-            elif isinstance(ipv, IPv6Address) or not ip:
+            elif isinstance(ipv, IPv6Address):
                 dualstack_ipv6 = True
                 addr_fam = AddressFamily.AF_INET6
             else:
