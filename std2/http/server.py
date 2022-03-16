@@ -1,5 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
-from ipaddress import IPv4Address, IPv6Address
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from os.path import normcase
 from pathlib import PurePath
 from socket import IPPROTO_IPV6, IPV6_V6ONLY, AddressFamily, getfqdn
@@ -11,7 +11,7 @@ from ..types import never
 
 
 def create_server(
-    binding: Union[PurePath, Tuple[Union[IPAddress, Literal[""]], int]],
+    binding: Union[PurePath, Tuple[Union[IPAddress, Literal[""], str], int]],
     handler: Type[BaseHTTPRequestHandler],
 ) -> HTTPServer:
 
@@ -29,7 +29,15 @@ def create_server(
             dualstack_ipv6 = True
             addr_fam = AddressFamily.AF_INET6
         else:
-            never(ip)
+            ipv = ip_address(ip)
+            if isinstance(ipv, IPv4Address):
+                addr_fam = AddressFamily.AF_INET
+            elif isinstance(ipv, IPv6Address) or not ip:
+                dualstack_ipv6 = True
+                addr_fam = AddressFamily.AF_INET6
+            else:
+                never(ipv)
+
     else:
         never(binding)
 
