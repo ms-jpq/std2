@@ -1,3 +1,4 @@
+import sys
 from contextlib import suppress
 from os import environ
 from signal import Signals
@@ -5,6 +6,12 @@ from subprocess import DEVNULL, PIPE, CalledProcessError, CompletedProcess, Pope
 from typing import AbstractSet, Mapping, Optional
 
 from .pathlib import AnyPath
+
+if sys.version_info < (3, 9):
+    _R = CompletedProcess
+else:
+    _R = CompletedProcess[bytes]
+
 
 try:
     from signal import SIGKILL
@@ -39,7 +46,7 @@ def call(
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
     check: AbstractSet[int] = frozenset((0,))
-) -> CompletedProcess[bytes]:
+) -> _R:
     with Popen(
         (prog, *args),
         start_new_session=True,
