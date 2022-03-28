@@ -7,6 +7,6 @@ class Call(IsolatedAsyncioTestCase):
     async def test_1(self) -> None:
         stdin = b"tee"
         proc = await call("tee", stdin=stdin)
-        self.assertEqual(proc.code, 0)
-        self.assertEqual(proc.out, stdin)
-        self.assertEqual(proc.err, b"")
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(proc.stdout, stdin)
+        self.assertEqual(proc.stderr, b"")

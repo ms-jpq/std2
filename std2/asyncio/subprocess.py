@@ -1,12 +1,18 @@
+import sys
 from asyncio.subprocess import DEVNULL, PIPE, create_subprocess_exec
 from contextlib import suppress
 from os import environ
 from signal import Signals
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, CompletedProcess
 from typing import AbstractSet, Mapping, Optional
 
 from ..pathlib import AnyPath
-from ..subprocess import SIGDED, ProcReturn, kill_children
+from ..subprocess import SIGDED, kill_children
+
+if sys.version_info < (3, 9):
+    _R = CompletedProcess
+else:
+    _R = CompletedProcess[bytes]
 
 
 async def call(
@@ -19,7 +25,7 @@ async def call(
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
     check_returncode: AbstractSet[int] = frozenset((0,))
-) -> ProcReturn:
+) -> _R:
     proc = await create_subprocess_exec(
         prog,
         *args,
@@ -31,23 +37,23 @@ async def call(
         env=None if env is None else {**environ, **env},
     )
     try:
+        cmd = (prog, *args)
         stdout, stderr = await proc.communicate(stdin)
         code = await proc.wait()
 
         if check_returncode and code not in check_returncode:
             raise CalledProcessError(
                 returncode=code,
-                cmd=(prog, *args),
+                cmd=cmd,
                 output=stdout if capture_stdout else None,
                 stderr=stderr.decode() if capture_stderr else None,
             )
         else:
-            return ProcReturn(
-                prog=prog,
-                args=args,
-                code=code,
-                out=stdout if capture_stdout else b"",
-                err=stderr if capture_stderr else b"",
+            return CompletedProcess(
+                args=cmd,
+                returncode=code,
+                stdout=stdout if capture_stdout else b"",
+                stderr=stderr if capture_stderr else b"",
             )
     finally:
         with suppress(ProcessLookupError):
