@@ -1,3 +1,4 @@
+import sys
 from abc import abstractmethod
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Protocol, TypeVar
@@ -20,13 +21,19 @@ class AClosable(Protocol):
 _T2 = TypeVar("_T2", bound=AClosable)
 
 
-# TODO -- 3.10 has this in the stdlib
-@asynccontextmanager
-async def aclosing(thing: _T2) -> AsyncIterator[_T2]:
-    try:
-        yield thing
-    finally:
-        await thing.aclose()
+if sys.version_info < (3, 10):
+
+    @asynccontextmanager
+    async def aclosing(thing: _T2) -> AsyncIterator[_T2]:
+        try:
+            yield thing
+        finally:
+            await thing.aclose()
+
+else:
+    from contextlib import aclosing as _aclosing
+
+    aclosing = _aclosing
 
 
 # TODO -- 3.10 has this on nullcontext

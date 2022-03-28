@@ -35,5 +35,4 @@ def longest_common_path(p1: AnyPath, p2: AnyPath) -> Optional[PurePath]:
             else:
                 break
 
-    parts = tuple(cont())
-    return PurePath(*parts) if parts else None
+    return PurePath(*parts) if (parts := tuple(cont())) else None
