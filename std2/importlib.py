@@ -29,6 +29,18 @@ def _gen_mod_name(
             raise ValueError()
 
 
+def ld_mod(name: str, path: PurePath) -> ModuleType:
+    spec = spec_from_file_location(name, location=path, submodule_search_locations=[])
+    if not spec:
+        raise ImportError()
+    else:
+        mod = module_from_spec(spec)
+        modules[mod.__name__] = mod
+        assert isinstance(spec.loader, Loader)
+        spec.loader.exec_module(mod)
+        return mod
+
+
 def module_from_path(
     top_level: PurePath, python_path: AbstractSet[PurePath], path: PurePath
 ) -> ModuleType:
@@ -42,12 +54,5 @@ def module_from_path(
     elif name in modules:
         raise ImportError()
     else:
-        spec = spec_from_file_location(name, path, submodule_search_locations=[])
-        if not spec:
-            raise ImportError()
-        else:
-            mod = module_from_spec(spec)
-            modules[mod.__name__] = mod
-            assert isinstance(spec.loader, Loader)
-            spec.loader.exec_module(mod)
-            return mod
+        mod = ld_mod(name, path)
+        return mod
