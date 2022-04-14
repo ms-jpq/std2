@@ -33,7 +33,7 @@ async def call(
         stdin=PIPE if stdin is not None else DEVNULL,
         stdout=PIPE if capture_stdout else None,
         stderr=PIPE if capture_stderr else None,
-        cwd=None if cwd is None else cwd,
+        cwd=cwd,
         env=None if env is None else {**environ, **env},
     )
     try:
