@@ -11,6 +11,7 @@ from typing import (
     Iterable,
     Tuple,
     TypeVar,
+    cast,
 )
 
 from ._prelude import aiter
@@ -56,7 +57,7 @@ async def _merge_helper(q: Queue, end: Task, ait: AsyncIterable[Any]) -> None:
     ch = aiter(ait)
 
     while True:
-        pending_take = create_task(ch.__anext__())
+        pending_take = create_task(cast(Any, ch.__anext__()))
         done_1, _ = await wait((end, pending_take), return_when=FIRST_COMPLETED)
 
         if pending_take in done_1:
