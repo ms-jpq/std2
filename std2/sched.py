@@ -10,14 +10,14 @@ def ticker(period: float, immediately: bool = True) -> Iterator[Tuple[float, flo
     if immediately:
         with timeit() as duration:
             yield 0.0, elapsed
-        elapsed = duration()
+        elapsed = duration().total_seconds()
 
     while True:
         delay = max(period - elapsed, 0)
         sleep(delay)
         with timeit() as duration:
             yield delay, elapsed
-        elapsed = duration()
+        elapsed = duration().total_seconds()
 
 
 async def aticker(
@@ -27,11 +27,11 @@ async def aticker(
     if immediately:
         with timeit() as duration:
             yield 0.0, elapsed
-        elapsed = duration()
+        elapsed = duration().total_seconds()
 
     while True:
         delay = max(period - elapsed, 0)
         await asleep(delay)
         with timeit() as duration:
             yield delay, elapsed
-        elapsed = duration()
+        elapsed = duration().total_seconds()
