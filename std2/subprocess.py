@@ -4,7 +4,7 @@ from os import F_OK, environ
 from shutil import which
 from signal import Signals
 from subprocess import DEVNULL, PIPE, CalledProcessError, CompletedProcess, Popen
-from typing import AbstractSet, Mapping, Optional
+from typing import IO, AbstractSet, Mapping, Optional, Union
 
 from .pathlib import AnyPath
 
@@ -43,7 +43,7 @@ def call(
     kill_signal: Signals = SIGDED,
     capture_stdout: bool = True,
     capture_stderr: bool = True,
-    stdin: Optional[bytes] = None,
+    stdin: Union[IO[bytes], bytes, None] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
     check: AbstractSet[int] = frozenset((0,)),
@@ -52,7 +52,7 @@ def call(
         with Popen(
             (a0, *argv),
             start_new_session=True,
-            stdin=PIPE if stdin is not None else DEVNULL,
+            stdin=PIPE if isinstance(stdin, bytes) else (stdin if stdin else DEVNULL),
             stdout=PIPE if capture_stdout else None,
             stderr=PIPE if capture_stderr else None,
             cwd=cwd,
@@ -60,7 +60,9 @@ def call(
         ) as proc:
             try:
                 cmd = (arg0, *argv)
-                stdout, stderr = proc.communicate(stdin)
+                stdout, stderr = proc.communicate(
+                    stdin if isinstance(stdin, bytes) else None
+                )
                 code = proc.wait()
 
                 if check and code not in check:

@@ -5,7 +5,7 @@ from os import F_OK, environ
 from shutil import which
 from signal import Signals
 from subprocess import CalledProcessError, CompletedProcess
-from typing import AbstractSet, Mapping, Optional
+from typing import IO, AbstractSet, Mapping, Optional, Union
 
 from ..pathlib import AnyPath
 from ..subprocess import SIGDED, kill_children
@@ -22,7 +22,7 @@ async def call(
     kill_signal: Signals = SIGDED,
     capture_stdout: bool = True,
     capture_stderr: bool = True,
-    stdin: Optional[bytes] = None,
+    stdin: Union[IO[bytes], bytes, None] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
     check_returncode: AbstractSet[int] = frozenset((0,)),
@@ -32,7 +32,7 @@ async def call(
             a0,
             *argv,
             start_new_session=True,
-            stdin=PIPE if stdin is not None else DEVNULL,
+            stdin=PIPE if isinstance(stdin, bytes) else (stdin if stdin else DEVNULL),
             stdout=PIPE if capture_stdout else None,
             stderr=PIPE if capture_stderr else None,
             cwd=cwd,
@@ -40,7 +40,9 @@ async def call(
         )
         try:
             cmd = (arg0, *argv)
-            stdout, stderr = await proc.communicate(stdin)
+            stdout, stderr = await proc.communicate(
+                stdin if isinstance(stdin, bytes) else None
+            )
             code = await proc.wait()
 
             if check_returncode and code not in check_returncode:
