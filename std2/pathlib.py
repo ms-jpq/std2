@@ -1,10 +1,13 @@
-from os import PathLike, altsep, scandir, sep
-from pathlib import Path, PurePath, PurePosixPath
+from ntpath import sep as ntsep
+from os import PathLike, scandir, sep
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from posixpath import sep as posixsep
 from typing import Iterator, Optional, Union
 
 AnyPath = Union[PathLike, str]
 
-POSIX_ROOT = PurePosixPath(altsep or sep)
+NT_ROT = PureWindowsPath(ntsep)
+POSIX_ROOT = PurePosixPath(posixsep)
 ROOT = PurePath(sep)
 
 
