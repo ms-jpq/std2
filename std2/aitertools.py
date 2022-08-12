@@ -1,10 +1,10 @@
 from asyncio import FIRST_COMPLETED, Queue, gather, wait
 from asyncio.locks import Event
 from asyncio.tasks import Task, create_task
-from collections import deque
 from itertools import count
 from typing import (
     Any,
+    AsyncGenerator,
     AsyncIterable,
     AsyncIterator,
     Awaitable,
@@ -59,34 +59,40 @@ async def _merge_helper(
 ) -> None:
     ch = aiter(ait)
 
-    while True:
-        pending_take = create_task(cast(Any, ch.__anext__()))
-        done_1, pending_1 = await wait((end, pending_take), return_when=FIRST_COMPLETED)
-        if end in done_1:
-            if cancel_when_done:
-                await cancel(*pending_1)
-            break
-        elif pending_take in done_1:
-            try:
-                item = pending_take.result()
-            except StopAsyncIteration:
+    try:
+        while True:
+            pending_take = create_task(cast(Any, ch.__anext__()))
+            done_1, pending_1 = await wait(
+                (end, pending_take), return_when=FIRST_COMPLETED
+            )
+            if end in done_1:
+                if cancel_when_done:
+                    await cancel(*pending_1)
                 break
-            else:
-                pending_put = create_task(q.put(item))
-                done_2, pending_2 = await wait(
-                    (end, pending_put), return_when=FIRST_COMPLETED
-                )
-                if end in done_2:
-                    if cancel_when_done:
-                        await cancel(*pending_2)
+            elif pending_take in done_1:
+                try:
+                    item = pending_take.result()
+                except StopAsyncIteration:
                     break
-                elif pending_put in done_2:
-                    pending_put.result()
                 else:
-                    assert False
+                    pending_put = create_task(q.put(item))
+                    done_2, pending_2 = await wait(
+                        (end, pending_put), return_when=FIRST_COMPLETED
+                    )
+                    if end in done_2:
+                        if cancel_when_done:
+                            await cancel(*pending_2)
+                        break
+                    elif pending_put in done_2:
+                        pending_put.result()
+                    else:
+                        assert False
 
-        else:
-            assert False
+            else:
+                assert False
+    finally:
+        if isinstance(ch, AsyncGenerator):
+            ch.aclose()
 
 
 async def merge(
