@@ -1,5 +1,5 @@
 from asyncio import FIRST_COMPLETED, wait
-from asyncio.tasks import Task, create_task
+from asyncio.tasks import Task, create_task, gather
 from itertools import count
 from typing import (
     Any,
@@ -8,6 +8,7 @@ from typing import (
     AsyncIterator,
     Awaitable,
     Iterable,
+    Iterator,
     MutableMapping,
     Tuple,
     TypeVar,
@@ -15,7 +16,6 @@ from typing import (
 )
 
 from ._prelude import aiter
-from .asyncio import cancel
 
 _T = TypeVar("_T")
 
@@ -53,24 +53,31 @@ async def achain(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
             yield item
 
 
-async def merge(
-    *aits: AsyncIterable[_T], cancel_when_done: bool = False
-) -> AsyncIterator[_T]:
+async def merge(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
     channels: MutableMapping[Task, AsyncIterator[_T]] = {}
-    for ait in aits:
-        a = aiter(ait)
-        key = create_task(cast(Any, a.__anext__()))
-        channels[key] = a
+    try:
+        for ait in aits:
+            a = aiter(ait)
+            key = create_task(cast(Any, a.__anext__()))
+            channels[key] = a
 
-    while channels:
-        done, _ = await wait(channels, return_when=FIRST_COMPLETED)
-        for task in done:
-            a = channels.pop(task)
-            try:
-                item = task.result()
-            except StopAsyncIteration:
-                pass
-            else:
-                key = create_task(cast(Any, a.__anext__()))
-                channels[key] = a
-                yield item
+        while channels:
+            done, _ = await wait(channels, return_when=FIRST_COMPLETED)
+            for task in done:
+                a = channels.pop(task)
+                try:
+                    item = task.result()
+                except StopAsyncIteration:
+                    pass
+                else:
+                    key = create_task(cast(Any, a.__anext__()))
+                    channels[key] = a
+                    yield item
+    finally:
+
+        def cont() -> Iterator[Awaitable[None]]:
+            for ch in channels:
+                if isinstance(ch, AsyncGenerator):
+                    yield ch.aclose()
+
+        await gather(*cont())
