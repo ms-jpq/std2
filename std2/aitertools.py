@@ -1,5 +1,4 @@
-from asyncio import FIRST_COMPLETED, Queue, gather, wait
-from asyncio.locks import Event
+from asyncio import FIRST_COMPLETED, wait
 from asyncio.tasks import Task, create_task
 from itertools import count
 from typing import (
@@ -9,7 +8,7 @@ from typing import (
     AsyncIterator,
     Awaitable,
     Iterable,
-    MutableSequence,
+    MutableMapping,
     Tuple,
     TypeVar,
     cast,
@@ -54,72 +53,24 @@ async def achain(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
             yield item
 
 
-async def _merge_helper(
-    cancel_when_done: bool, q: Queue, end: Task, ait: AsyncIterable[Any]
-) -> None:
-    ch = aiter(ait)
-
-    try:
-        while True:
-            pending_take = create_task(cast(Any, ch.__anext__()))
-            done_1, pending_1 = await wait(
-                (end, pending_take), return_when=FIRST_COMPLETED
-            )
-            if end in done_1:
-                if cancel_when_done:
-                    await cancel(*pending_1)
-                break
-            elif pending_take in done_1:
-                try:
-                    item = pending_take.result()
-                except StopAsyncIteration:
-                    break
-                else:
-                    pending_put = create_task(q.put(item))
-                    done_2, pending_2 = await wait(
-                        (end, pending_put), return_when=FIRST_COMPLETED
-                    )
-                    if end in done_2:
-                        if cancel_when_done:
-                            await cancel(*pending_2)
-                        break
-                    elif pending_put in done_2:
-                        pending_put.result()
-                    else:
-                        assert False
-
-            else:
-                assert False
-    finally:
-        if isinstance(ch, AsyncGenerator):
-            ch.aclose()
-
-
 async def merge(
     *aits: AsyncIterable[_T], cancel_when_done: bool = False
 ) -> AsyncIterator[_T]:
-    ev = Event()
-    stack: MutableSequence[Task] = []
-    q: Queue = Queue(maxsize=1)
+    channels: MutableMapping[Task, AsyncIterator[_T]] = {}
+    for ait in aits:
+        a = aiter(ait)
+        key = create_task(cast(Any, a.__anext__()))
+        channels[key] = a
 
-    end = create_task(ev.wait())
-    g = gather(
-        *(_merge_helper(cancel_when_done, q=q, end=end, ait=ait) for ait in aits)
-    )
-
-    try:
-        while True:
-            fut = stack.pop() if stack else create_task(q.get())
-            done, pending = await wait((g, fut), return_when=FIRST_COMPLETED)
-
-            if fut in done:
-                yield fut.result()
-            elif fut in pending:
-                stack.append(fut)
-
-            if g in done:
-                await cancel(*pending)
-                break
-    finally:
-        ev.set()
-        await g
+    while channels:
+        done, _ = await wait(channels, return_when=FIRST_COMPLETED)
+        for task in done:
+            a = channels.pop(task)
+            try:
+                item = task.result()
+            except StopAsyncIteration:
+                pass
+            else:
+                key = create_task(cast(Any, a.__anext__()))
+                channels[key] = a
+                yield item
