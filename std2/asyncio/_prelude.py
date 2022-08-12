@@ -22,10 +22,14 @@ def go(log: Logger, aw: Awaitable[_T], suppress: bool = False) -> Awaitable[_T]:
     return create_task(wrapped())
 
 
-async def cancel(f: Future) -> None:
+def cancel(f: Future) -> Awaitable[None]:
     f.cancel()
-    while not f.done():
-        await sleep(0)
+
+    async def cont() -> None:
+        while not f.done():
+            await sleep(0)
+
+    return cont()
 
 
 if sys.version_info < (3, 9):
