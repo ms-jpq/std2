@@ -53,12 +53,14 @@ async def achain(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
             yield item
 
 
-async def _merge_helper(q: Queue, end: Task, ait: AsyncIterable[Any]) -> None:
+async def _merge_helper(
+    cancel_when_done: bool, q: Queue, end: Task, ait: AsyncIterable[Any]
+) -> None:
     ch = aiter(ait)
 
     while True:
         pending_take = create_task(cast(Any, ch.__anext__()))
-        done_1, _ = await wait((end, pending_take), return_when=FIRST_COMPLETED)
+        done_1, pending_1 = await wait((end, pending_take), return_when=FIRST_COMPLETED)
 
         if pending_take in done_1:
             try:
@@ -67,10 +69,12 @@ async def _merge_helper(q: Queue, end: Task, ait: AsyncIterable[Any]) -> None:
                 break
             else:
                 if end in done_1:
+                    if cancel_when_done:
+                        await cancel(*pending_1)
                     break
                 else:
                     pending_put = create_task(q.put(item))
-                    done_2, _ = await wait(
+                    done_2, pending_2 = await wait(
                         (end, pending_put), return_when=FIRST_COMPLETED
                     )
 
@@ -78,18 +82,26 @@ async def _merge_helper(q: Queue, end: Task, ait: AsyncIterable[Any]) -> None:
                         await pending_put
 
                     if end in done_2:
+                        if cancel_when_done:
+                            await cancel(*pending_2)
                         break
 
         if end in done_1:
+            if cancel_when_done:
+                await cancel(*pending_1)
             break
 
 
-async def merge(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
+async def merge(
+    *aits: AsyncIterable[_T], cancel_when_done: bool = False
+) -> AsyncIterator[_T]:
     ev = Event()
     q: Queue = Queue(maxsize=1)
 
     end = create_task(ev.wait())
-    g = gather(*(_merge_helper(q, end=end, ait=ait) for ait in aits))
+    g = gather(
+        *(_merge_helper(cancel_when_done, q=q, end=end, ait=ait) for ait in aits)
+    )
 
     try:
         while True:
