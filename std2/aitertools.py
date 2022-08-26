@@ -1,14 +1,13 @@
 from asyncio import FIRST_COMPLETED, wait
-from asyncio.tasks import Task, create_task, gather
+from asyncio.exceptions import CancelledError
+from asyncio.tasks import Task, create_task
 from itertools import count
 from typing import (
     Any,
-    AsyncGenerator,
     AsyncIterable,
     AsyncIterator,
     Awaitable,
     Iterable,
-    Iterator,
     MutableMapping,
     Tuple,
     TypeVar,
@@ -16,6 +15,7 @@ from typing import (
 )
 
 from ._prelude import aiter
+from .asyncio import cancel
 
 _T = TypeVar("_T")
 
@@ -55,29 +55,27 @@ async def achain(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
 
 async def merge(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
     channels: MutableMapping[Task, AsyncIterator[_T]] = {}
-    try:
-        for ait in aits:
-            a = aiter(ait)
-            key = create_task(cast(Any, a.__anext__()))
-            channels[key] = a
 
-        while channels:
-            done, _ = await wait(channels, return_when=FIRST_COMPLETED)
-            for task in done:
-                a = channels.pop(task)
-                try:
-                    item = task.result()
-                except StopAsyncIteration:
-                    pass
-                else:
-                    key = create_task(cast(Any, a.__anext__()))
-                    channels[key] = a
-                    yield item
-    finally:
+    for ait in aits:
+        a = aiter(ait)
+        key = create_task(cast(Any, a.__anext__()))
+        channels[key] = a
 
-        def cont() -> Iterator[Awaitable[None]]:
-            for ch in channels:
-                if isinstance(ch, AsyncGenerator):
-                    yield ch.aclose()
+    while channels:
+        done, pending = await wait(channels, return_when=FIRST_COMPLETED)
+        for task in done:
+            a = channels.pop(task)
+            try:
+                item = task.result()
+            except StopAsyncIteration:
+                pass
+            except CancelledError:
+                await cancel(*pending)
+                channels.clear()
+                raise
+            else:
+                key = create_task(cast(Any, a.__anext__()))
+                channels[key] = a
+                yield item
 
-        await gather(*cont())
+    assert not channels
