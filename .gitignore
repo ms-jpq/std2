@@ -2,3 +2,6 @@
 /temp/
 __pycache__/
 /.vscode/
+/cython/
+*.c
+*.so
