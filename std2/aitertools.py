@@ -61,21 +61,22 @@ async def merge(*aits: AsyncIterable[_T]) -> AsyncIterator[_T]:
         key = create_task(cast(Any, a.__anext__()))
         channels[key] = a
 
-    while channels:
-        done, pending = await wait(channels, return_when=FIRST_COMPLETED)
-        for task in done:
-            a = channels.pop(task)
-            try:
-                item = task.result()
-            except StopAsyncIteration:
-                pass
-            except CancelledError:
-                await cancel(*pending)
-                channels.clear()
-                raise
-            else:
-                key = create_task(cast(Any, a.__anext__()))
-                channels[key] = a
-                yield item
+    try:
+        while channels:
+            done, _ = await wait(channels, return_when=FIRST_COMPLETED)
+            for task in done:
+                a = channels.pop(task)
+                try:
+                    item = task.result()
+                except StopAsyncIteration:
+                    pass
+                else:
+                    key = create_task(cast(Any, a.__anext__()))
+                    channels[key] = a
+                    yield item
+    except CancelledError:
+        await cancel(*channels)
+        channels.clear()
+        raise
 
     assert not channels
