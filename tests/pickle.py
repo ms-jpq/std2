@@ -20,7 +20,6 @@ from typing import (
 from unittest import TestCase
 from uuid import UUID, uuid4
 
-from ..std2.pickle import DecodeError, new_decoder, new_encoder
 from ..std2.pickle.coders import (
     internet_date_decoder,
     internet_date_encoder,
@@ -29,6 +28,9 @@ from ..std2.pickle.coders import (
     unix_date_decoder,
     unix_date_encoder,
 )
+from ..std2.pickle.decoder import new_decoder
+from ..std2.pickle.encoder import new_encoder
+from ..std2.pickle.types import DecodeError
 
 T = TypeVar("T")
 
