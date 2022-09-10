@@ -1,3 +1,4 @@
+from functools import wraps
 from typing import Any, Callable, TypeVar, cast
 
 from .types import AnyFun
@@ -10,6 +11,7 @@ _F = TypeVar("_F", bound=Callable)
 def once(f: _F) -> _F:
     done, ret = False, None
 
+    @wraps(f)
     def wrapped(*args: Any, **kwargs: Any) -> Any:
         nonlocal done, ret
         if done:
