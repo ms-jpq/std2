@@ -55,3 +55,6 @@ jobs:
 
       - name: Test
         run: python3 -m tests
+
+      - name: Install
+        run: pip3 install -- .

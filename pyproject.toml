@@ -1,0 +1,4 @@
+[project]
+name            = "std2"
+requires-python = ">=3.8.0"
+version         = "0.1.10"
