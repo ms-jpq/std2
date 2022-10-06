@@ -190,13 +190,10 @@ def _new_parser(
         elif isclass(tp) and issubclass(tp, Enum):
 
             def p(x: Any) -> DStep:
-                if not isinstance(x, str):
-                    return False, DecodeError(path=(*path, tp), actual=x)
+                if member := tp.__members__.get(x):
+                    return True, member
                 else:
-                    try:
-                        return True, tp[x]
-                    except KeyError:
-                        return False, DecodeError(path=(*path, tp), actual=x)
+                    return False, DecodeError(path=(*path, tp), actual=x)
 
             return p
 
