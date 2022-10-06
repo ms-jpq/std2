@@ -228,8 +228,7 @@ def _new_parser(
                                 return False, v
 
                     ks = kwargs.keys()
-                    mk = rq_fields - ks
-                    if mk:
+                    if mk := rq_fields - ks:
                         return False, DecodeError(
                             path=(*path, tp), actual=x, missing_keys=mk
                         )
