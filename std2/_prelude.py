@@ -42,7 +42,7 @@ def clamp(
     lo: _LT,
     n: _LT,
     hi: _LT,
-    key: Optional[Callable[[_LT], _LT]] = None,
+    key: Optional[Callable[[_LT], SupportsLT]] = None,
 ) -> _LT:
     l, h = (
         (min(lo, hi, key=key), max(lo, hi, key=key))
