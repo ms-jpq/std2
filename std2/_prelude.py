@@ -1,8 +1,5 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from typing import (
-    Any,
     AsyncIterable,
     AsyncIterator,
     Callable,
@@ -15,6 +12,7 @@ from typing import (
 from .types import Void, VoidType
 
 _T = TypeVar("_T")
+_T_ca = TypeVar("_T_ca", contravariant=True)
 
 
 def aiter(ait: AsyncIterable[_T]) -> AsyncIterator[_T]:
@@ -31,17 +29,27 @@ async def anext(ait: AsyncIterator[_T], default: Union[_T, VoidType] = Void) -> 
             return default
 
 
-class SupportsLT(Protocol):
+class SupportsLT(Protocol[_T_ca]):
     @abstractmethod
-    def __lt__(self, other: Any) -> bool:
+    def __lt__(self, __other: _T_ca) -> bool:
         ...
 
 
+_LT = TypeVar("_LT", bound=SupportsLT)
+
+
 def clamp(
-    lo: _T, n: _T, hi: _T, key: Optional[Callable[[_T], SupportsLT]] = None
-) -> _T:
-    l, h = (min(lo, hi, key=key), max(lo, hi, key=key)) if key else (min(lo, hi), max(lo, hi))  # type: ignore
+    lo: _LT,
+    n: _LT,
+    hi: _LT,
+    key: Optional[Callable[[_LT], _LT]] = None,
+) -> _LT:
+    l, h = (
+        (min(lo, hi, key=key), max(lo, hi, key=key))
+        if key
+        else (min(lo, hi), max(lo, hi))
+    )
     if key:
-        return max(l, min(h, n, key=key), key=key)  # type: ignore
+        return max(l, min(h, n, key=key), key=key)
     else:
-        return max(l, min(h, n))  # type: ignore
+        return max(l, min(h, n))
