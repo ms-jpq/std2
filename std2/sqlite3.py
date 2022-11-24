@@ -1,6 +1,5 @@
 from contextlib import closing as _closing
 from contextlib import contextmanager, nullcontext
-from enum import Enum
 from locale import strcoll, strxfrm
 from pathlib import Path, PurePath
 from sqlite3 import Cursor, register_adapter, register_converter
@@ -58,10 +57,8 @@ def add_functions(conn: Connection) -> None:
 
 
 def add_conversion() -> None:
-    register_adapter(Enum, lambda e: e.name) # type: ignore
-
-    register_adapter(UUID, lambda u: u.bytes) # type: ignore
-    register_converter(UUID.__qualname__, lambda b: UUID(bytes=b)) # type: ignore
+    register_adapter(UUID, lambda u: u.bytes)
+    register_converter(UUID.__qualname__, lambda b: UUID(bytes=b))
 
     register_adapter(PurePath, str)
     register_converter(PurePath.__qualname__, lambda b: PurePath(b.decode()))

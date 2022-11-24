@@ -12,7 +12,7 @@ def trans_inplace(
     src: Sequence[_H], dest: Sequence[_H], unifying: int
 ) -> Iterable[Tuple[Tuple[int, int], Tuple[int, int]]]:
     """
-    for (i1, i2), (j1, j2) in inplace_trans(src, dest, n):
+    for (i1, i2), (j1, j2) in trans_inplace(src, dest, n):
       src[i1:i2] = dest[j1:j2]
     """
 
