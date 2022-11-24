@@ -58,10 +58,10 @@ def add_functions(conn: Connection) -> None:
 
 
 def add_conversion() -> None:
-    register_adapter(Enum, lambda e: e.name)
+    register_adapter(Enum, lambda e: e.name) # type: ignore
 
-    register_adapter(UUID, lambda u: u.bytes)
-    register_converter(UUID.__qualname__, lambda b: UUID(bytes=b))
+    register_adapter(UUID, lambda u: u.bytes) # type: ignore
+    register_converter(UUID.__qualname__, lambda b: UUID(bytes=b)) # type: ignore
 
     register_adapter(PurePath, str)
     register_converter(PurePath.__qualname__, lambda b: PurePath(b.decode()))
