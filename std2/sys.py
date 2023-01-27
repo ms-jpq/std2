@@ -7,8 +7,8 @@ from .asyncio import cancel
 
 
 @asynccontextmanager
-async def suicide(parent_id: Optional[int]) -> AsyncIterator[None]:
-    async def kms() -> None:
+async def autodie(parent_id: Optional[int]) -> AsyncIterator[None]:
+    async def die() -> None:
         ppid = getppid() if parent_id is None else parent_id
         while True:
             cppid = getppid()
@@ -17,7 +17,7 @@ async def suicide(parent_id: Optional[int]) -> AsyncIterator[None]:
             else:
                 await sleep(1)
 
-    task = create_task(kms())
+    task = create_task(die())
     try:
         yield None
     finally:
