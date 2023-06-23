@@ -34,6 +34,7 @@ async def _write(
         if isinstance(data, bytes):
             stdin.write(data)
         elif isinstance(data, Iterable):
+            assert not isinstance(data, bytes)
             for d in data:
                 stdin.write(d)
         else:
