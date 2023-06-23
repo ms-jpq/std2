@@ -41,4 +41,4 @@ def never(val: NoReturn) -> NoReturn:
 
 
 def is_iterable_not_str(val: Any) -> bool:
-    return isinstance(val, Iterable) and not isinstance(val, (str, ByteString))
+    return isinstance(val, Iterable) and not isinstance(val, (str, bytes, bytearray))

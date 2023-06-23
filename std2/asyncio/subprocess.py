@@ -106,6 +106,6 @@ async def call(
                     proc.kill()
             await proc.wait()
     elif a0 := which(arg0, mode=F_OK):
-       raise PermissionError(a0)
+        raise PermissionError(a0)
     else:
         raise FileNotFoundError(arg0)
