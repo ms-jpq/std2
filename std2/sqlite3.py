@@ -1,8 +1,6 @@
-from contextlib import closing as _closing
-from contextlib import contextmanager, nullcontext
 from locale import strcoll, strxfrm
 from pathlib import Path, PurePath
-from sqlite3 import Cursor, register_adapter, register_converter
+from sqlite3 import register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
 from typing import AbstractSet, Iterable, Iterator, Mapping, Optional, Union
 from unicodedata import normalize
@@ -23,16 +21,6 @@ def escape(nono: AbstractSet[str], escape: str, param: str) -> str:
             yield char
 
     return "".join(cont())
-
-
-@contextmanager
-def with_transaction(cursor: Cursor, closing: bool = True) -> Iterator[Cursor]:
-    with _closing(cursor) if closing else nullcontext(cursor):
-        cursor.execute("BEGIN TRANSACTION")
-        try:
-            yield cursor
-        finally:
-            cursor.execute("END TRANSACTION")
 
 
 def _normalize(text: Optional[str]) -> Optional[str]:
