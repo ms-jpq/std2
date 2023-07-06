@@ -10,6 +10,7 @@ from typing import (
     IO,
     AbstractSet,
     AsyncIterable,
+    Callable,
     Iterable,
     Mapping,
     Optional,
@@ -54,6 +55,8 @@ async def call(
     stdin: Union[None, IO[bytes], bytes, Iterable[bytes], AsyncIterable[bytes]] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
+    creationflags: int = 0,
+    preexec_fn: Optional[Callable[[], None]] = None,
     check_returncode: AbstractSet[int] = frozenset((0,)),
 ) -> _R:
     if a0 := which(arg0):
@@ -64,6 +67,8 @@ async def call(
             a0,
             *argv,
             start_new_session=True,
+            creationflags=creationflags,
+            preexec_fn=preexec_fn,
             stdin=io_in,
             stdout=io_out,
             stderr=io_err,

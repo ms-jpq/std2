@@ -4,7 +4,7 @@ from os import F_OK, environ
 from shutil import which
 from signal import Signals
 from subprocess import DEVNULL, PIPE, CalledProcessError, CompletedProcess, Popen
-from typing import IO, AbstractSet, Mapping, Optional, Union
+from typing import IO, AbstractSet, Callable, Mapping, Optional, Union
 
 from .pathlib import AnyPath
 
@@ -46,12 +46,16 @@ def call(
     stdin: Union[IO[bytes], bytes, None] = None,
     cwd: Optional[AnyPath] = None,
     env: Optional[Mapping[str, str]] = None,
+    creationflags: int = 0,
+    preexec_fn: Optional[Callable[[], None]] = None,
     check: AbstractSet[int] = frozenset((0,)),
 ) -> _R:
     if a0 := which(arg0):
         with Popen(
             (a0, *argv),
             start_new_session=True,
+            creationflags=creationflags,
+            preexec_fn=preexec_fn,
             stdin=PIPE if isinstance(stdin, bytes) else (stdin if stdin else DEVNULL),
             stdout=PIPE if capture_stdout else None,
             stderr=PIPE if capture_stderr else None,
