@@ -7,6 +7,7 @@ from subprocess import DEVNULL, PIPE, CalledProcessError, CompletedProcess, Pope
 from typing import IO, AbstractSet, Callable, Mapping, Optional, Union
 
 from .pathlib import AnyPath
+from .platform import OS, os
 
 if sys.version_info < (3, 9):
     _R = CompletedProcess
@@ -51,16 +52,17 @@ def call(
     check: AbstractSet[int] = frozenset((0,)),
 ) -> _R:
     if a0 := which(arg0):
+        kwargs = {} if os is OS.windows else {"preexec_fn": preexec_fn}
         with Popen(
             (a0, *argv),
             start_new_session=True,
             creationflags=creationflags,
-            preexec_fn=preexec_fn,
             stdin=PIPE if isinstance(stdin, bytes) else (stdin if stdin else DEVNULL),
             stdout=PIPE if capture_stdout else None,
             stderr=PIPE if capture_stderr else None,
             cwd=cwd,
             env=None if env is None else {**environ, **env},
+            **kwargs,  # type: ignore
         ) as proc:
             try:
                 cmd = (arg0, *argv)

@@ -19,6 +19,7 @@ from typing import (
 )
 
 from ..pathlib import AnyPath
+from ..platform import OS, os
 from ..subprocess import SIGDED, kill_children
 from ._prelude import pure
 
@@ -60,6 +61,7 @@ async def call(
     check_returncode: AbstractSet[int] = frozenset((0,)),
 ) -> _R:
     if a0 := which(arg0):
+        kwargs = {} if os is OS.windows else {"preexec_fn": preexec_fn}
         io_in = stdin if isinstance(stdin, IO) else (PIPE if stdin else DEVNULL)
         io_out = PIPE if capture_stdout else None
         io_err = PIPE if capture_stderr else None
@@ -68,12 +70,12 @@ async def call(
             *argv,
             start_new_session=True,
             creationflags=creationflags,
-            preexec_fn=preexec_fn,
             stdin=io_in,
             stdout=io_out,
             stderr=io_err,
             cwd=cwd,
             env=None if env is None else {**environ, **env},
+            **kwargs,  # type: ignore
         )
         try:
             cmd = (arg0, *argv)
