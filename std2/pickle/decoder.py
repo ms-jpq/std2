@@ -31,7 +31,6 @@ _T = TypeVar("_T")
 def _new_parser(
     tp: Any, path: Sequence[Any], strict: bool, decoders: Sequence[Decoder]
 ) -> DParser:
-
     for d in decoders:
         if isclass(tp) and (dp := d(tp, path=path, strict=strict, decoders=decoders)):
             return dp

@@ -67,7 +67,6 @@ class Merge(IsolatedAsyncioTestCase):
         cut_off = 5
 
         async def cont() -> AsyncIterator[int]:
-
             for i in range(100):
                 if i > cut_off + 1:
                     self.fail()

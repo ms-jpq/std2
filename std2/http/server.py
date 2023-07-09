@@ -14,7 +14,6 @@ def create_server(
     binding: Union[PurePath, Tuple[Union[IPAddress, Literal[""], str], int]],
     handler: Type[BaseHTTPRequestHandler],
 ) -> HTTPServer:
-
     dualstack_ipv6 = False
     if isinstance(binding, PurePath):
         addr_fam = AddressFamily.AF_UNIX

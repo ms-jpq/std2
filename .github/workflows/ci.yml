@@ -28,11 +28,8 @@ jobs:
         with:
           python-version: ${{ matrix.python_ver }}
 
-      - name: Pip Packages
-        run: pip install -U mypy
-
-      - name: Lint
-        run: mypy -- .
+      - run: |-
+          make lint
 
   tests:
     strategy:
@@ -55,8 +52,8 @@ jobs:
         with:
           python-version: ${{ matrix.python_ver }}
 
-      - name: Test
-        run: python3 -m tests
+      - run: |-
+          make test
 
-      - name: Install
-        run: pip3 install -- .
+      - run: |-
+          pip3 install -- .

@@ -21,7 +21,6 @@ def _base_encoder(t: Type) -> Encoder:
     def e(
         tp: Any, path: Sequence[Any], encoders: Sequence[Encoder]
     ) -> Optional[EParser]:
-
         if issubclass(tp, t):
 
             def p(x: Any) -> DStep:
@@ -51,7 +50,6 @@ def _base_decoder(t: Type) -> Decoder:
     def d(
         tp: Any, path: Sequence[Any], strict: bool, decoders: Sequence[Decoder]
     ) -> Optional[DParser]:
-
         if issubclass(tp, t):
 
             def p(x: Any) -> DStep:

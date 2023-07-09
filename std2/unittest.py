@@ -7,7 +7,6 @@ from unittest.suite import TestSuite
 
 
 def polyclass_matrix(*classes: Iterable[Type]) -> Iterator[Type]:
-
     for bcs in product(*classes):
 
         class PolyClass(*bcs):  # type: ignore
