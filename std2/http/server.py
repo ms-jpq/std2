@@ -42,6 +42,8 @@ def create_server(
 
     class Server(ThreadingHTTPServer):
         address_family = addr_fam
+        allow_reuse_address = True
+        allow_reuse_port = True
 
         def server_bind(self) -> None:
             if dualstack_ipv6:
