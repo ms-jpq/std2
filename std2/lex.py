@@ -7,14 +7,13 @@ class ParseError(Exception):
     ...
 
 
-def escape(
-    tokens: Iterable[_T], replace: bool, escape: Mapping[_T, _T]
-) -> Iterable[_T]:
-    for unit in tokens:
-        if unit in escape:
-            yield escape[unit]
-        elif not replace:
-            yield unit
+def escape(tokens: Iterable[_T], escape: Mapping[_T, _T]) -> Iterable[_T]:
+    for ch in tokens:
+        if esc := escape.get(ch):
+            yield esc
+            yield ch
+        else:
+            yield ch
 
 
 def split(tokens: Iterable[str], sep: str, esc: str) -> Iterator[str]:
