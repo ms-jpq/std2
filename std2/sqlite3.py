@@ -2,7 +2,7 @@ from locale import strcoll, strxfrm
 from pathlib import Path, PurePath
 from sqlite3 import register_adapter, register_converter
 from sqlite3.dbapi2 import Connection, Row
-from typing import AbstractSet, Iterable, Iterator, Mapping, Optional, Union
+from typing import AbstractSet, Iterable, Mapping, Optional, Union
 from unicodedata import normalize
 from uuid import UUID, uuid4
 
@@ -12,15 +12,8 @@ SQL_PARAMS = Iterable[SQL_PARAM]
 
 
 def escape(nono: AbstractSet[str], escape: str, param: str) -> str:
-    escape_chars = nono | {escape}
-
-    def cont() -> Iterator[str]:
-        for char in param:
-            if char in escape_chars:
-                yield escape
-            yield char
-
-    return "".join(cont())
+    esc = str.maketrans({ch: f"{escape}{ch}" for ch in nono | {escape}})
+    return param.translate(esc)
 
 
 def _normalize(text: Optional[str]) -> Optional[str]:
