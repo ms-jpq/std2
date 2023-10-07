@@ -1,3 +1,4 @@
+import sys
 from itertools import islice
 from math import ceil
 from multiprocessing import cpu_count
@@ -21,14 +22,21 @@ _K = TypeVar("_K")
 _V = TypeVar("_V")
 
 
-def chunk(it: Iterable[_T], n: int) -> Iterator[Sequence[_T]]:
-    i = iter(it)
-    return iter(lambda: tuple(islice(i, n)), ())
+if sys.version_info < (3, 12):
+
+    def batched(it: Iterable[_T], n: int) -> Iterator[Sequence[_T]]:
+        i = iter(it)
+        return iter(lambda: tuple(islice(i, n)), ())
+
+else:
+    from itertools import batched as _batched
+
+    batched = _batched
 
 
-def chunk_into(seq: Sequence[_T], chunks: int = _CPUS) -> Iterator[Sequence[_T]]:
+def batched_into(seq: Sequence[_T], chunks: int = _CPUS) -> Iterator[Sequence[_T]]:
     n = ceil(len(seq) / chunks)
-    yield from chunk(seq, n=n)
+    yield from batched(seq, n=n)
 
 
 def interleave(it: Iterable[_T], val: _T) -> Iterator[_T]:

@@ -7,8 +7,8 @@ from ..std2.stat import RW_R__R__, RWXR_XR_X
 class RWX(TestCase):
     def test_1(self) -> None:
         mode = filemode(RWXR_XR_X)
-        self.assertEquals(mode, "?rwxr-xr-x")
+        self.assertEqual(mode, "?rwxr-xr-x")
 
     def test_2(self) -> None:
         mode = filemode(RW_R__R__)
-        self.assertEquals(mode, "?rw-r--r--")
+        self.assertEqual(mode, "?rw-r--r--")

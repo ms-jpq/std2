@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from ..std2.itertools import chunk_into, deiter
+from ..std2.itertools import batched_into, deiter
 
 
 class ChunkInto(TestCase):
     def test_1(self) -> None:
         t1 = (1, 2, 3, 4, 5)
-        t2 = tuple(chunk_into(t1, chunks=2))
+        t2 = tuple(batched_into(t1, chunks=2))
         self.assertEqual(t2, ((1, 2, 3), (4, 5)))
 
 
