@@ -2,7 +2,14 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from os.path import normcase
 from pathlib import PurePath
-from socket import IPPROTO_IPV6, IPV6_V6ONLY, AddressFamily, getfqdn, has_ipv6
+from socket import (
+    IPPROTO_IPV6,
+    IPV6_V6ONLY,
+    AddressFamily,
+    getfqdn,
+    has_dualstack_ipv6,
+    has_ipv6,
+)
 from socketserver import TCPServer
 from typing import Any, Literal, Tuple, Type, Union
 
@@ -24,7 +31,9 @@ def create_server(
 
         if isinstance(ip, IPv4Address):
             addr_fam = AddressFamily.AF_INET
-        elif isinstance(ip, IPv6Address) or (has_ipv6 and not ip):
+        elif isinstance(ip, IPv6Address) or (
+            has_ipv6 and has_dualstack_ipv6() and not ip
+        ):
             dualstack_ipv6 = True
             addr_fam = AddressFamily.AF_INET6
         else:
