@@ -1,6 +1,13 @@
 from unittest import TestCase
 
-from ..std2.lex import ParseError, envsubst
+from ..std2.lex import ParseError, envsubst, split
+
+
+class Split(TestCase):
+    def test_1(self) -> None:
+        a = "1\\|2\\\\3|4,5"
+        b = tuple(split(a, sep="|", esc="\\"))
+        self.assertEqual(b, ("1|2\\3", "4,5"))
 
 
 class Envsubst(TestCase):

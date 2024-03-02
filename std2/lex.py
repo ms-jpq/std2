@@ -1,8 +1,8 @@
+from json import dumps
 from typing import Iterable, Iterator, Mapping, MutableSequence
 
 
-class ParseError(Exception):
-    ...
+class ParseError(Exception): ...
 
 
 def split(tokens: Iterable[str], sep: str, esc: str) -> Iterator[str]:
@@ -13,9 +13,10 @@ def split(tokens: Iterable[str], sep: str, esc: str) -> Iterator[str]:
         if c == esc:
             nc = next(it, "")
             if nc in {sep, esc}:
-                yield nc
+                acc.append(nc)
             else:
-                msg = f"Unexpected char: {nc} after {esc}, expected: {esc} | {sep}"
+                e, s, n = dumps(esc), dumps(sep), dumps(nc)
+                msg = f"Unexpected char: {n} after {e}, expected: {e} or {s}"
                 raise ParseError(msg)
         elif c == sep:
             yield "".join(acc)
