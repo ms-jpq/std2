@@ -285,6 +285,19 @@ class Decode(TestCase):
         with self.assertRaises(DecodeError):
             p(("name", "b"))
 
+    def test_29(self) -> None:
+        @dataclass(frozen=True)
+        class A:
+            a: int
+
+        @dataclass(frozen=True)
+        class B(A):
+            a: int = 0
+
+        p = new_decoder[B](B)
+        b = p({})
+        self.assertEqual(b, B())
+
 
 class Coders(TestCase):
     def test_1(self) -> None:
