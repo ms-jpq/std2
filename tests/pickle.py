@@ -12,6 +12,7 @@ from typing import (
     Literal,
     Mapping,
     Optional,
+    Protocol,
     Sequence,
     Tuple,
     TypeVar,
@@ -288,6 +289,18 @@ class Decode(TestCase):
     def test_29(self) -> None:
         @dataclass(frozen=True)
         class A:
+            a: int
+
+        @dataclass(frozen=True)
+        class B(A):
+            a: int = 0
+
+        p = new_decoder[B](B)
+        b = p({})
+        self.assertEqual(b, B())
+
+    def test_30(self) -> None:
+        class A(Protocol):
             a: int
 
         @dataclass(frozen=True)
