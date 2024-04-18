@@ -7,7 +7,7 @@ from .asyncio import cancel
 
 
 @asynccontextmanager
-async def autodie(parent_id: Optional[int]) -> AsyncIterator[None]:
+async def autodie(parent_id: Optional[int], wait: float = 0.1) -> AsyncIterator[None]:
     async def die() -> None:
         ppid = getppid() if parent_id is None else parent_id
         while True:
@@ -15,7 +15,7 @@ async def autodie(parent_id: Optional[int]) -> AsyncIterator[None]:
             if cppid == 1 or cppid != ppid:
                 raise SystemExit(1)
             else:
-                await sleep(1)
+                await sleep(wait)
 
     task = create_task(die())
     try:
