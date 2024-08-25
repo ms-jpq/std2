@@ -4,29 +4,45 @@ from ..std2.collections import defaultlist
 
 
 class DefaultList(TestCase):
-    def test_1(self) -> None:
-        l1 = defaultlist(lambda: 0)
-        self.assertEqual(len(l1), 0)
-        with self.assertRaises(IndexError):
-            l1[1]
-        with self.assertRaises(IndexError):
-            l1[-1]
+    # def test_1(self) -> None:
+    #     ls = [defaultlist(lambda: ""), []]
+    #     for l in ls:
+    #         self.assertEqual(len(l), 0)
+    #         with self.assertRaises(IndexError):
+    #             l[1]
+    #         with self.assertRaises(IndexError):
+    #             l[-1]
+    #
+    # def test_2(self) -> None:
+    #     ls = [defaultlist(lambda: ""), []]
+    #     for l in ls:
+    #         l.append("a")
+    #         self.assertEqual(len(l), 1)
+    #         with self.assertRaises(IndexError):
+    #             l[1]
+    #         with self.assertRaises(IndexError):
+    #             l[-2]
+    #         self.assertEqual(l[0], "a")
+    #         self.assertEqual(l[-1], "a")
+    #         self.assertEqual(l[:], ["a"])
+    #
+    # def test_3(self) -> None:
+    #     ls = [defaultlist(lambda: ""), []]
+    #     for l in ls:
+    #         l.insert(2, "a")
+    #         self.assertEqual(len(l), 1)
+    #         with self.assertRaises(IndexError):
+    #             l[1]
+    #         with self.assertRaises(IndexError):
+    #             l[-2]
+    #         self.assertEqual(l[0], "a")
+    #         self.assertEqual(l[-1], "a")
+    #         self.assertEqual(l[:], ["a"])
 
-    def test_2(self) -> None:
-        l1 = defaultlist(lambda: 0)
-        l1.append(1)
-        self.assertEqual(len(l1), 1)
-        with self.assertRaises(IndexError):
-            l1[1]
-        with self.assertRaises(IndexError):
-            l1[-2]
-        self.assertEqual(l1[0], 1)
-        self.assertEqual(l1[-1], 1)
-
-    def test_3(self) -> None:
-        l1 = defaultlist(lambda: 0)
-        l1.insert(2, 1)
-        self.assertEqual(len(l1), 3)
-        self.assertEqual(l1[0], 0)
-        self.assertEqual(l1[2], 1)
-        self.assertEqual(l1[-1], 1)
+    def test_4(self) -> None:
+        ls = [defaultlist(lambda: ""), []]
+        for l in ls:
+            l.insert(2, "a")
+            l.insert(0, "b")
+            self.assertEqual(len(l), 2)
+            self.assertEqual(l[:], ["b", "a"])

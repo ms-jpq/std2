@@ -1,6 +1,14 @@
 from collections import defaultdict
 from collections.abc import MutableSequence
-from typing import Callable, Generic, Iterable, SupportsIndex, TypeVar, cast
+from typing import (
+    Callable,
+    Generic,
+    Iterable,
+    MutableMapping,
+    SupportsIndex,
+    TypeVar,
+    cast,
+)
 
 _T = TypeVar("_T")
 
@@ -9,7 +17,7 @@ class defaultlist(MutableSequence, Generic[_T]):
     def __init__(self, default_factory: Callable[[], _T]) -> None:
         self._len = 0
         self.default_factory = default_factory
-        self._defaultdict = defaultdict(default_factory)
+        self._defaultdict: MutableMapping[int, _T] = defaultdict(default_factory)
 
     def _idx(self, index: SupportsIndex) -> int:
         i = index.__index__()
@@ -48,5 +56,12 @@ class defaultlist(MutableSequence, Generic[_T]):
 
     def insert(self, index: SupportsIndex, value: _T) -> None:
         idx = self._idx(index)
-        self._len = max(self._len, idx + 1)
-        self._defaultdict[idx] = value
+        if idx >= self._len:
+            self._defaultdict[self._len] = value
+        else:
+            for i in range(self._len, idx, -1):
+                if (i - 1) in self._defaultdict:
+                    self._defaultdict[i] = self._defaultdict[i - 1]
+            self._defaultdict[idx] = value
+
+        self._len = self._len + 1
