@@ -7,7 +7,9 @@ from typing import (
     MutableMapping,
     SupportsIndex,
     TypeVar,
+    Union,
     cast,
+    overload,
 )
 
 _T = TypeVar("_T")
@@ -28,30 +30,46 @@ class defaultlist(MutableSequence, Generic[_T]):
     def __len__(self) -> int:
         return self._len
 
-    def __getitem__(self, index: slice | SupportsIndex) -> MutableSequence[_T]:
+    @overload
+    def __getitem__(self, index: SupportsIndex) -> _T: ...
+    @overload
+    def __getitem__(self, index: slice) -> MutableSequence[_T]: ...
+    def __getitem__(
+        self, index: Union[slice, SupportsIndex]
+    ) -> Union[MutableSequence[_T], _T]:
         if isinstance(index, slice):
             return [self._defaultdict[idx] for idx in range(*index.indices(self._len))]
         else:
             idx = self._idx(index)
             if idx >= self._len:
-                raise IndexError
+                raise IndexError()
             return cast(MutableSequence[_T], self._defaultdict[idx])
 
-    def __setitem__(self, index: slice | SupportsIndex, value: Iterable[_T]) -> None:
+    @overload
+    def __setitem__(self, index: SupportsIndex, value: _T) -> None: ...
+    @overload
+    def __setitem__(self, index: slice, value: Iterable[_T]) -> None: ...
+    def __setitem__(
+        self, index: Union[slice, SupportsIndex], value: Union[Iterable[_T], _T]
+    ) -> None:
         if isinstance(index, slice):
-            for idx, val in zip(range(*index.indices(self._len)), value):
+            for idx, val in zip(
+                range(*index.indices(self._len)), cast(Iterable[_T], value)
+            ):
                 self._len = max(self._len, idx + 1)
                 self._defaultdict[idx] = val
         else:
             idx = self._idx(index)
             self._defaultdict[idx] = cast(_T, value)
 
-    def __delitem__(self, index: slice | SupportsIndex) -> None:
+    def __delitem__(self, index: Union[slice, SupportsIndex]) -> None:
         if isinstance(index, slice):
             for idx in range(*index.indices(self._len)):
                 del self._defaultdict[idx]
         else:
             idx = self._idx(index)
+            if idx >= self._len:
+                raise IndexError()
             del self._defaultdict[idx]
 
     def insert(self, index: SupportsIndex, value: _T) -> None:
