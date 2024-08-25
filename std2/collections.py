@@ -8,6 +8,7 @@ from typing import (
     MutableMapping,
     MutableSequence,
     SupportsIndex,
+    Tuple,
     TypeVar,
     Union,
     cast,
@@ -55,16 +56,20 @@ class defaultlist(MS, Generic[_T]):
         self, index: Union[slice, SupportsIndex], value: Union[Iterable[_T], _T]
     ) -> None:
         if isinstance(index, slice):
-            for idx, val in zip(
+            loop: Iterable[Tuple[int, _T]] = zip(
                 chain(range(*index.indices(self._len)), count(self._len)),
                 cast(Iterable[_T], value),
-            ):
-                self._len = max(self._len, idx + 1)
-                self._defaultdict[idx] = val
+            )
+            if index.start is None and index.stop is None:
+                self._len = 0
+                self._defaultdict.clear()
         else:
             idx = self._idx(index)
+            loop = ((idx, cast(_T, value)),)
+
+        for idx, val in loop:
             self._len = max(self._len, idx + 1)
-            self._defaultdict[idx] = cast(_T, value)
+            self._defaultdict[idx] = val
 
     def __delitem__(self, index: Union[slice, SupportsIndex]) -> None:
         if isinstance(index, slice):
