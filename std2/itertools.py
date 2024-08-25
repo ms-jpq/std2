@@ -82,3 +82,19 @@ class deiter(Iterator[_T]):
 
     def push_back(self, *item: _T) -> None:
         self._s.extend(reversed(item))
+
+
+def fuse_ranges(ranges: Sequence[range]) -> Iterator[range]:
+    if not ranges:
+        return
+
+    nxt, *ordered = sorted(ranges, key=lambda x: (x.start, x.stop))
+    current_start, current_stop = nxt.start, nxt.stop
+
+    for nxt in ordered:
+        if nxt.start > current_stop:
+            yield range(current_start, current_stop)
+            current_start, current_stop = nxt.start, nxt.stop
+        else:
+            current_stop = max(current_stop, nxt.stop)
+    yield range(current_start, current_stop)
