@@ -1,10 +1,12 @@
 from collections import defaultdict
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence as MS
+from itertools import chain, count
 from typing import (
     Callable,
     Generic,
     Iterable,
     MutableMapping,
+    MutableSequence,
     SupportsIndex,
     TypeVar,
     Union,
@@ -15,7 +17,7 @@ from typing import (
 _T = TypeVar("_T")
 
 
-class defaultlist(MutableSequence, Generic[_T]):
+class defaultlist(MS, Generic[_T]):
     def __init__(self, default_factory: Callable[[], _T]) -> None:
         self._len = 0
         self.default_factory = default_factory
@@ -54,12 +56,14 @@ class defaultlist(MutableSequence, Generic[_T]):
     ) -> None:
         if isinstance(index, slice):
             for idx, val in zip(
-                range(*index.indices(self._len)), cast(Iterable[_T], value)
+                chain(range(*index.indices(self._len)), count(self._len)),
+                cast(Iterable[_T], value),
             ):
                 self._len = max(self._len, idx + 1)
                 self._defaultdict[idx] = val
         else:
             idx = self._idx(index)
+            self._len = max(self._len, idx + 1)
             self._defaultdict[idx] = cast(_T, value)
 
     def __delitem__(self, index: Union[slice, SupportsIndex]) -> None:

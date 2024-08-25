@@ -52,3 +52,11 @@ class DefaultList(TestCase):
             l1.insert(1, "d")
             self.assertEqual(len(l1), len(l2))
             self.assertEqual(l1[:], l2)
+
+    def test_5(self) -> None:
+        ls = [defaultlist(lambda: ""), []]
+        l2 = ["a", "b", "c"]
+        for l1 in ls:
+            l1[:] = ["a", "b", "c"]
+            self.assertEqual(len(l1), len(l2))
+            self.assertEqual(l1[:], l2)
