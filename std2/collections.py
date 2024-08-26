@@ -61,8 +61,7 @@ class defaultlist(MS, Generic[_T]):
                 cast(Iterable[_T], value),
             )
             if index.start is None and index.stop is None:
-                self._len = 0
-                self._defaultdict.clear()
+                self.clear()
             elif index.start is None:
                 for idx in range(0, index.stop, index.step):
                     del self._defaultdict[idx]
@@ -87,6 +86,10 @@ class defaultlist(MS, Generic[_T]):
             if idx >= self._len:
                 raise IndexError()
             del self._defaultdict[idx]
+
+    def clear(self) -> None:
+        self._len = 0
+        self._defaultdict.clear()
 
     def insert(self, index: SupportsIndex, value: _T) -> None:
         idx = self._idx(index)

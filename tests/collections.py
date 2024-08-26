@@ -56,7 +56,7 @@ class DefaultList(TestCase):
             self.assertEqual(l1[:], l2)
 
     def test_5(self) -> None:
-        for l in (tuple(), ("e", "d"), ("e", "d", "f"), ("e", "d", "f", "g")):
+        for l in ([], ["e", "d"], ["e", "d", "f"], ["e", "d", "f", "g"]):
             l0 = defaultlist(lambda: "")
             l0[:] = l
             ls = [l0, []]
