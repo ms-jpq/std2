@@ -34,16 +34,52 @@ class DoubleEndedIterator(TestCase):
 
 class FuseRanges(TestCase):
     def test_1(self) -> None:
-        t1 = (range(1, 3), range(3, 5))
+        t1 = (
+            range(1, 3),
+            range(3, 5),
+        )
         t2 = tuple(fuse_ranges(t1))
-        self.assertEqual(t2, (range(1, 5),))
+        t3 = (range(1, 5),)
+        self.assertEqual(t2, t3)
 
     def test_2(self) -> None:
-        t1 = (range(1, 2), range(3, 5))
+        t1 = (
+            range(1, 2),
+            range(3, 5),
+        )
         t2 = tuple(fuse_ranges(t1))
-        self.assertEqual(t2, (range(1, 2), range(3, 5)))
+        t3 = (
+            range(1, 2),
+            range(3, 5),
+        )
+        self.assertEqual(t2, t3)
 
     def test_3(self) -> None:
-        t1 = (range(1, 2), range(3, 5), range(4, 6))
+        t1 = (
+            range(1, 2),
+            range(3, 5),
+            range(4, 6),
+        )
         t2 = tuple(fuse_ranges(t1))
-        self.assertEqual(t2, (range(1, 2), range(3, 6)))
+        t3 = (
+            range(1, 2),
+            range(3, 6),
+        )
+        self.assertEqual(t2, t3)
+
+    def test_4(self) -> None:
+        t1 = (
+            range(1, 2),
+            range(3, 5),
+            range(4, 6),
+            range(9, 10),
+            range(10, 11),
+            range(9, 11),
+        )
+        t2 = tuple(fuse_ranges(t1))
+        t3 = (
+            range(1, 2),
+            range(3, 6),
+            range(9, 11),
+        )
+        self.assertEqual(t2, t3)
