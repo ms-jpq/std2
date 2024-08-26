@@ -63,6 +63,13 @@ class defaultlist(MS, Generic[_T]):
             if index.start is None and index.stop is None:
                 self._len = 0
                 self._defaultdict.clear()
+            elif index.start is None:
+                for idx in range(0, index.stop, index.step):
+                    del self._defaultdict[idx]
+            elif index.stop is None:
+                for idx in range(index.start, self._len, index.step):
+                    del self._defaultdict
+
         else:
             idx = self._idx(index)
             loop = ((idx, cast(_T, value)),)
