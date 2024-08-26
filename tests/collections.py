@@ -1,9 +1,19 @@
-from typing import MutableSequence, Sequence
+from dataclasses import dataclass
+from typing import List, MutableSequence, Optional, Sequence, Tuple
 from unittest import TestCase
 
 from ..std2.collections import defaultlist
 
 _SMS = Sequence[MutableSequence[str]]
+
+_Into = Tuple[Optional[int], Optional[int], Optional[int], Sequence[str]]
+
+
+@dataclass(frozen=True)
+class _TestCase:
+    expected: List[str]
+    into: Sequence[_Into]
+    debug: bool = False
 
 
 class DefaultList(TestCase):
@@ -23,6 +33,7 @@ class DefaultList(TestCase):
         l2 = ["a"]
         for l1 in ls:
             l1.append("a")
+            self.assertIn("a", l1)
             self.assertEqual(len(l1), 1)
             with self.assertRaises(IndexError):
                 l1[1]
@@ -56,28 +67,77 @@ class DefaultList(TestCase):
             self.assertEqual(l1[:], l2)
 
     def test_5(self) -> None:
-        for l in ([], ["e", "d"], ["e", "d", "f"], ["e", "d", "f", "g"]):
-            l0 = defaultlist(lambda: "")
-            l0[:] = l
-            ls = [l0, []]
-            l2 = ["a", "b", "c"]
-            for l1 in ls:
-                l1[:] = ["a", "b", "c"]
-                self.assertEqual(len(l1), len(l2))
-                self.assertEqual(l1[:], l2)
-
-    def test_6(self) -> None:
-        for (i, j, k), l in (
-            ((0, 0, None), ()),
-            ((0, 0, None), ("e", "d")),
-            ((0, 0, None), ("e", "d", "f")),
-            ((0, 0, None), ("e", "d", "f", "g")),
+        for case in (
+            _TestCase(into=((None, None, None, ()),), expected=[]),
+            _TestCase(
+                into=((None, None, None, ("a", "b", "c")),),
+                expected=["a", "b", "c"],
+            ),
+            _TestCase(
+                into=(
+                    (None, None, None, ("a", "b", "c")),
+                    (None, None, None, ("a", "b", "c")),
+                ),
+                expected=["a", "b", "c"],
+            ),
+            _TestCase(
+                into=(
+                    (None, None, None, ("e", "f")),
+                    (None, None, None, ("a", "b", "c")),
+                ),
+                expected=["a", "b", "c"],
+            ),
+            _TestCase(
+                into=(
+                    (None, None, None, ("e", "f", "g", "h")),
+                    (None, None, None, ("a", "b", "c")),
+                ),
+                expected=["a", "b", "c"],
+            ),
+            _TestCase(
+                into=(
+                    (None, None, None, ("e", "f", "g", "h")),
+                    (0, 4, None, ("a", "b", "c")),
+                ),
+                expected=["a", "b", "c"],
+            ),
+            _TestCase(
+                into=(
+                    (None, None, None, ("e", "f", "g", "h")),
+                    (0, 4, 1, ("a", "b", "c")),
+                ),
+                expected=["a", "b", "c"],
+            ),
+            _TestCase(
+                into=(
+                    (None, None, None, ("e", "f", "g", "h")),
+                    (0, 99, None, ("a", "b", "c")),
+                ),
+                expected=["a", "b", "c"],
+            ),
+            _TestCase(
+                into=(
+                    (None, None, None, ("e", "f", "g", "h")),
+                    (0, 99, 1, ("a", "b", "c")),
+                ),
+                expected=["a", "b", "c"],
+            ),
+            # _TestCase(
+            #     into=(
+            #         (None, None, None, ("e", "f", "g", "h", "i")),
+            #         (0, 2, None, ("a", "b", "c")),
+            #     ),
+            #     expected=["a", "b", "c", "g", "h", "i"],
+            #     debug=True,
+            # ),
         ):
-            l0 = defaultlist(lambda: "")
-            l0[i:j:k] = l
-            ls = [l0, []]
-            l2 = ["a", "b", "c"]
-            for l1 in ls:
-                l1[:] = ["a", "b", "c"]
-                self.assertEqual(len(l1), len(l2))
-                self.assertEqual(l1[:], l2)
+            l1 = defaultlist(lambda: "")
+            if case.debug:
+                l1._debug = True
+            l2: MutableSequence[str] = []
+            for i, j, k, into in case.into:
+                l2[i:j:k] = into
+                l1[i:j:k] = into
+
+            self.assertEqual(l2[:], case.expected, case)
+            self.assertEqual(l1[:], case.expected, case)

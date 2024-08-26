@@ -23,6 +23,7 @@ class defaultlist(MS, Generic[_T]):
         self._len = 0
         self.default_factory = default_factory
         self._defaultdict: MutableMapping[int, _T] = defaultdict(default_factory)
+        self._debug = False
 
     def _idx(self, index: SupportsIndex) -> int:
         i = index.__index__()
@@ -56,26 +57,22 @@ class defaultlist(MS, Generic[_T]):
         self, index: Union[slice, SupportsIndex], value: Union[Iterable[_T], _T]
     ) -> None:
         if isinstance(index, slice):
+            for idx in range(*index.indices(self._len)):
+                self._len = self._len - 1
+                assert self._len >= 0
+                del self._defaultdict[idx]
+
+            re = range(*index.indices(self._len))
             loop: Iterable[Tuple[int, _T]] = zip(
-                chain(range(*index.indices(self._len)), count(self._len)),
+                chain(re, count(re.stop)),
                 cast(Iterable[_T], value),
             )
-            if index.start is None and index.stop is None:
-                self.clear()
-            elif index.start is None:
-                for idx in range(0, index.stop, index.step):
-                    del self._defaultdict[idx]
-            elif index.stop is None:
-                for idx in range(index.start, self._len, index.step):
-                    del self._defaultdict
-
         else:
             idx = self._idx(index)
             loop = ((idx, cast(_T, value)),)
 
         for idx, val in loop:
-            self._len = max(self._len, idx + 1)
-            self._defaultdict[idx] = val
+            self.insert(idx, val)
 
     def __delitem__(self, index: Union[slice, SupportsIndex]) -> None:
         if isinstance(index, slice):
@@ -93,12 +90,24 @@ class defaultlist(MS, Generic[_T]):
 
     def insert(self, index: SupportsIndex, value: _T) -> None:
         idx = self._idx(index)
+
         if idx >= self._len:
             self._defaultdict[self._len] = value
         else:
-            for i in range(self._len, idx, -1):
-                if (i - 1) in self._defaultdict:
-                    self._defaultdict[i] = self._defaultdict[i - 1]
-            self._defaultdict[idx] = value
+            re = range(self._len, idx, -1)
+            if self._debug:
+                print(f"insert({index}, {value}) | len: {self._len}")
+                print(re, [*re])
+            for i in re:
+                p = i - 1
+                if p in self._defaultdict:
+                    before = dict(self._defaultdict)
+                    self._defaultdict[i] = self._defaultdict[p]
+                    if self._debug:
+                        print(before, f"{p} -> {i}", dict(self._defaultdict))
+            else:
+                self._defaultdict[idx] = value
+                if self._debug:
+                    print(">>", {**self._defaultdict})
 
         self._len = self._len + 1
