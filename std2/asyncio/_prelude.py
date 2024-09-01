@@ -1,14 +1,16 @@
 import sys
-from asyncio import create_task, gather, get_running_loop, sleep
+from asyncio import get_running_loop, sleep
 from asyncio.futures import Future
 from asyncio.locks import Lock
-from functools import lru_cache, partial
+from asyncio.tasks import Task, create_task, gather
+from functools import lru_cache, partial, wraps
 from logging import Logger
-from typing import Any, Awaitable, Callable, TypeVar
+from typing import Any, Awaitable, Callable, Coroutine, Optional, TypeVar, cast
 
 from ..logging import log_exc
 
 _T = TypeVar("_T")
+_F = TypeVar("_F", bound=Callable[..., Coroutine])
 
 
 async def pure(x: _T) -> _T:
@@ -40,6 +42,26 @@ def Locker() -> Callable[[], Lock]:
         return Lock()
 
     return lock
+
+
+def Cancellation() -> Callable[[_F], _F]:
+    lock = Locker()
+    task: Optional[Task] = None
+
+    def cont(fn: _F) -> _F:
+        @wraps(fn)
+        async def wrapped(*__a: Any, **__kw: Any) -> Any:
+            nonlocal task
+            async with lock():
+                if t := task:
+                    await cancel(t)
+                t = create_task(fn(*__a, **__kw))
+                task = t
+            return await t
+
+        return cast(_F, wrapped)
+
+    return cont
 
 
 if sys.version_info < (3, 9):
