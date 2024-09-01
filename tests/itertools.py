@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from ..std2.itertools import batched_into, deiter, fuse_ranges
+from ..std2.itertools import batched_into, deiter, intervals
 
 
 class ChunkInto(TestCase):
@@ -32,13 +32,13 @@ class DoubleEndedIterator(TestCase):
         self.assertEqual(t1, t2)
 
 
-class FuseRanges(TestCase):
+class Intervals(TestCase):
     def test_1(self) -> None:
         t1 = (
             range(1, 3),
             range(3, 5),
         )
-        t2 = tuple(fuse_ranges(t1))
+        t2 = tuple(intervals(t1))
         t3 = (range(1, 5),)
         self.assertEqual(t2, t3)
 
@@ -47,7 +47,7 @@ class FuseRanges(TestCase):
             range(1, 2),
             range(3, 5),
         )
-        t2 = tuple(fuse_ranges(t1))
+        t2 = tuple(intervals(t1))
         t3 = (
             range(1, 2),
             range(3, 5),
@@ -60,7 +60,7 @@ class FuseRanges(TestCase):
             range(3, 5),
             range(4, 6),
         )
-        t2 = tuple(fuse_ranges(t1))
+        t2 = tuple(intervals(t1))
         t3 = (
             range(1, 2),
             range(3, 6),
@@ -76,7 +76,7 @@ class FuseRanges(TestCase):
             range(10, 11),
             range(9, 11),
         )
-        t2 = tuple(fuse_ranges(t1))
+        t2 = tuple(intervals(t1))
         t3 = (
             range(1, 2),
             range(3, 6),

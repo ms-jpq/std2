@@ -84,7 +84,7 @@ class deiter(Iterator[_T]):
         self._s.extend(reversed(item))
 
 
-def fuse_ranges(ranges: Sequence[range]) -> Iterator[range]:
+def intervals(ranges: Sequence[range]) -> Iterator[range]:
     if not ranges:
         return
 

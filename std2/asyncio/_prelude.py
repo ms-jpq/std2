@@ -1,7 +1,8 @@
 import sys
 from asyncio import create_task, gather, get_running_loop, sleep
 from asyncio.futures import Future
-from functools import partial
+from asyncio.locks import Lock
+from functools import lru_cache, partial
 from logging import Logger
 from typing import Any, Awaitable, Callable, TypeVar
 
@@ -31,6 +32,14 @@ def cancel(*fs: Future) -> Future:
             await sleep(0)
 
     return gather(*map(cont, fs))
+
+
+def Locker() -> Callable[[], Lock]:
+    @lru_cache(maxsize=None)
+    def lock() -> Lock:
+        return Lock()
+
+    return lock
 
 
 if sys.version_info < (3, 9):
