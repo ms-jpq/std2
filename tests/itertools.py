@@ -1,6 +1,7 @@
+from collections.abc import Mapping, Sequence
 from unittest import TestCase
 
-from ..std2.itertools import batched_into, deiter, intervals
+from ..std2.itertools import batched_into, deiter, intervals, merged
 
 
 class ChunkInto(TestCase):
@@ -83,3 +84,29 @@ class Intervals(TestCase):
             range(9, 11),
         )
         self.assertEqual(t2, t3)
+
+
+class Merged(TestCase):
+    def test_1(self) -> None:
+        cases: Mapping[Sequence[int], Sequence[int]] = {
+            (): (),
+            (1,): [1],
+            (1, 2): [1, 2],
+            (1, 1): [2],
+            (1, 1, 1): [2, 1],
+            (1, 1, 2): [4],
+            (1, 1, 2, 4): [8],
+            (1, 1, 2, 4, 1): [8, 1],
+            (1, 1, 2, 1, 1): [4, 2],
+            (1, 1, 2, 1, 1, 2, 4): [4, 8],
+            (1, 2, 2, 1, 1, 3, 4, 2, 2): [1, 4, 2, 3, 4, 4],
+            (2, 2, 2, 2): [4, 4],
+            (1, 3, 3, 3, 5, 5): [1, 6, 3, 10],
+            (0, 0, 1, 1, 1, 1): [0, 2, 2],
+            (5, 5, 5, 3, 3, 7, 7, 7, 7): [10, 5, 6, 14, 14],
+            (10, 10, 10, 5, 5, 5, 5): [20, 10, 10, 10],
+        }
+
+        for test, expect in cases.items():
+            actual = merged(test, merge=lambda a, b: a + b if a == b else None)
+            self.assertEqual(actual, expect)

@@ -1,4 +1,5 @@
 import sys
+from collections import deque
 from itertools import islice
 from math import ceil
 from multiprocessing import cpu_count
@@ -10,6 +11,7 @@ from typing import (
     Mapping,
     MutableMapping,
     MutableSequence,
+    Optional,
     Sequence,
     Tuple,
     TypeVar,
@@ -117,3 +119,23 @@ def intervals(ranges: Sequence[range]) -> Iterator[range]:
         else:
             current_stop = max(current_stop, nxt.stop)
     yield range(current_start, current_stop)
+
+
+def merged(it: Iterable[_T], merge: Callable[[_T, _T], Optional[_T]]) -> Sequence[_T]:
+    if not (acc := deque(it)):
+        return ()
+
+    merged: MutableSequence[_T] = []
+    prev = acc.popleft()
+
+    while acc:
+        curr = acc.popleft()
+        if (m := merge(prev, curr)) is not None:
+            prev = m
+        else:
+            merged.append(prev)
+            prev = curr
+
+    merged.append(prev)
+
+    return merged

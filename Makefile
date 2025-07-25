@@ -54,4 +54,4 @@ fmt: .venv/bin/mypy
 	.venv/bin/black -- .
 
 test:
-	python3 -m tests
+	python3 -m tests --
